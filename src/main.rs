@@ -3,6 +3,7 @@
 
 mod game;
 mod vertex;
+mod textures;
 
 use std::io::Cursor;
 
@@ -10,6 +11,16 @@ use game::Game;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 use vertex::Vertex;
+
+#[macro_export]
+macro_rules! const_static_ptr {
+	( $t:ty, $x:expr ) => {
+		{
+			const OUT: $t = $x;
+			&OUT
+		}
+	};
+}
 
 fn main() {
 	// Game
