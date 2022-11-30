@@ -26,8 +26,8 @@ fn main() {
 	let mut window_size = [window_size.width, window_size.height];
 
 	// Create program
-	let vertex_shader = include_str!("shader/vertex_shader.glsl");
-	let fragment_shader = include_str!("shader/fragment_shader.glsl");
+	let vertex_shader = include_str!("shaders/vertex_shader.glsl");
+	let fragment_shader = include_str!("shaders/fragment_shader.glsl");
 	let program = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
 
 	// Behavior
@@ -57,10 +57,10 @@ fn main() {
 				WindowEvent::Resized(size) => window_size = [size.width, size.height],
 				WindowEvent::KeyboardInput { device_id: _, input, .. } => {
 					if input.virtual_keycode == Some(VirtualKeyCode::F11) && input.state == ElementState::Released {
-						match display.gl_window().window().fullscreen() {
-							Some(_) => display.gl_window().window().set_fullscreen(None),
-							None => display.gl_window().window().set_fullscreen(Some(Fullscreen::Borderless(None))),
-						}
+						display.gl_window().window().set_fullscreen(match display.gl_window().window().fullscreen() {
+							Some(_) => None,
+							None => Some(Fullscreen::Borderless(None)),
+						})
 					}
 				}
 				_  => {}
@@ -72,22 +72,34 @@ fn main() {
 				frame.clear_color(0., 0., 0., 0.);
 
 				// Get tris
+				let mut vertices = vec![
+					Vertex { position: [0., 0.], texture_position: [0., 1.], color: [0., 0., 0., 0.] },
+					Vertex { position: [1., 0.], texture_position: [1. / 16., 1.], color: [0., 0., 0., 0.] },
+					Vertex { position: [0., 1.], texture_position: [0., 15. / 16.], color: [0., 0., 0., 0.] },
+					Vertex { position: [1., 0.], texture_position: [1. / 16., 1.], color: [0., 0., 0., 0.] },
+					Vertex { position: [1., 1.], texture_position: [1. / 16., 15. / 16.], color: [0., 0., 0., 0.] },
+					Vertex { position: [0., 1.], texture_position: [0., 15. / 16.], color: [0., 0., 0., 0.] },
+				];
 				let mut tris: Vec<Vertex> = Vec::new();
+				tris.append(&mut vertices);
 
 				let indices = NoIndices(PrimitiveType::TrianglesList);
 
 				// Draw tris
-				let gui_vertex_buffer = VertexBuffer::new(&display, &tris).unwrap();
-				let gui_uniforms = glium::uniform! {
+				let vertex_buffer = VertexBuffer::new(&display, &tris).unwrap();
+				let aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
+				let offset_x = 0.;
+				let offset_y = 0.;
+				let uniforms = glium::uniform! {
 					matrix: [
-						[-1. / window_size[0] as f32 * 2. * window_size[1] as f32, 0., 0., 0.],
-						[0., 1. / 16., 0., 0.],
+						[1. / 8. / aspect_ratio, 0., 0., 0.],
+						[0., -1. / 8., 0., 0.],
 						[0., 0., 0., 0.],
-						[-1., 1., 0., 1.0f32],
+						[-1. / 16. / aspect_ratio - (offset_x / aspect_ratio / 8.), 1. / 16. + (offset_y / 8.), 0., 1.0f32],
 					],
 					texture_sampler: Sampler(&texture, behavior),
 				};
-				frame.draw(&gui_vertex_buffer, &indices, &program, &gui_uniforms, &draw_parameters).unwrap();
+				frame.draw(&vertex_buffer, &indices, &program, &uniforms, &draw_parameters).unwrap();
 
 				frame.finish().unwrap();
 			}
