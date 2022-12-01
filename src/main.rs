@@ -11,6 +11,7 @@ use game::Game;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 use vertex::Vertex;
+use textures::Texture;
 
 #[macro_export]
 macro_rules! const_static_ptr {
@@ -59,6 +60,9 @@ fn main() {
 	let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
 	let texture = glium::texture::SrgbTexture2d::new(&display, image).unwrap();
 
+	// Vars
+	let mut player_pos = [0i64; 2];
+
 	// Game loop
 	events_loop.run(move |ref event, _, control_flow| {
 		*control_flow = ControlFlow::Poll;
@@ -83,24 +87,29 @@ fn main() {
 				frame.clear_color(0., 0., 0., 0.);
 
 				// Get tris
-				let mut vertices = vec![
-					Vertex { position: [0., 0.], texture_position: [0., 1.], color: [0., 0., 0., 0.] },
-					Vertex { position: [1., 0.], texture_position: [1. / 16., 1.], color: [0., 0., 0., 0.] },
-					Vertex { position: [0., 1.], texture_position: [0., 15. / 16.], color: [0., 0., 0., 0.] },
-					Vertex { position: [1., 0.], texture_position: [1. / 16., 1.], color: [0., 0., 0., 0.] },
-					Vertex { position: [1., 1.], texture_position: [1. / 16., 15. / 16.], color: [0., 0., 0., 0.] },
-					Vertex { position: [0., 1.], texture_position: [0., 15. / 16.], color: [0., 0., 0., 0.] },
-				];
-				let mut tris: Vec<Vertex> = Vec::new();
-				tris.append(&mut vertices);
+				let mut vertices: Vec<Vertex> = Vec::new();
+				/*vertices.extend(Texture::Grass.to_tris([0, 0], [0, 0]));
+				vertices.extend(Texture::RedThing.to_tris([1, 1], [0, 0]));
+				vertices.extend(Texture::GreenThing.to_tris([2, 2], [0, 0]));
+				vertices.extend(Texture::BlueThing.to_tris([3, 3], [0, 0]));
+				vertices.extend(Texture::Water.to_tris([4, 4], [0, 0]));*/
+				for y in -32..32 {
+					for x in -20..20 {
+						let mut texture = Texture::Grass;
+						if x == 0 || y == 0 {
+							texture = Texture::Water;
+						}
+						vertices.extend(texture.to_tris([x, y], [0, 0]));
+					}
+				}
 
 				let indices = NoIndices(PrimitiveType::TrianglesList);
 
 				// Draw tris
-				let vertex_buffer = VertexBuffer::new(&display, &tris).unwrap();
+				let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();
 				let aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
-				let offset_x = 0.;
-				let offset_y = 0.;
+				let offset_x = player_pos[0] as f32;
+				let offset_y = player_pos[1] as f32;
 				let uniforms = glium::uniform! {
 					matrix: [
 						[1. / 8. / aspect_ratio, 0., 0., 0.],
