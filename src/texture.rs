@@ -1,4 +1,4 @@
-use crate::{const_static_ptr, vertex::Vertex};
+use crate::{const_static_ptr, vertex::Vertex, world_pos_to_render_pos};
 
 const TEXTURE_SHEET_SIZE: [u32; 2] = [256, 256];
 
@@ -30,8 +30,7 @@ impl Texture {
 	pub fn to_tris(self, tile_pos: [i64; 2], subtile_pos: [i8; 2]) -> [Vertex; 6] {
 		let texture_sheet_points = self.get_texture_sheet_points();
 
-		let start_x = tile_pos[0] as f32 + subtile_pos[0] as f32 / 16.;
-		let start_y = tile_pos[1] as f32 + subtile_pos[1] as f32 / 16.;
+		let [start_x, start_y] = world_pos_to_render_pos(tile_pos, subtile_pos);
 		let end_x = start_x + texture_sheet_points[2] as f32 / 16.;
 		let end_y = start_y + texture_sheet_points[3] as f32 / 16.;
 

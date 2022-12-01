@@ -1,17 +1,20 @@
 // Don't open a console window when the program starts
 //#![windows_subsystem = "windows"]
 
-mod game;
+mod world;
 mod vertex;
-mod textures;
+mod texture;
+mod entity;
+mod direction;
+mod input;
+mod game_key;
 
-use std::io::Cursor;
+use std::{io::Cursor, time::Instant};
 
-use game::Game;
+use input::Input;
+use world::World;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
-use vertex::Vertex;
-use textures::Texture;
 
 #[macro_export]
 macro_rules! const_static_ptr {
@@ -23,10 +26,16 @@ macro_rules! const_static_ptr {
 	};
 }
 
+pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
+	[pos[0] as f32 + offset[0] as f32 / 16., pos[1] as f32 + offset[1] as f32 / 16.]
+}
+
+const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
+
 fn main() {
 	// Game
-
-	let mut game = Game::new();
+	let mut world = Some(World::new());
+	let mut input = Input::new();
 
 	// Window
 	let events_loop = EventLoop::new();
@@ -61,7 +70,8 @@ fn main() {
 	let texture = glium::texture::SrgbTexture2d::new(&display, image).unwrap();
 
 	// Vars
-	let mut player_pos = [0i64; 2];
+	let mut last_frame_time = Instant::now();
+	let mut time_overflow: u128 = 0;
 
 	// Game loop
 	events_loop.run(move |ref event, _, control_flow| {
@@ -70,56 +80,55 @@ fn main() {
 			Event::WindowEvent { event: window_event, .. } => match window_event {
 				WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
 				WindowEvent::Resized(size) => window_size = [size.width, size.height],
-				WindowEvent::KeyboardInput { device_id: _, input, .. } => {
-					if input.virtual_keycode == Some(VirtualKeyCode::F11) && input.state == ElementState::Released {
+				WindowEvent::KeyboardInput { device_id: _, input: key_input, .. } => {
+					if key_input.virtual_keycode == Some(VirtualKeyCode::F11) && key_input.state == ElementState::Released {
 						display.gl_window().window().set_fullscreen(match display.gl_window().window().fullscreen() {
 							Some(_) => None,
 							None => Some(Fullscreen::Borderless(None)),
 						})
+					}
+					else {
+						input.key_press(key_input);
 					}
 				}
 				_  => {}
 			}
 			// Draw
 			Event::MainEventsCleared => {
+				// World ticks
+				let now = Instant::now();
+				let time_for_ticks = now.duration_since(last_frame_time).as_nanos() + time_overflow;
+				last_frame_time = now;
+				time_overflow = time_for_ticks % NANOSECONDS_PER_TICK;
+				if let Some(world) = &mut world {
+					let ticks_to_execute = 5.min(time_for_ticks / NANOSECONDS_PER_TICK);
+					for _ in 0..ticks_to_execute {
+						world.tick(&input);
+					}
+				}
+
 				// Get frame for drawing on
 				let mut frame = display.draw();
 				frame.clear_color(0., 0., 0., 0.);
 
-				// Get tris
-				let mut vertices: Vec<Vertex> = Vec::new();
-				/*vertices.extend(Texture::Grass.to_tris([0, 0], [0, 0]));
-				vertices.extend(Texture::RedThing.to_tris([1, 1], [0, 0]));
-				vertices.extend(Texture::GreenThing.to_tris([2, 2], [0, 0]));
-				vertices.extend(Texture::BlueThing.to_tris([3, 3], [0, 0]));
-				vertices.extend(Texture::Water.to_tris([4, 4], [0, 0]));*/
-				for y in -32..32 {
-					for x in -20..20 {
-						let mut texture = Texture::Grass;
-						if x == 0 || y == 0 {
-							texture = Texture::Water;
-						}
-						vertices.extend(texture.to_tris([x, y], [0, 0]));
-					}
+				// Render world
+				if let Some(world) = &world {
+					let (vertices, camera_center) = world.render();
+					let indices = NoIndices(PrimitiveType::TrianglesList);
+					
+					let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();
+					let aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
+					let uniforms = glium::uniform! {
+						matrix: [
+							[1. / 8. / aspect_ratio, 0., 0., 0.],
+							[0., -1. / 8., 0., 0.],
+							[0., 0., 0., 0.],
+							[-1. / 16. / aspect_ratio - (camera_center[0] / aspect_ratio / 8.), 1. / 16. + (camera_center[1] / 8.), 0., 1.0f32],
+						],
+						texture_sampler: Sampler(&texture, behavior),
+					};
+					frame.draw(&vertex_buffer, &indices, &program, &uniforms, &draw_parameters).unwrap();
 				}
-
-				let indices = NoIndices(PrimitiveType::TrianglesList);
-
-				// Draw tris
-				let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();
-				let aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
-				let offset_x = player_pos[0] as f32;
-				let offset_y = player_pos[1] as f32;
-				let uniforms = glium::uniform! {
-					matrix: [
-						[1. / 8. / aspect_ratio, 0., 0., 0.],
-						[0., -1. / 8., 0., 0.],
-						[0., 0., 0., 0.],
-						[-1. / 16. / aspect_ratio - (offset_x / aspect_ratio / 8.), 1. / 16. + (offset_y / 8.), 0., 1.0f32],
-					],
-					texture_sampler: Sampler(&texture, behavior),
-				};
-				frame.draw(&vertex_buffer, &indices, &program, &uniforms, &draw_parameters).unwrap();
 
 				frame.finish().unwrap();
 			}
