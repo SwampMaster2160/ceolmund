@@ -8,6 +8,10 @@ mod entity;
 mod direction;
 mod input;
 mod game_key;
+mod chunk;
+mod chunk_slot;
+mod tile;
+mod tile_stack;
 
 use std::{io::Cursor, time::Instant};
 
