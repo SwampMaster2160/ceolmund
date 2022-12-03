@@ -12,6 +12,8 @@ mod chunk;
 mod chunk_slot;
 mod tile;
 mod tile_stack;
+mod chunk_pool;
+mod tile_movement_type;
 
 use std::{io::Cursor, time::Instant};
 

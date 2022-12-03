@@ -1,6 +1,6 @@
 use rand::{thread_rng, Rng};
 
-use crate::{tile::Tile, vertex::Vertex};
+use crate::{tile::Tile, vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState}};
 
 #[derive(Clone)]
 pub struct TileStack {
@@ -32,7 +32,7 @@ impl TileStack {
 
 	pub fn new() -> Self {
 		let mut rng = thread_rng();
-		let tile = match rng.gen_bool(0.5) {
+		let tile = match rng.gen_bool(0.9) {
 			true => Tile::Grass,
 			false => Tile::Water,
 		};
@@ -40,6 +40,15 @@ impl TileStack {
 			tiles: vec![tile],
 			needs_redrawing: true,
 			extra_vertices: Vec::new(),
+		}
+	}
+
+	pub fn try_move_to(&mut self, entity: &mut Entity) {
+		if let Some(top_tile) = self.tiles.last_mut() {
+			let can_move = top_tile.try_move_to(entity);
+			if can_move {
+				entity.action_state = EntityActionState::Walking(0);
+			}
 		}
 	}
 }

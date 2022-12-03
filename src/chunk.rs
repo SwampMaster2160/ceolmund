@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use crate::{tile_stack::TileStack, vertex::Vertex};
 
 pub struct Chunk {
-	chunk_stacks: [Box<[TileStack; 64]>; 64],
+	pub chunk_stacks: [Box<[TileStack; 64]>; 64],
 	pub basic_vertices: Vec<Vertex>,
 	pub extra_vertices: Vec<Vertex>,
 }
@@ -14,7 +14,7 @@ impl Chunk {
 		let world_y = pos[1] * 64;
 		for y in 0..64 {
 			for x in 0..64 {
-				let tile_stack = &mut self.chunk_stacks[x][y];
+				let tile_stack = &mut self.chunk_stacks[y][x];
 				if tile_stack.needs_redrawing {
 					tile_stack.render(
 						[world_x + x as i64, world_y + y as i64],
@@ -31,8 +31,8 @@ impl Chunk {
 		let mut rng = thread_rng();
 		let x: usize = rng.gen_range(0..64);
 		let y: usize = rng.gen_range(0..64);
-		let stack = &mut self.chunk_stacks[x][y];
-		*stack = TileStack::new();
+		let stack = &mut self.chunk_stacks[y][x];
+		//*stack = TileStack::new();
 	}
 
 	pub fn new() -> Self {
