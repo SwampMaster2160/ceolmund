@@ -76,9 +76,10 @@ impl Entity {
 	}
 
 	pub fn render(&self, vertices_in_out: &mut Vec<Vertex>) {
-		vertices_in_out.extend(Texture::BlueThing.render_entity(self.pos, self.get_subtile_pos(), self.facing, match self.action_state {
-			EntityActionState::Walking(amount) => amount / 8 == 1,
-			_ => false,
+		let texture = self.entity_type.get_texture();
+		vertices_in_out.extend(texture.render_entity(self.pos, self.get_subtile_pos(), self.facing, match self.action_state {
+			EntityActionState::Walking(amount) => amount / 8 + 1,
+			EntityActionState::Idle => 0,
 		}));
 	}
 }

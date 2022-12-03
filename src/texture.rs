@@ -12,6 +12,7 @@ const fn grid_texture(id: u8) -> [u16; 4] {
 pub enum Texture {
 	Grass,
 	Water,
+	Player,
 	RedThing,
 	GreenThing,
 	BlueThing,
@@ -23,6 +24,7 @@ impl Texture {
 		match self {
 			Self::Grass => const_static_ptr!([u16; 4], grid_texture(0)),
 			Self::Water => const_static_ptr!([u16; 4], grid_texture(1)),
+			Self::Player => const_static_ptr!([u16; 4], grid_texture(2)),
 			Self::RedThing => const_static_ptr!([u16; 4], grid_texture(0xF)),
 			Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
@@ -33,6 +35,7 @@ impl Texture {
 		match self {
 			Self::Grass => TextureType::Basic,
 			Self::Water => TextureType::Basic,
+			Self::Player => TextureType::Entity,
 			Self::RedThing => TextureType::Basic,
 			Self::GreenThing => TextureType::Basic,
 			Self::BlueThing => TextureType::Basic,
@@ -43,14 +46,14 @@ impl Texture {
 		self.render_basic(tile_pos, subtile_pos, false, 0)
 	}
 
-	pub fn render_entity(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], direction: Direction4, walk_alt_frame: bool) -> [Vertex; 6] {
+	pub fn render_entity(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], direction: Direction4, walk_alt_frame: u8) -> [Vertex; 6] {
 		match self.get_type() {
 			TextureType::Basic => self.render_basic(tile_pos, subtile_pos, false, 0),
-			TextureType::Entity => self.render_basic(tile_pos, subtile_pos, direction == Direction4::West, walk_alt_frame as u8 + match direction {
+			TextureType::Entity => self.render_basic(tile_pos, subtile_pos, direction == Direction4::West, walk_alt_frame + match direction {
 				Direction4::South => 0,
-				Direction4::North => 2,
-				Direction4::East => 4,
-				Direction4::West => 4,
+				Direction4::North => 3,
+				Direction4::East => 6,
+				Direction4::West => 6,
 			}),
 		}
 	}

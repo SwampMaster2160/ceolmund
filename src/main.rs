@@ -47,7 +47,7 @@ fn main() {
 	// Window
 	let events_loop = EventLoop::new();
 	let window_builder = WindowBuilder::new()
-		.with_inner_size(LogicalSize::new(640u16, 480u16)).with_title("Ceolmund");
+		.with_inner_size(LogicalSize::new(912u16, 512u16)).with_title("Ceolmund");
 	let context_builder = ContextBuilder::new().with_vsync(true);
 	let display = Display::new(window_builder, context_builder, &events_loop).unwrap();
 	let window_size = display.gl_window().window().inner_size();
