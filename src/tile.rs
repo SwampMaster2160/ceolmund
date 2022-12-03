@@ -16,7 +16,7 @@ impl Tile {
 
 	pub fn render(&self, pos: [i64; 2], vertices_in_out: &mut Vec<Vertex>) {
 		match self {
-			_ => vertices_in_out.extend(self.get_texture().to_tris(pos, [0, 0])),
+			_ => vertices_in_out.extend(self.get_texture().render(pos, [0, 0])),
 		}
 	}
 

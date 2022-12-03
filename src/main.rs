@@ -14,6 +14,7 @@ mod tile;
 mod tile_stack;
 mod chunk_pool;
 mod tile_movement_type;
+mod texture_type;
 
 use std::{io::Cursor, time::Instant};
 

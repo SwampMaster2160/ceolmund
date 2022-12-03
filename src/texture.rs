@@ -1,4 +1,6 @@
-use crate::{const_static_ptr, vertex::Vertex, world_pos_to_render_pos};
+use std::mem::swap;
+
+use crate::{const_static_ptr, vertex::Vertex, world_pos_to_render_pos, texture_type::TextureType, direction::Direction4};
 
 const TEXTURE_SHEET_SIZE: [u32; 2] = [256, 256];
 
@@ -27,17 +29,49 @@ impl Texture {
 		}
 	}
 
-	pub fn to_tris(self, tile_pos: [i64; 2], subtile_pos: [i8; 2]) -> [Vertex; 6] {
+	const fn get_type(self) -> TextureType {
+		match self {
+			Self::Grass => TextureType::Basic,
+			Self::Water => TextureType::Basic,
+			Self::RedThing => TextureType::Basic,
+			Self::GreenThing => TextureType::Basic,
+			Self::BlueThing => TextureType::Basic,
+		}
+	}
+
+	pub fn render(self, tile_pos: [i64; 2], subtile_pos: [i8; 2]) -> [Vertex; 6] {
+		self.render_basic(tile_pos, subtile_pos, false, 0)
+	}
+
+	pub fn render_entity(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], direction: Direction4, walk_alt_frame: bool) -> [Vertex; 6] {
+		match self.get_type() {
+			TextureType::Basic => self.render_basic(tile_pos, subtile_pos, false, 0),
+			TextureType::Entity => self.render_basic(tile_pos, subtile_pos, direction == Direction4::West, walk_alt_frame as u8 + match direction {
+				Direction4::South => 0,
+				Direction4::North => 2,
+				Direction4::East => 4,
+				Direction4::West => 4,
+			}),
+		}
+	}
+
+	pub fn render_basic(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], reverse: bool, index: u8) -> [Vertex; 6] {
 		let texture_sheet_points = self.get_texture_sheet_points();
 
 		let [start_x, start_y] = world_pos_to_render_pos(tile_pos, subtile_pos);
 		let end_x = start_x + texture_sheet_points[2] as f32 / 16.;
 		let end_y = start_y + texture_sheet_points[3] as f32 / 16.;
 
-		let texture_x_start = texture_sheet_points[0] as f32 / TEXTURE_SHEET_SIZE[0] as f32;
+		let width = texture_sheet_points[2] as f32 / TEXTURE_SHEET_SIZE[0] as f32;
+		let height = texture_sheet_points[3] as f32 / TEXTURE_SHEET_SIZE[1] as f32;
+
+		let mut texture_x_start = texture_sheet_points[0] as f32 / TEXTURE_SHEET_SIZE[0] as f32 + width * index as f32;
 		let texture_y_start = 1. - (texture_sheet_points[1] as f32 / TEXTURE_SHEET_SIZE[1] as f32);
-		let texture_x_end = texture_x_start + texture_sheet_points[2] as f32 / TEXTURE_SHEET_SIZE[0] as f32;
-		let texture_y_end = texture_y_start - texture_sheet_points[3] as f32 / TEXTURE_SHEET_SIZE[1] as f32;
+		let mut texture_x_end = texture_x_start + width;
+		let texture_y_end = texture_y_start - height;
+		if reverse {
+			swap(&mut texture_x_start, &mut texture_x_end);
+		}
 
 		[
 			Vertex { position: [start_x, start_y], texture_position: [texture_x_start, texture_y_start], color: [0., 0., 0., 0.] },
