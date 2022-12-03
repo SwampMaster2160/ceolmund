@@ -25,11 +25,11 @@ impl World {
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.
-	pub fn render(&self) -> (Vec<Vertex>, [f32; 2]) {
+	pub fn render(&mut self) -> (Vec<Vertex>, [f32; 2]) {
 		let mut vertices = Vec::new();
-		for (pos, chunk_slot) in self.chunks.iter() {
+		for (pos, chunk_slot) in self.chunks.iter_mut() {
 			if let ChunkSlot::Chunk(chunk) = chunk_slot {
-				vertices.extend(chunk.render(*pos));
+				chunk.render(*pos, &mut vertices);
 			}
 		}
 
@@ -49,6 +49,11 @@ impl World {
 		}
 		if input.get_game_key(GameKey::WalkWest) {
 			self.player.pos[0] -= 1;
+		}
+		for (pos, chunk_slot) in self.chunks.iter_mut() {
+			if let ChunkSlot::Chunk(chunk) = chunk_slot {
+				chunk.tick(pos);
+			}
 		}
 	}
 }

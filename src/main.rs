@@ -116,7 +116,7 @@ fn main() {
 				frame.clear_color(0., 0., 0., 0.);
 
 				// Render world
-				if let Some(world) = &world {
+				if let Some(world) = &mut world {
 					let (vertices, camera_center) = world.render();
 					let indices = NoIndices(PrimitiveType::TrianglesList);
 					

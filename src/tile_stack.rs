@@ -4,12 +4,30 @@ use crate::{tile::Tile, vertex::Vertex};
 
 #[derive(Clone)]
 pub struct TileStack {
-	tiles: Vec<Tile>,
+	pub tiles: Vec<Tile>,
+	pub extra_vertices: Vec<Vertex>,
+	pub needs_redrawing: bool,
 }
 
 impl TileStack {
-	pub fn render(&self, pos: [i64; 2]) -> Vec<Vertex> {
-		self.tiles.iter().map(|tile| tile.render(pos)).flatten().collect()
+	pub fn render(&mut self, pos: [i64; 2], basic_vertices: &mut [Vertex; 48]) {
+		let mut vertices = Vec::new();
+		for tile in self.tiles.iter_mut() {
+			tile.render(pos, &mut vertices);
+		}
+		for x in 0..vertices.len().min(48) {
+			basic_vertices[x] = vertices[x];
+		}
+		if vertices.len() < 48 {
+			for x in vertices.len()..48 {
+				basic_vertices[x] = Vertex::new_null();
+			}
+		}
+		self.extra_vertices = Vec::new();
+		for x in vertices.len().min(48)..vertices.len() {
+			self.extra_vertices[x] = vertices[x];
+		}
+		self.needs_redrawing = false;
 	}
 
 	pub fn new() -> Self {
@@ -20,6 +38,8 @@ impl TileStack {
 		};
 		Self {
 			tiles: vec![tile],
+			needs_redrawing: true,
+			extra_vertices: Vec::new(),
 		}
 	}
 }
