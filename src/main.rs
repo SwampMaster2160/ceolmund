@@ -45,7 +45,7 @@ fn main() {
 	let async_runtime = Runtime::new().unwrap();
 
 	// Game
-	let mut world = Some(World::new(&async_runtime));
+	let mut world = Some(World::new());
 	let mut input = Input::new();
 
 	// Window
@@ -114,7 +114,7 @@ fn main() {
 				if let Some(world) = &mut world {
 					let ticks_to_execute = 5.min(time_for_ticks / NANOSECONDS_PER_TICK);
 					for _ in 0..ticks_to_execute {
-						world.tick(&input, &async_runtime);
+						world.tick(&input, &async_runtime, (window_size[0] / window_size[1] * 16) as u64 + 2);
 					}
 				}
 

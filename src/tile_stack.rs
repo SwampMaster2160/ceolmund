@@ -31,16 +31,19 @@ impl TileStack {
 	}
 
 	pub fn new() -> Self {
-		let mut rng = thread_rng();
-		let tile = match rng.gen_bool(0.9) {
-			true => Tile::Grass,
-			false => Tile::Water,
-		};
 		Self {
-			tiles: vec![tile],
+			tiles: Vec::new(),
 			needs_redrawing: true,
 			extra_vertices: Vec::new(),
 		}
+	}
+
+	pub fn generate(&mut self, pos: [i64; 2]) {
+		let mut rng = thread_rng();
+		self.tiles = vec![match rng.gen_bool(0.9) {
+			true => Tile::Grass,
+			false => Tile::Water,
+		}];
 	}
 
 	pub fn try_move_to(&mut self, entity: &mut Entity) {

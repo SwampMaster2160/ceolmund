@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use crate::{tile_stack::TileStack, vertex::Vertex};
 
 pub struct Chunk {
-	pub chunk_stacks: [Box<[TileStack; 64]>; 64],
+	pub tile_stacks: [Box<[TileStack; 64]>; 64],
 	pub basic_vertices: Vec<Vertex>,
 	pub extra_vertices: Vec<Vertex>,
 }
@@ -14,7 +14,7 @@ impl Chunk {
 		let world_y = pos[1] * 64;
 		for y in 0..64 {
 			for x in 0..64 {
-				let tile_stack = &mut self.chunk_stacks[y][x];
+				let tile_stack = &mut self.tile_stacks[y][x];
 				if tile_stack.needs_redrawing {
 					tile_stack.render(
 						[world_x + x as i64, world_y + y as i64],
@@ -31,7 +31,7 @@ impl Chunk {
 		let mut rng = thread_rng();
 		let x: usize = rng.gen_range(0..64);
 		let y: usize = rng.gen_range(0..64);
-		let stack = &mut self.chunk_stacks[y][x];
+		let stack = &mut self.tile_stacks[y][x];
 	}
 
 	pub fn new() -> Self {
@@ -41,13 +41,29 @@ impl Chunk {
 			vertices.push(Vertex::new_null());
 		}
 		Self {
-			chunk_stacks: [(); 64].map(|_| Box::new([(); 64].map(|_| TileStack::new()))),
+			tile_stacks: [(); 64].map(|_| Box::new([(); 64].map(|_| TileStack::new()))),
 			basic_vertices: vertices,
 			extra_vertices: Vec::new(),
 		}
 	}
 
-	pub async fn get() -> Self {
-		Self::new()
+	pub fn generate(&mut self, pos: [i64; 2]) {
+		let tile_x_start = pos[0] * 64;
+		let tile_y_start = pos[1] * 64;
+		for x in 0..64 {
+			for y in 0..64 {
+				self.tile_stacks[y][x].generate([tile_x_start + x as i64, tile_y_start + y as i64]);
+			}
+		}
+	}
+
+	pub async fn get(pos: [i64; 2]) -> Self {
+		let mut out = Self::new();
+		out.generate(pos);
+		out
+	}
+
+	pub async fn free(mut self, pos: [i64; 2]) {
+		
 	}
 }

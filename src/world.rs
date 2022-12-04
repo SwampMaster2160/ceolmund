@@ -8,7 +8,7 @@ pub struct World {
 }
 
 impl World {
-	pub fn new(async_runtime: &Runtime) -> Self {
+	pub fn new() -> Self {
 		Self { 
 			player: Entity {
 				pos: [0, 0],
@@ -16,7 +16,7 @@ impl World {
     			facing: Direction4::South,
 				entity_type: EntityType::Player,
 			},
-			chunk_pool: ChunkPool::new(async_runtime),
+			chunk_pool: ChunkPool::new(),
 		}
 	}
 
@@ -30,8 +30,8 @@ impl World {
 		(vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()))
 	}
 
-	pub fn tick(&mut self, input: &Input, async_runtime: &Runtime) {
-		self.chunk_pool.tick(async_runtime);
+	pub fn tick(&mut self, input: &Input, async_runtime: &Runtime, player_visable_width: u64) {
+		self.chunk_pool.tick(&self.player, player_visable_width, async_runtime);
 		self.player.player_tick(&mut self.chunk_pool, input);
 		self.player.tick(&mut self.chunk_pool);
 	}
