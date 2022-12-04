@@ -1,8 +1,8 @@
-use std::future::Future;
+use tokio::task::JoinHandle;
 
 use crate::chunk::Chunk;
 
 pub enum ChunkSlot {
 	Chunk(Chunk),
-	//Getting(Future<Chunk>),
+	Getting(JoinHandle<Chunk>),
 }
