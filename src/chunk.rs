@@ -1,5 +1,3 @@
-use std::{thread::{sleep_ms, sleep}, time::Duration};
-
 use rand::{thread_rng, Rng};
 
 use crate::{tile_stack::TileStack, vertex::Vertex};
@@ -34,7 +32,6 @@ impl Chunk {
 		let x: usize = rng.gen_range(0..64);
 		let y: usize = rng.gen_range(0..64);
 		let stack = &mut self.chunk_stacks[y][x];
-		//*stack = TileStack::new();
 	}
 
 	pub fn new() -> Self {
@@ -42,9 +39,6 @@ impl Chunk {
 		vertices.reserve(48 * 64 * 64);
 		for _ in 0..(48 * 64 * 64) {
 			vertices.push(Vertex::new_null());
-			/*for _ in 0..1000 {
-				print!("");
-			}*/
 		}
 		Self {
 			chunk_stacks: [(); 64].map(|_| Box::new([(); 64].map(|_| TileStack::new()))),

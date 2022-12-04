@@ -19,6 +19,7 @@ mod texture_type;
 use std::{io::Cursor, time::Instant};
 
 use input::Input;
+use tokio::runtime::Runtime;
 use world::World;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
@@ -40,8 +41,11 @@ pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
 const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
 
 fn main() {
+	//
+	let async_runtime = Runtime::new().unwrap();
+
 	// Game
-	let mut world = Some(World::new());
+	let mut world = Some(World::new(&async_runtime));
 	let mut input = Input::new();
 
 	// Window
@@ -110,7 +114,7 @@ fn main() {
 				if let Some(world) = &mut world {
 					let ticks_to_execute = 5.min(time_for_ticks / NANOSECONDS_PER_TICK);
 					for _ in 0..ticks_to_execute {
-						world.tick(&input);
+						world.tick(&input, &async_runtime);
 					}
 				}
 

@@ -1,4 +1,6 @@
-use crate::{vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, world_pos_to_render_pos, input::Input, game_key::GameKey, chunk_slot::ChunkSlot, chunk::Chunk, chunk_pool::ChunkPool};
+use tokio::runtime::Runtime;
+
+use crate::{vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, world_pos_to_render_pos, input::Input, chunk_pool::ChunkPool};
 
 pub struct World {
 	player: Entity,
@@ -6,7 +8,7 @@ pub struct World {
 }
 
 impl World {
-	pub fn new() -> Self {
+	pub fn new(async_runtime: &Runtime) -> Self {
 		Self { 
 			player: Entity {
 				pos: [0, 0],
@@ -14,7 +16,7 @@ impl World {
     			facing: Direction4::South,
 				entity_type: EntityType::Player,
 			},
-			chunk_pool: ChunkPool::new(),
+			chunk_pool: ChunkPool::new(async_runtime),
 		}
 	}
 
@@ -28,8 +30,8 @@ impl World {
 		(vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()))
 	}
 
-	pub fn tick(&mut self, input: &Input) {
-		self.chunk_pool.tick();
+	pub fn tick(&mut self, input: &Input, async_runtime: &Runtime) {
+		self.chunk_pool.tick(async_runtime);
 		self.player.player_tick(&mut self.chunk_pool, input);
 		self.player.tick(&mut self.chunk_pool);
 	}
