@@ -1,4 +1,4 @@
-use noise::{Perlin, NoiseFn, Worley, PerlinSurflet};
+use noise::{Perlin, NoiseFn, Worley, PerlinSurflet, RidgedMulti, Fbm};
 use rand::{thread_rng, Rng};
 
 use crate::{tile::Tile, vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState}};
@@ -39,12 +39,41 @@ impl TileStack {
 		}
 	}
 
-	pub fn generate(&mut self, pos: [i64; 2], seed: u32) {
-		let perlin = PerlinSurflet::new(seed);
-		let height = perlin.get([pos[0] as f64 / 16., pos[1] as f64 / 16.]);
-		self.tiles = match height > 0. {
-			true => vec![Tile::Grass],
-			false => vec![Tile::Sand, Tile::Water],
+	pub fn generate(&mut self, pos: [i64; 2], world_seed: u32) {
+		let height = Fbm::<Perlin>::new(world_seed).get([pos[0] as f64 / 64., pos[1] as f64 / 64.]);
+		self.tiles = match height {
+			_ if height < -0.1 => vec![Tile::Sand, Tile::Water],
+			_ if height < 0.1 => vec![Tile::Sand],
+			_ if height > 0.9 => vec![Tile::Grass, Tile::PineTree],
+			_ => vec![Tile::Grass],
+		};
+		let decoration_type = Fbm::<Perlin>::new(world_seed + 2).get([pos[0] as f64 * 4., pos[1] as f64 * 4.]);
+		if Fbm::<Perlin>::new(world_seed + 1).get([pos[0] as f64, pos[1] as f64]) > 0.3 {
+			match self.tiles[self.tiles.len() - 1] {
+				Tile::Grass => {
+					self.tiles.push( match decoration_type {
+						_ if decoration_type < -0.25 => Tile::PineTree,
+						_ if decoration_type < 0. => Tile::OakTree,
+						_ if decoration_type < 0.25 => Tile::Flowers,
+						_ => Tile::FlowersRedYellow,
+					});
+				}
+				Tile::Water => {
+					if height > -0.3 {
+						self.tiles.push(Tile::Rocks);
+					}
+					else {
+						self.tiles.insert(self.tiles.len() - 1, Tile::Rocks)
+					}
+					/*self.tiles.push( match decoration_type {
+						_ if decoration_type < -0.25 => Tile::PineTree,
+						_ if decoration_type < 0. => Tile::OakTree,
+						_ if decoration_type < 0.25 => Tile::Flowers,
+						_ => Tile::FlowersRedYellow,
+					});*/
+				}
+				_ => {}
+			}
 		}
 	}
 

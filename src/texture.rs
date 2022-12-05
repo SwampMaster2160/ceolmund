@@ -14,7 +14,11 @@ pub enum Texture {
 	Water,
 	Player,
 	Sand,
-	RedThing,
+	PineTree,
+	OakTree,
+	Flowers,
+	FlowersRedYellow,
+	Rocks,
 	GreenThing,
 	BlueThing,
 }
@@ -27,7 +31,11 @@ impl Texture {
 			Self::Water => const_static_ptr!([u16; 4], grid_texture(1)),
 			Self::Player => const_static_ptr!([u16; 4], grid_texture(2)),
 			Self::Sand => const_static_ptr!([u16; 4], grid_texture(0xB)),
-			Self::RedThing => const_static_ptr!([u16; 4], grid_texture(0xF)),
+			Self::PineTree => const_static_ptr!([u16; 4], grid_texture(0xC)),
+			Self::OakTree => const_static_ptr!([u16; 4], grid_texture(0xD)),
+			Self::Flowers => const_static_ptr!([u16; 4], grid_texture(0xE)),
+			Self::FlowersRedYellow => const_static_ptr!([u16; 4], grid_texture(0xF)),
+			Self::Rocks => const_static_ptr!([u16; 4], grid_texture(0x10)),
 			Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -39,7 +47,11 @@ impl Texture {
 			Self::Water => TextureType::Basic,
 			Self::Player => TextureType::Entity,
 			Self::Sand => TextureType::Basic,
-			Self::RedThing => TextureType::Basic,
+			Self::PineTree => TextureType::Basic,
+			Self::OakTree => TextureType::Basic,
+			Self::Flowers => TextureType::Basic,
+			Self::FlowersRedYellow => TextureType::Basic,
+			Self::Rocks => TextureType::Basic,
 			Self::GreenThing => TextureType::Basic,
 			Self::BlueThing => TextureType::Basic,
 		}
@@ -71,10 +83,10 @@ impl Texture {
 		let width = texture_sheet_points[2] as f32 / TEXTURE_SHEET_SIZE[0] as f32;
 		let height = texture_sheet_points[3] as f32 / TEXTURE_SHEET_SIZE[1] as f32;
 
-		let mut texture_x_start = texture_sheet_points[0] as f32 / TEXTURE_SHEET_SIZE[0] as f32 + width * index as f32;
-		let texture_y_start = 1. - (texture_sheet_points[1] as f32 / TEXTURE_SHEET_SIZE[1] as f32);
-		let mut texture_x_end = texture_x_start + width;
-		let texture_y_end = texture_y_start - height;
+		let mut texture_x_start = texture_sheet_points[0] as f32 / TEXTURE_SHEET_SIZE[0] as f32 + width * index as f32 + 0.0001;
+		let texture_y_start = 1. - (texture_sheet_points[1] as f32 / TEXTURE_SHEET_SIZE[1] as f32) - 0.0001;
+		let mut texture_x_end = texture_x_start + width - 0.0002;
+		let texture_y_end = texture_y_start - height + 0.0001;
 		if reverse {
 			swap(&mut texture_x_start, &mut texture_x_end);
 		}

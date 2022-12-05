@@ -5,6 +5,11 @@ pub enum Tile {
 	Grass,
 	Water,
 	Sand,
+	PineTree,
+	OakTree,
+	Flowers,
+	FlowersRedYellow,
+	Rocks,
 }
 
 impl Tile {
@@ -13,6 +18,11 @@ impl Tile {
 			Self::Grass => Texture::Grass,
 			Self::Water => Texture::Water,
 			Self::Sand => Texture::Sand,
+			Self::PineTree => Texture::PineTree,
+			Self::OakTree => Texture::OakTree,
+			Self::Flowers => Texture::Flowers,
+			Self::FlowersRedYellow => Texture::FlowersRedYellow,
+			Self::Rocks => Texture::Rocks,
 		}
 	}
 
@@ -24,9 +34,14 @@ impl Tile {
 
 	pub fn get_tile_movement_type(&self) -> TileMovementType {
 		match self {
-			Tile::Grass => TileMovementType::Clear,
-			Tile::Water => TileMovementType::Wall,
-			Tile::Sand => TileMovementType::Clear,
+			Self::Grass => TileMovementType::Clear,
+			Self::Water => TileMovementType::Wall,
+			Self::Sand => TileMovementType::Clear,
+			Self::PineTree => TileMovementType::Wall,
+			Self::OakTree => TileMovementType::Wall,
+			Self::Flowers => TileMovementType::Clear,
+			Self::FlowersRedYellow => TileMovementType::Clear,
+			Self::Rocks => TileMovementType::Wall,
 		}
 	}
 
