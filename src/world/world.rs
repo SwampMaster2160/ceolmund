@@ -1,7 +1,10 @@
 use tokio::runtime::Runtime;
 
-use crate::{vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, world_pos_to_render_pos, input::Input, chunk_pool::ChunkPool};
+use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::input::Input};
 
+use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
+
+/// Contains everthing visable that isn't the GUI.
 pub struct World {
 	player: Entity,
 	chunk_pool: ChunkPool,
@@ -23,6 +26,7 @@ impl World {
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.
+	/// The player will be in the center of the screen.
 	pub fn render(&mut self, player_visable_width: u64) -> (Vec<Vertex>, [f32; 2]) {
 		let mut vertices = Vec::new();
 		self.chunk_pool.render(&self.player, player_visable_width, &mut vertices);

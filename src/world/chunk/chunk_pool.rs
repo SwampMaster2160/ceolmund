@@ -4,7 +4,9 @@ use futures::FutureExt;
 use tokio::runtime::Runtime;
 use noop_waker::noop_waker;
 
-use crate::{chunk_slot::ChunkSlot, chunk::Chunk, vertex::Vertex, tile_stack::TileStack, entity::{Entity, entity_action_state::EntityActionState}};
+use crate::{render::vertex::Vertex, world::{direction::Direction4, tile::tile_stack::TileStack, entity::{entity::Entity, entity_action_state::EntityActionState}}};
+
+use super::{chunk_slot::ChunkSlot, chunk::Chunk};
 
 pub struct ChunkPool {
 	chunks: HashMap<[i64; 2], ChunkSlot>,
@@ -24,10 +26,10 @@ impl ChunkPool {
 		let mut render_end_y = player.pos[1] + 9;
 		if matches!(player.action_state, EntityActionState::Walking(_)) {
 			match player.facing {
-				crate::direction::Direction4::North => render_start_y -= 1,
-				crate::direction::Direction4::East => render_end_x += 1,
-				crate::direction::Direction4::South => render_end_y += 1,
-				crate::direction::Direction4::West => render_start_x -= 1,
+				Direction4::North => render_start_y -= 1,
+				Direction4::East => render_end_x += 1,
+				Direction4::South => render_end_y += 1,
+				Direction4::West => render_start_x -= 1,
 			}
 		}
 		let render_range = [render_start_x..render_end_x, render_start_y..render_end_y];
@@ -74,13 +76,11 @@ impl ChunkPool {
 				ChunkSlot::Getting(chunk_getting) => {
 					if let Poll::Ready(chunk) = chunk_getting.poll_unpin(&mut cx) {
 						*chunk_slot = ChunkSlot::Chunk(chunk.unwrap());
-						//println!("Generated chunk {:?}", pos);
 					}
 				}
 				ChunkSlot::Freeing(chunk_freeing) => {
 					if let Poll::Ready(_) = chunk_freeing.poll_unpin(&mut cx) {
 						to_remove.push(*pos);
-						//println!("Freed chunk {:?}", pos);
 					}
 				}
 			}

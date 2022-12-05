@@ -1,6 +1,6 @@
 use tokio::task::JoinHandle;
 
-use crate::chunk::Chunk;
+use super::chunk::Chunk;
 
 pub enum ChunkSlot {
 	Chunk(Chunk),

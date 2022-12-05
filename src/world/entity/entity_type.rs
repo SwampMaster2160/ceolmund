@@ -1,4 +1,4 @@
-use crate::texture::Texture;
+use crate::render::texture::Texture;
 
 pub enum EntityType {
 	Player

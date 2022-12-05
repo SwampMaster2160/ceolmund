@@ -1,7 +1,8 @@
-use noise::{Perlin, NoiseFn, Worley, PerlinSurflet, RidgedMulti, Fbm};
-use rand::{thread_rng, Rng};
+use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{tile::Tile, vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState}};
+use crate::{render::vertex::Vertex, world::entity::{entity::Entity, entity_action_state::EntityActionState}};
+
+use super::tile::Tile;
 
 #[derive(Clone)]
 pub struct TileStack {
@@ -65,12 +66,6 @@ impl TileStack {
 					else {
 						self.tiles.insert(self.tiles.len() - 1, Tile::Rocks)
 					}
-					/*self.tiles.push( match decoration_type {
-						_ if decoration_type < -0.25 => Tile::PineTree,
-						_ if decoration_type < 0. => Tile::OakTree,
-						_ if decoration_type < 0.25 => Tile::Flowers,
-						_ => Tile::FlowersRedYellow,
-					});*/
 				}
 				_ => {}
 			}

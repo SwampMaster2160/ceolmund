@@ -1,8 +1,6 @@
 use std::ops::Range;
 
-use rand::{thread_rng, Rng};
-
-use crate::{tile_stack::TileStack, vertex::Vertex};
+use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack};
 
 pub struct Chunk {
 	pub tile_stacks: [Box<[TileStack; 64]>; 64],
@@ -37,11 +35,8 @@ impl Chunk {
 		vertices_in_out.extend(extra_vertices.iter());
 	}
 
-	pub fn tick(&mut self, pos: &[i64; 2]) {
-		let mut rng = thread_rng();
-		let x: usize = rng.gen_range(0..64);
-		let y: usize = rng.gen_range(0..64);
-		let stack = &mut self.tile_stacks[y][x];
+	pub fn tick(&mut self, _pos: &[i64; 2]) {
+		
 	}
 
 	pub fn new() -> Self {
@@ -73,7 +68,7 @@ impl Chunk {
 		out
 	}
 
-	pub async fn free(mut self, pos: [i64; 2]) {
+	pub async fn free(self, _pos: [i64; 2]) {
 		
 	}
 }

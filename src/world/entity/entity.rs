@@ -1,9 +1,6 @@
-pub mod entity_action_state;
-pub mod entity_type;
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, input::Input}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool}};
 
-use crate::{direction::Direction4, chunk_pool::ChunkPool, input::Input, game_key::GameKey, tile_stack::TileStack, vertex::Vertex, texture::Texture};
-
-use self::{entity_action_state::EntityActionState, entity_type::EntityType};
+use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 pub struct Entity {
 	pub pos: [i64; 2],
@@ -13,6 +10,7 @@ pub struct Entity {
 }
 
 impl Entity {
+	/// Get how many pixels an entity is offset from a tile (when walking).
 	pub fn get_subtile_pos(&self) -> [i8; 2] {
 		match self.action_state {
 			EntityActionState::Idle => [0, 0],
@@ -25,6 +23,7 @@ impl Entity {
 		}
 	}
 
+	/// A tick for the player that reads the io input.
 	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &Input) {
 		if self.action_state == EntityActionState::Idle {
 			let mut try_move = true;
@@ -45,14 +44,14 @@ impl Entity {
 			}
 			if try_move {
 				if let Some(tile_stack) = chunks.get_tile_stack_at(self.get_pos_in_front()) {
-					let pos_in_front = self.get_pos_in_front();
 					tile_stack.try_move_to(self);
 				}
 			}
 		}
 	}
 
-	pub fn tick(&mut self, chunks: &mut ChunkPool) {
+	/// A tick for all entities.
+	pub fn tick(&mut self, _chunks: &mut ChunkPool) {
 		match &mut self.action_state {
 			EntityActionState::Idle => {},
 			EntityActionState::Walking(amount) => {

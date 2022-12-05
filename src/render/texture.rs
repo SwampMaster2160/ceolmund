@@ -1,7 +1,10 @@
 use std::mem::swap;
 
-use crate::{const_static_ptr, vertex::Vertex, world_pos_to_render_pos, texture_type::TextureType, direction::Direction4};
+use crate::{const_static_ptr, world_pos_to_render_pos, render::vertex::Vertex, world::direction::Direction4};
 
+use super::texture_type::TextureType;
+
+/// Size of the texture sheet in pixels.
 const TEXTURE_SHEET_SIZE: [u32; 2] = [256, 256];
 
 const fn grid_texture(id: u8) -> [u16; 4] {
@@ -19,8 +22,8 @@ pub enum Texture {
 	Flowers,
 	FlowersRedYellow,
 	Rocks,
-	GreenThing,
-	BlueThing,
+	//GreenThing,
+	//BlueThing,
 }
 
 impl Texture {
@@ -36,11 +39,12 @@ impl Texture {
 			Self::Flowers => const_static_ptr!([u16; 4], grid_texture(0xE)),
 			Self::FlowersRedYellow => const_static_ptr!([u16; 4], grid_texture(0xF)),
 			Self::Rocks => const_static_ptr!([u16; 4], grid_texture(0x10)),
-			Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
-			Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
+			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
+			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
 	}
 
+	/// How should a texture be drawn, as is like the grass texture or with rotations like the player texture.
 	const fn get_type(self) -> TextureType {
 		match self {
 			Self::Grass => TextureType::Basic,
@@ -52,19 +56,21 @@ impl Texture {
 			Self::Flowers => TextureType::Basic,
 			Self::FlowersRedYellow => TextureType::Basic,
 			Self::Rocks => TextureType::Basic,
-			Self::GreenThing => TextureType::Basic,
-			Self::BlueThing => TextureType::Basic,
+			//Self::GreenThing => TextureType::Basic,
+			//Self::BlueThing => TextureType::Basic,
 		}
 	}
 
-	pub fn render(self, tile_pos: [i64; 2], subtile_pos: [i8; 2]) -> [Vertex; 6] {
-		self.render_basic(tile_pos, subtile_pos, false, 0)
+	/// Render the basic texture getting it's tris.
+	pub fn render_basic(self, tile_pos: [i64; 2], subtile_pos: [i8; 2]) -> [Vertex; 6] {
+		self.render(tile_pos, subtile_pos, false, 0)
 	}
 
+	/// Render an entity texture getting it's tris.
 	pub fn render_entity(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], direction: Direction4, walk_alt_frame: u8) -> [Vertex; 6] {
 		match self.get_type() {
-			TextureType::Basic => self.render_basic(tile_pos, subtile_pos, false, 0),
-			TextureType::Entity => self.render_basic(tile_pos, subtile_pos, direction == Direction4::West, walk_alt_frame + match direction {
+			TextureType::Basic => self.render(tile_pos, subtile_pos, false, 0),
+			TextureType::Entity => self.render(tile_pos, subtile_pos, direction == Direction4::West, walk_alt_frame + match direction {
 				Direction4::South => 0,
 				Direction4::North => 3,
 				Direction4::East => 6,
@@ -73,7 +79,7 @@ impl Texture {
 		}
 	}
 
-	pub fn render_basic(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], reverse: bool, index: u8) -> [Vertex; 6] {
+	fn render(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], reverse: bool, index: u8) -> [Vertex; 6] {
 		let texture_sheet_points = self.get_texture_sheet_points();
 
 		let [start_x, start_y] = world_pos_to_render_pos(tile_pos, subtile_pos);

@@ -1,4 +1,6 @@
-use crate::{vertex::Vertex, texture::Texture, tile_movement_type::TileMovementType, entity::Entity};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity};
+
+use super::tile_movement_type::TileMovementType;
 
 #[derive(Clone, Debug)]
 pub enum Tile {
@@ -28,7 +30,7 @@ impl Tile {
 
 	pub fn render(&self, pos: [i64; 2], vertices_in_out: &mut Vec<Vertex>) {
 		match self {
-			_ => vertices_in_out.extend(self.get_texture().render(pos, [0, 0])),
+			_ => vertices_in_out.extend(self.get_texture().render_basic(pos, [0, 0])),
 		}
 	}
 
@@ -45,7 +47,7 @@ impl Tile {
 		}
 	}
 
-	pub fn try_move_to(&mut self, entity: &mut Entity) -> bool {
+	pub fn try_move_to(&mut self, _entity: &mut Entity) -> bool {
 		match self.get_tile_movement_type() {
 			TileMovementType::Clear => true,
 			TileMovementType::Wall => false,

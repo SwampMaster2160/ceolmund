@@ -1,6 +1,6 @@
 use glium::glutin::event::{KeyboardInput, ElementState};
 
-use crate::game_key::GameKey;
+use super::game_key::GameKey;
 
 pub struct Input {
 	game_keys: [bool; GameKey::Count.get_id()]

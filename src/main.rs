@@ -1,29 +1,17 @@
 // Don't open a console window when the program starts
 #![windows_subsystem = "windows"]
 
-
-mod world;
-mod vertex;
-mod texture;
-mod entity;
-mod direction;
-mod input;
-mod game_key;
-mod chunk;
-mod chunk_slot;
-mod tile;
-mod tile_stack;
-mod chunk_pool;
-mod tile_movement_type;
-mod texture_type;
+pub mod world;
+pub mod render;
+pub mod io;
 
 use std::{io::Cursor, time::Instant};
 
-use input::Input;
+use io::input::Input;
 use tokio::runtime::Runtime;
-use world::World;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
+use world::world::World;
 
 #[macro_export]
 macro_rules! const_static_ptr {
@@ -42,7 +30,7 @@ pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
 const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
 
 fn main() {
-	//
+	// Async runtime
 	let async_runtime = Runtime::new().unwrap();
 
 	// Game
@@ -59,8 +47,8 @@ fn main() {
 	let mut window_size = [window_size.width, window_size.height];
 
 	// Create program
-	let vertex_shader = include_str!("shaders/vertex_shader.glsl");
-	let fragment_shader = include_str!("shaders/fragment_shader.glsl");
+	let vertex_shader = include_str!("asset/shader/vertex_shader.glsl");
+	let fragment_shader = include_str!("asset/shader/fragment_shader.glsl");
 	let program = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
 
 	// Behavior
@@ -75,7 +63,7 @@ fn main() {
 	};
 
 	// Create texture
-	let image = image::load(Cursor::new(&include_bytes!("textures.png")),
+	let image = image::load(Cursor::new(&include_bytes!("asset/texture.png")),
 						ImageFormat::Png).unwrap().to_rgba8();
 	let image_dimensions = image.dimensions();
 	let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);

@@ -1,11 +1,12 @@
 use glium::glutin::event::VirtualKeyCode;
 
+/// A game key that can be translated from multiple real keys/buttons and represents an action like walking up/down ect..
 pub enum GameKey {
 	WalkNorth,
 	WalkEast,
 	WalkSouth,
 	WalkWest,
-	Count,
+	Count, // A count, not to be used as an actual game key
 }
 
 impl GameKey {
@@ -15,10 +16,11 @@ impl GameKey {
 			Self::WalkEast => 1,
 			Self::WalkSouth => 2,
 			Self::WalkWest => 3,
-			Self::Count => 4,
+			Self::Count => 4, // Total amount of game keys excluding the count value
 		}
 	}
 
+	/// What real keys translate to what game keys.
 	pub fn from_key_code(key_code: VirtualKeyCode) -> Vec<Self> {
 		match key_code {
 			VirtualKeyCode::W => vec![Self::WalkNorth],
