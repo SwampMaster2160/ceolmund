@@ -4,7 +4,7 @@ use futures::FutureExt;
 use tokio::runtime::Runtime;
 use noop_waker::noop_waker;
 
-use crate::{chunk_slot::ChunkSlot, chunk::Chunk, vertex::Vertex, tile_stack::TileStack, entity::Entity};
+use crate::{chunk_slot::ChunkSlot, chunk::Chunk, vertex::Vertex, tile_stack::TileStack, entity::{Entity, entity_action_state::EntityActionState}};
 
 pub struct ChunkPool {
 	chunks: HashMap<[i64; 2], ChunkSlot>,
@@ -17,15 +17,28 @@ impl ChunkPool {
 		}
 	}
 
-	pub fn render(&mut self, vertices_in_out: &mut Vec<Vertex>) {
+	pub fn render(&mut self, player: &Entity, player_visable_width: u64, vertices_in_out: &mut Vec<Vertex>) {
+		let mut render_start_x = player.pos[0] - player_visable_width as i64 / 2;
+		let mut render_end_x = player.pos[0] + player_visable_width as i64 / 2 + 1;
+		let mut render_start_y = player.pos[1] - 8;
+		let mut render_end_y = player.pos[1] + 9;
+		if matches!(player.action_state, EntityActionState::Walking(_)) {
+			match player.facing {
+				crate::direction::Direction4::North => render_start_y -= 1,
+				crate::direction::Direction4::East => render_end_x += 1,
+				crate::direction::Direction4::South => render_end_y += 1,
+				crate::direction::Direction4::West => render_start_x -= 1,
+			}
+		}
+		let render_range = [render_start_x..render_end_x, render_start_y..render_end_y];
 		for (pos, chunk_slot) in self.chunks.iter_mut() {
 			if let ChunkSlot::Chunk(chunk) = chunk_slot {
-				chunk.render(*pos, vertices_in_out);
+				chunk.render(*pos, vertices_in_out, &render_range);
 			}
 		}
 	}
 
-	pub fn tick(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime) {
+	pub fn tick(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32) {
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
 
@@ -40,7 +53,7 @@ impl ChunkPool {
 			for x in chunk_x_to_load_start..=chunk_x_to_load_end {
 				let pos = [x, y];
 				if !self.chunks.contains_key(&pos) {
-					self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos))));
+					self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos, seed))));
 				}
 			}
 		}
@@ -61,13 +74,13 @@ impl ChunkPool {
 				ChunkSlot::Getting(chunk_getting) => {
 					if let Poll::Ready(chunk) = chunk_getting.poll_unpin(&mut cx) {
 						*chunk_slot = ChunkSlot::Chunk(chunk.unwrap());
-						println!("Generated chunk {:?}", pos);
+						//println!("Generated chunk {:?}", pos);
 					}
 				}
 				ChunkSlot::Freeing(chunk_freeing) => {
 					if let Poll::Ready(_) = chunk_freeing.poll_unpin(&mut cx) {
 						to_remove.push(*pos);
-						println!("Freed chunk {:?}", pos);
+						//println!("Freed chunk {:?}", pos);
 					}
 				}
 			}

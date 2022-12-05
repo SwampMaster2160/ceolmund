@@ -1,3 +1,4 @@
+use noise::{Perlin, NoiseFn, Worley, PerlinSurflet};
 use rand::{thread_rng, Rng};
 
 use crate::{tile::Tile, vertex::Vertex, entity::{Entity, entity_action_state::EntityActionState}};
@@ -38,12 +39,13 @@ impl TileStack {
 		}
 	}
 
-	pub fn generate(&mut self, pos: [i64; 2]) {
-		let mut rng = thread_rng();
-		self.tiles = vec![match rng.gen_bool(0.9) {
-			true => Tile::Grass,
-			false => Tile::Water,
-		}];
+	pub fn generate(&mut self, pos: [i64; 2], seed: u32) {
+		let perlin = PerlinSurflet::new(seed);
+		let height = perlin.get([pos[0] as f64 / 16., pos[1] as f64 / 16.]);
+		self.tiles = match height > 0. {
+			true => vec![Tile::Grass],
+			false => vec![Tile::Sand, Tile::Water],
+		}
 	}
 
 	pub fn try_move_to(&mut self, entity: &mut Entity) {

@@ -4,6 +4,7 @@ use crate::{vertex::Vertex, texture::Texture, tile_movement_type::TileMovementTy
 pub enum Tile {
 	Grass,
 	Water,
+	Sand,
 }
 
 impl Tile {
@@ -11,6 +12,7 @@ impl Tile {
 		match self {
 			Self::Grass => Texture::Grass,
 			Self::Water => Texture::Water,
+			Self::Sand => Texture::Sand,
 		}
 	}
 
@@ -24,6 +26,7 @@ impl Tile {
 		match self {
 			Tile::Grass => TileMovementType::Clear,
 			Tile::Water => TileMovementType::Wall,
+			Tile::Sand => TileMovementType::Clear,
 		}
 	}
 

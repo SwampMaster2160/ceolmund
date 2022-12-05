@@ -8,5 +8,5 @@ uniform sampler2D texture_sampler;
 
 void main() {
 	vec4 texture_color = texture(texture_sampler, vertex_texture_position);
-	color = mix(vertex_color, texture_color, texture_color.w);
+	color = mix(vertex_color, vec4(texture_color.xyz, 1.), texture_color.w);
 }

@@ -114,7 +114,7 @@ fn main() {
 				if let Some(world) = &mut world {
 					let ticks_to_execute = 5.min(time_for_ticks / NANOSECONDS_PER_TICK);
 					for _ in 0..ticks_to_execute {
-						world.tick(&input, &async_runtime, (window_size[0] / window_size[1] * 16) as u64 + 2);
+						world.tick(&input, &async_runtime, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2);
 					}
 				}
 
@@ -124,7 +124,7 @@ fn main() {
 
 				// Render world
 				if let Some(world) = &mut world {
-					let (vertices, camera_center) = world.render();
+					let (vertices, camera_center) = world.render(((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2);
 					let indices = NoIndices(PrimitiveType::TrianglesList);
 					
 					let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();

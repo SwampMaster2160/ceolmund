@@ -5,6 +5,7 @@ use crate::{vertex::Vertex, entity::{Entity, entity_action_state::EntityActionSt
 pub struct World {
 	player: Entity,
 	chunk_pool: ChunkPool,
+	seed: u32,
 }
 
 impl World {
@@ -17,13 +18,14 @@ impl World {
 				entity_type: EntityType::Player,
 			},
 			chunk_pool: ChunkPool::new(),
+			seed: 420,
 		}
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.
-	pub fn render(&mut self) -> (Vec<Vertex>, [f32; 2]) {
+	pub fn render(&mut self, player_visable_width: u64) -> (Vec<Vertex>, [f32; 2]) {
 		let mut vertices = Vec::new();
-		self.chunk_pool.render(&mut vertices);
+		self.chunk_pool.render(&self.player, player_visable_width, &mut vertices);
 		self.player.render(&mut vertices);
 
 		let player = &self.player;
@@ -31,7 +33,7 @@ impl World {
 	}
 
 	pub fn tick(&mut self, input: &Input, async_runtime: &Runtime, player_visable_width: u64) {
-		self.chunk_pool.tick(&self.player, player_visable_width, async_runtime);
+		self.chunk_pool.tick(&self.player, player_visable_width, async_runtime, self.seed);
 		self.player.player_tick(&mut self.chunk_pool, input);
 		self.player.tick(&mut self.chunk_pool);
 	}

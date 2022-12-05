@@ -12,3 +12,4 @@ rand = "^0.8.5"
 futures = "^0.3.25"
 tokio = { version = "^1.22.0", features = ["full"] }
 noop-waker = "^0.1.0"
+noise = "^0.8.2"
