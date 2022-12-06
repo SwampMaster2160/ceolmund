@@ -1,5 +1,6 @@
 use glium::glutin::event::VirtualKeyCode;
 
+#[derive(Clone, Copy)]
 /// A game key that can be translated from multiple real keys/buttons and represents an action like walking up/down ect..
 pub enum GameKey {
 	WalkNorth,

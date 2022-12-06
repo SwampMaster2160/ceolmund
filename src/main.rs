@@ -95,6 +95,9 @@ fn main() {
 			}
 			// Draw
 			Event::MainEventsCleared => {
+				// Poll gamepad
+				input.poll_gamepad();
+				
 				// World ticks
 				let now = Instant::now();
 				let time_for_ticks = now.duration_since(last_frame_time).as_nanos() + time_overflow;
