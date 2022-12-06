@@ -22,6 +22,7 @@ pub enum Texture {
 	Flowers,
 	FlowersRedYellow,
 	Rocks,
+	NoTexture,
 	//GreenThing,
 	//BlueThing,
 }
@@ -39,6 +40,7 @@ impl Texture {
 			Self::Flowers => const_static_ptr!([u16; 4], grid_texture(0xE)),
 			Self::FlowersRedYellow => const_static_ptr!([u16; 4], grid_texture(0xF)),
 			Self::Rocks => const_static_ptr!([u16; 4], grid_texture(0x10)),
+			Self::NoTexture => const_static_ptr!([u16; 4], grid_texture(0x11)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -56,6 +58,7 @@ impl Texture {
 			Self::Flowers => TextureType::Basic,
 			Self::FlowersRedYellow => TextureType::Basic,
 			Self::Rocks => TextureType::Basic,
+			Self::NoTexture => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}
