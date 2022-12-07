@@ -5,6 +5,8 @@ use super::game_key::GameKey;
 pub struct Input {
 	game_keys_keyboard: [bool; GameKey::Count.get_id()],
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
+	pub aspect_ratio: f32,
+	pub window_size: [u32; 2],
 }
 
 impl Input {
@@ -12,6 +14,8 @@ impl Input {
 		Self {
 			game_keys_keyboard: [false; GameKey::Count.get_id()],
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
+			aspect_ratio: 0.,
+			window_size: [0, 0],
 		}
 	}
 

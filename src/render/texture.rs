@@ -5,7 +5,8 @@ use crate::{const_static_ptr, world_pos_to_render_pos, render::vertex::Vertex, w
 use super::texture_type::TextureType;
 
 /// Size of the texture sheet in pixels.
-const TEXTURE_SHEET_SIZE: [u32; 2] = [256, 256];
+const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];
+const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 
 const fn grid_texture(id: u8) -> [u16; 4] {
 	[id as u16 % 16 * 16, id as u16 / 16 * 16, 16, 16]

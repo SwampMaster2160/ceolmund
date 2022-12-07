@@ -4,10 +4,13 @@
 pub mod world;
 pub mod render;
 pub mod io;
+pub mod gui;
 
 use std::{io::Cursor, time::Instant};
 
+use gui::gui_menu::GUIMenu;
 use io::input::Input;
+use render::vertex::Vertex;
 use tokio::runtime::Runtime;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
@@ -35,6 +38,7 @@ fn main() {
 
 	// Game
 	let mut world = Some(World::new());
+	let mut guis = vec![GUIMenu::Test];
 	let mut input = Input::new();
 
 	// Window
@@ -96,6 +100,8 @@ fn main() {
 			// Draw
 			Event::MainEventsCleared => {
 				// Poll gamepad
+				input.aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
+				input.window_size = window_size;
 				input.poll_gamepad();
 				
 				// World ticks
@@ -132,6 +138,26 @@ fn main() {
 					};
 					frame.draw(&vertex_buffer, &indices, &program, &uniforms, &draw_parameters).unwrap();
 				}
+
+				// Render gui
+				let mut vertices: Vec<Vertex> = Vec::new();
+				for gui in guis.iter() {
+					gui.render(&mut vertices, &input);
+				}
+
+				let indices = NoIndices(PrimitiveType::TrianglesList);
+				let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();
+				let aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
+				let uniforms = glium::uniform! {
+					matrix: [
+						[1. / 128. / aspect_ratio, 0., 0., 0.],
+						[0., -1. / 128., 0., 0.],
+						[0., 0., 0., 0.],
+						[-1., 1., 0., 1.0f32],
+					],
+					texture_sampler: Sampler(&texture, behavior),
+				};
+				frame.draw(&vertex_buffer, &indices, &program, &uniforms, &draw_parameters).unwrap();
 
 				frame.finish().unwrap();
 			}
