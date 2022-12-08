@@ -10,7 +10,7 @@ use std::{io::Cursor, time::Instant};
 
 use gui::gui_menu::GUIMenu;
 use io::input::Input;
-use render::vertex::Vertex;
+use render::{vertex::Vertex, render_data::RenderData};
 use tokio::runtime::Runtime;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
@@ -40,6 +40,7 @@ fn main() {
 	let mut world = Some(World::new());
 	let mut guis = vec![GUIMenu::Test];
 	let mut input = Input::new();
+	let render_data = RenderData::new();
 
 	// Window
 	let events_loop = EventLoop::new();
@@ -144,7 +145,7 @@ fn main() {
 				// Render gui
 				let mut vertices: Vec<Vertex> = Vec::new();
 				for gui in guis.iter() {
-					gui.render(&mut vertices, &input);
+					gui.render(&mut vertices, &input, &render_data);
 				}
 
 				let indices = NoIndices(PrimitiveType::TrianglesList);
