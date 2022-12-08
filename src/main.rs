@@ -1,5 +1,5 @@
 // Don't open a console window when the program starts
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 
 pub mod world;
 pub mod render;
@@ -95,6 +95,8 @@ fn main() {
 						input.key_press(key_input);
 					}
 				}
+				WindowEvent::CursorMoved { device_id: _, position, .. } =>
+					input.mouse_pos = [position.x as u32, position.y as u32],
 				_  => {}
 			}
 			// Draw

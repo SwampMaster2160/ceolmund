@@ -1,5 +1,7 @@
 use glium::glutin::event::{KeyboardInput, ElementState};
 
+use crate::gui::gui_alignment::GUIAlignment;
+
 use super::game_key::GameKey;
 
 pub struct Input {
@@ -7,6 +9,7 @@ pub struct Input {
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
 	pub aspect_ratio: f32,
 	pub window_size: [u32; 2],
+	pub mouse_pos: [u32; 2],
 }
 
 impl Input {
@@ -16,6 +19,7 @@ impl Input {
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
 			aspect_ratio: 0.,
 			window_size: [0, 0],
+			mouse_pos: [0, 0],
 		}
 	}
 
@@ -48,5 +52,15 @@ impl Input {
 
 	pub fn get_game_key(&self, game_key: GameKey) -> bool {
 		self.game_keys_keyboard[game_key.get_id()] || self.game_keys_gamepad[game_key.get_id()]
+	}
+
+	pub fn get_mouse_pos_as_gui_pos(&self, alignment: GUIAlignment) -> [f32; 2] {
+		let offset = match alignment {
+			GUIAlignment::Left => 0.,
+			GUIAlignment::Center => (self.aspect_ratio - 1.) / 2.,
+			GUIAlignment::Right => self.aspect_ratio - 1.,
+		} * 256.;
+		//println!("{:?}", self.window_size);
+		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio + offset, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
 	}
 }
