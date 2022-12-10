@@ -52,7 +52,7 @@ impl GUIElement<'_> {
 	}
 
 	pub fn tick_mut_self(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
-		if input.get_game_key(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
+		if input.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
 			match self {
 				GUIElement::Button { tick_mut_self, .. } => tick_mut_self(self, world, input, render_data),
 				_ => {}
@@ -61,7 +61,7 @@ impl GUIElement<'_> {
 	}
 
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
-		if input.get_game_key(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
+		if input.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
 			match self {
 				GUIElement::Button { tick_mut_gui, .. } => tick_mut_gui(self, gui, world, input, render_data),
 				_ => {}

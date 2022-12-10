@@ -111,6 +111,7 @@ fn main() {
 
 				// GUI Tick
 				gui.tick(&mut world, &input, &render_data);
+				input.update_keys_pressed_last();
 				
 				// World ticks
 				let now = Instant::now();

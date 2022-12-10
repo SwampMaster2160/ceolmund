@@ -7,6 +7,7 @@ use super::game_key::GameKey;
 pub struct Input {
 	game_keys_keyboard: [bool; GameKey::Count.get_id()],
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
+	keys_pressed_last: [bool; GameKey::Count.get_id()],
 	pub aspect_ratio: f32,
 	pub window_size: [u32; 2],
 	pub mouse_pos: [u32; 2],
@@ -17,6 +18,7 @@ impl Input {
 		Self {
 			game_keys_keyboard: [false; GameKey::Count.get_id()],
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
+			keys_pressed_last: [false; GameKey::Count.get_id()],
 			aspect_ratio: 0.,
 			window_size: [0, 0],
 			mouse_pos: [0, 0],
@@ -60,7 +62,16 @@ impl Input {
 	}
 
 	pub fn get_game_key(&self, game_key: GameKey) -> bool {
-		self.game_keys_keyboard[game_key.get_id()] || self.game_keys_gamepad[game_key.get_id()]
+		self.get_game_key_via_id(game_key.get_id())
+	}
+
+	pub fn get_game_key_via_id(&self, game_key: usize) -> bool {
+		self.game_keys_keyboard[game_key] || self.game_keys_gamepad[game_key]
+	}
+
+	pub fn get_game_key_starting_now(&self, game_key: GameKey) -> bool {
+		let id = game_key.get_id();
+		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
 	}
 
 	pub fn get_mouse_pos_as_gui_pos(&self, alignment: GUIAlignment) -> [f32; 2] {
@@ -69,7 +80,12 @@ impl Input {
 			GUIAlignment::Center => (self.aspect_ratio - 1.) / 2.,
 			GUIAlignment::Right => self.aspect_ratio - 1.,
 		} * 256.;
-		//println!("{:?}", self.window_size);
 		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio + offset, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
+	}
+
+	pub fn update_keys_pressed_last(&mut self) {
+		for x in 0..GameKey::Count.get_id() {
+			self.keys_pressed_last[x] = self.get_game_key_via_id(x);
+		}
 	}
 }
