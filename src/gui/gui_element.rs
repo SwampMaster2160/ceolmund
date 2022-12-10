@@ -1,4 +1,4 @@
-use crate::{io::{input::Input, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{self, RenderData}}, world::world::World};
+use crate::{io::{input::Input, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{RenderData}}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI};
 
@@ -8,7 +8,11 @@ const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
 #[derive(Clone)]
 pub enum GUIElement<'a> {
 	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
-	Button {text: &'a str, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment},
+	Button {
+		text: &'a str, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment,
+		tick_mut_self: fn(&mut GUIElement, &mut Option<World>, &Input, &RenderData) -> (),
+		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) -> (),
+	},
 	Text {text: &'a str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment}
 }
 
@@ -16,7 +20,7 @@ impl GUIElement<'_> {
 	pub fn is_mouse_over(&self, input: &Input, render_data: &RenderData) -> bool {
 		match self {
 			Self::Rect{pos, size, alignment, color} => false,
-			Self::Button { pos, size, alignment, text } => {
+			Self::Button { pos, size, alignment, text, .. } => {
 				let mouse_pos = input.get_mouse_pos_as_gui_pos(*alignment);
 				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, input);
 				let button_screen_size = gui_size_to_screen_size(*size);
@@ -32,7 +36,7 @@ impl GUIElement<'_> {
 		match self {
 			Self::Rect{pos, size, alignment, color} =>
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, input)),
-			Self::Button { pos, size, alignment, text } => {
+			Self::Button { pos, size, alignment, text, .. } => {
 				let mut color = BUTTON_GRAY_COLOR;
 				if self.is_mouse_over(input, render_data) {
 					color = BUTTON_HOVER_COLOR;
@@ -48,13 +52,20 @@ impl GUIElement<'_> {
 	}
 
 	pub fn tick_mut_self(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
-		if input.get_game_key(GameKey::GUIInteract) {
-			println!("Hi");
+		if input.get_game_key(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
+			match self {
+				GUIElement::Button { tick_mut_self, .. } => tick_mut_self(self, world, input, render_data),
+				_ => {}
+			}
 		}
-		(||{});
 	}
 
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
-
+		if input.get_game_key(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
+			match self {
+				GUIElement::Button { tick_mut_gui, .. } => tick_mut_gui(self, gui, world, input, render_data),
+				_ => {}
+			}
+		}
 	}
 }

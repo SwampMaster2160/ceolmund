@@ -14,7 +14,11 @@ impl GUIMenu {
 		match self {
 			Self::Test => vec![
 				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR },
-				GUIElement::Button { pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi" },
+				GUIElement::Button {
+					pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi",
+					tick_mut_self: (|_, _, _, _| println!("Hi")),
+					tick_mut_gui: (|_, _, _, _, _| ()),
+				},
 				GUIElement::Text { text: "Hello", pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
 			],
 		}
