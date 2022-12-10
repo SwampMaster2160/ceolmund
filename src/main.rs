@@ -8,7 +8,7 @@ pub mod gui;
 
 use std::{io::Cursor, time::Instant};
 
-use gui::gui_menu::GUIMenu;
+use gui::{gui_menu::GUIMenu, gui::GUI};
 use io::input::Input;
 use render::{vertex::Vertex, render_data::RenderData};
 use tokio::runtime::Runtime;
@@ -38,7 +38,8 @@ fn main() {
 
 	// Game
 	let mut world = Some(World::new());
-	let mut guis = vec![GUIMenu::Test];
+	//let mut guis = vec![GUIMenu::Test];
+	let mut gui = GUI::new();
 	let mut input = Input::new();
 	let render_data = RenderData::new();
 
@@ -106,6 +107,9 @@ fn main() {
 				input.aspect_ratio = window_size[0] as f32 / window_size[1] as f32;
 				input.window_size = window_size;
 				input.poll_gamepad();
+
+				// GUI Tick
+				gui.tick(&world, &input, &render_data);
 				
 				// World ticks
 				let now = Instant::now();
@@ -143,10 +147,7 @@ fn main() {
 				}
 
 				// Render gui
-				let mut vertices: Vec<Vertex> = Vec::new();
-				for gui in guis.iter() {
-					gui.render(&mut vertices, &input, &render_data);
-				}
+				let vertices = gui.render(&input, &render_data);
 
 				let indices = NoIndices(PrimitiveType::TrianglesList);
 				let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();
