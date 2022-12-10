@@ -8,11 +8,11 @@ pub mod gui;
 
 use std::{io::Cursor, time::Instant};
 
-use gui::{gui_menu::GUIMenu, gui::GUI};
+use gui::gui::GUI;
 use io::input::Input;
-use render::{vertex::Vertex, render_data::RenderData};
+use render::render_data::RenderData;
 use tokio::runtime::Runtime;
-use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
+use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState, MouseButton}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 use world::world::World;
 
@@ -99,6 +99,7 @@ fn main() {
 				}
 				WindowEvent::CursorMoved { device_id: _, position, .. } =>
 					input.mouse_pos = [position.x as u32, position.y as u32],
+				WindowEvent::MouseInput { device_id: _, state, button, .. } => input.mouse_press(*state, *button),
 				_  => {}
 			}
 			// Draw
@@ -109,7 +110,7 @@ fn main() {
 				input.poll_gamepad();
 
 				// GUI Tick
-				gui.tick(&world, &input, &render_data);
+				gui.tick(&mut world, &input, &render_data);
 				
 				// World ticks
 				let now = Instant::now();

@@ -1,6 +1,6 @@
 use crate::{render::{vertex::Vertex, render_data::RenderData}, io::input::Input, world::world::World};
 
-use super::gui_menu::GUIMenu;
+use super::{gui_menu::GUIMenu};
 
 pub struct GUI {
 	menus: Vec<GUIMenu>,
@@ -21,10 +21,15 @@ impl GUI {
 		}
 	}
 
-	pub fn tick(&mut self, world: &Option<World>, input: &Input, render_data: &RenderData) {
-		if let Some(top_menu) = self.menus.last() {
+	pub fn tick(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+		if let Some(top_menu) = self.menus.last_mut() {
+			for element in top_menu.get_elements().iter_mut() {
+				element.tick_mut_self(world, input, render_data);
+			}
+		}
+		if let Some(top_menu) = self.menus.last_mut().cloned() {
 			for element in top_menu.get_elements() {
-
+				element.tick_mut_gui(self, world, input, render_data);
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 use crate::{io::input::Input, gui::gui_alignment::GUIAlignment};
 
-use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE, render_data::{self, RenderData}};
+use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE, render_data::RenderData};
 
 const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 

@@ -1,4 +1,4 @@
-use glium::glutin::event::{KeyboardInput, ElementState};
+use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
 
 use crate::gui::gui_alignment::GUIAlignment;
 
@@ -46,6 +46,15 @@ impl Input {
 				self.game_keys_gamepad[GameKey::WalkEast.get_id()] = gamepad.arrow_right();
 				self.game_keys_gamepad[GameKey::WalkSouth.get_id()] = gamepad.arrow_down();
 				self.game_keys_gamepad[GameKey::WalkWest.get_id()] = gamepad.arrow_left();
+			}
+		}
+	}
+
+	pub fn mouse_press(&mut self, state: ElementState, button: MouseButton) {
+		if matches!(button, MouseButton::Left) {
+			self.game_keys_keyboard[GameKey::GUIInteract.get_id()] = match state {
+				ElementState::Pressed => true,
+				ElementState::Released => false,
 			}
 		}
 	}

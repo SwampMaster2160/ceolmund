@@ -7,6 +7,7 @@ pub enum GameKey {
 	WalkEast,
 	WalkSouth,
 	WalkWest,
+	GUIInteract,
 	Count, // A count, not to be used as an actual game key
 }
 
@@ -17,7 +18,8 @@ impl GameKey {
 			Self::WalkEast => 1,
 			Self::WalkSouth => 2,
 			Self::WalkWest => 3,
-			Self::Count => 4, // Total amount of game keys excluding the count value
+			Self::GUIInteract => 4,
+			Self::Count => 5, // Total amount of game keys excluding the count value
 		}
 	}
 

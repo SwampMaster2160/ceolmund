@@ -1,10 +1,11 @@
-use crate::{io::input::Input, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{self, RenderData}}};
+use crate::{io::{input::Input, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{self, RenderData}}, world::world::World};
 
-use super::gui_alignment::GUIAlignment;
+use super::{gui_alignment::GUIAlignment, gui::GUI};
 
 const BUTTON_GRAY_COLOR: [u8; 4] = [95, 95, 95, 255];
 const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
 
+#[derive(Clone)]
 pub enum GUIElement<'a> {
 	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
 	Button {text: &'a str, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment},
@@ -44,5 +45,16 @@ impl GUIElement<'_> {
 			Self::Text { text: string, pos, alignment, text_alignment } =>
 				render_gui_string(string, *pos, *alignment, *text_alignment, input, render_data, vertices),
 		}
+	}
+
+	pub fn tick_mut_self(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+		if input.get_game_key(GameKey::GUIInteract) {
+			println!("Hi");
+		}
+		(||{});
+	}
+
+	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+
 	}
 }

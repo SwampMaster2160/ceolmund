@@ -1,9 +1,10 @@
-use crate::{render::{vertex::Vertex, render::{render_gui_string}, render_data::RenderData}, io::input::Input};
+use crate::{render::{vertex::Vertex, render::{render_gui_string}, render_data::RenderData}, io::input::Input, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 
+#[derive(Clone)]
 pub enum GUIMenu {
 	Test,
 }
