@@ -41,6 +41,10 @@ impl ChunkPool {
 	}
 
 	pub fn tick(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32) {
+
+	}
+
+	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32) {
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
 

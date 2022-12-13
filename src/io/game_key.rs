@@ -8,6 +8,7 @@ pub enum GameKey {
 	WalkSouth,
 	WalkWest,
 	GUIInteract,
+	MenuOpenClose,
 	Count, // A count, not to be used as an actual game key
 }
 
@@ -19,7 +20,8 @@ impl GameKey {
 			Self::WalkSouth => 2,
 			Self::WalkWest => 3,
 			Self::GUIInteract => 4,
-			Self::Count => 5, // Total amount of game keys excluding the count value
+			Self::MenuOpenClose => 5,
+			Self::Count => 6, // Total amount of game keys excluding the count value
 		}
 	}
 
@@ -30,6 +32,7 @@ impl GameKey {
 			VirtualKeyCode::A => vec![Self::WalkWest],
 			VirtualKeyCode::S => vec![Self::WalkSouth],
 			VirtualKeyCode::D => vec![Self::WalkEast],
+			VirtualKeyCode::Escape => vec![Self::MenuOpenClose],
 			_ => Vec::new(),
 		}
 	}

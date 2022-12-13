@@ -75,12 +75,7 @@ impl Input {
 	}
 
 	pub fn get_mouse_pos_as_gui_pos(&self, alignment: GUIAlignment) -> [f32; 2] {
-		let offset = match alignment {
-			GUIAlignment::Left => 0.,
-			GUIAlignment::Center => (self.aspect_ratio - 1.) / 2.,
-			GUIAlignment::Right => self.aspect_ratio - 1.,
-		} * 256.;
-		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio + offset, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
+		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
 	}
 
 	pub fn update_keys_pressed_last(&mut self) {

@@ -1,9 +1,9 @@
-use crate::{render::{vertex::Vertex, render_data::RenderData}, io::input::Input, world::world::World};
+use crate::{render::{vertex::Vertex, render_data::RenderData}, io::{input::Input, game_key::GameKey}, world::world::World};
 
 use super::{gui_menu::GUIMenu};
 
 pub struct GUI {
-	menus: Vec<GUIMenu>,
+	pub menus: Vec<GUIMenu>,
 }
 
 impl GUI {
@@ -17,11 +17,11 @@ impl GUI {
 
 	pub fn new() -> Self {
 		Self {
-			menus: vec![GUIMenu::Test],
+			menus: vec![],
 		}
 	}
 
-	pub fn tick(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+	pub fn tick(&mut self, world: &mut Option<World>, input: &mut Input, render_data: &RenderData) {
 		if let Some(top_menu) = self.menus.last_mut() {
 			for element in top_menu.get_elements().iter_mut() {
 				element.tick_mut_self(world, input, render_data);
@@ -32,5 +32,14 @@ impl GUI {
 				element.tick_mut_gui(self, world, input, render_data);
 			}
 		}
+		if input.get_game_key_starting_now(GameKey::MenuOpenClose) {
+			if let Some(top_menu) = self.menus.last_mut().cloned() {
+				top_menu.menu_close_button_action(self, world, input, render_data);
+			}
+		}
+	}
+
+	pub fn does_menu_pause_game(&self) -> bool {
+		self.menus.iter().any(|menu| menu.does_menu_pause_game())
 	}
 }

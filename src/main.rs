@@ -12,7 +12,7 @@ use gui::gui::GUI;
 use io::input::Input;
 use render::render_data::RenderData;
 use tokio::runtime::Runtime;
-use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState, MouseButton}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
+use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 use world::world::World;
 
@@ -49,6 +49,7 @@ fn main() {
 		.with_inner_size(LogicalSize::new(912u16, 512u16)).with_title("Ceolmund");
 	let context_builder = ContextBuilder::new().with_vsync(true);
 	let display = Display::new(window_builder, context_builder, &events_loop).unwrap();
+	display.gl_window().window().set_fullscreen(Some(Fullscreen::Borderless(None)));
 	let window_size = display.gl_window().window().inner_size();
 	let mut window_size = [window_size.width, window_size.height];
 
@@ -110,8 +111,7 @@ fn main() {
 				input.poll_gamepad();
 
 				// GUI Tick
-				gui.tick(&mut world, &input, &render_data);
-				input.update_keys_pressed_last();
+				gui.tick(&mut world, &mut input, &render_data);
 				
 				// World ticks
 				let now = Instant::now();
@@ -121,9 +121,13 @@ fn main() {
 				if let Some(world) = &mut world {
 					let ticks_to_execute = 5.min(time_for_ticks / NANOSECONDS_PER_TICK);
 					for _ in 0..ticks_to_execute {
-						world.tick(&input, &async_runtime, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2);
+						if !gui.does_menu_pause_game() {
+							world.tick(&input, &async_runtime, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2, &mut gui);
+						}
+						world.tick_always(&input, &async_runtime, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2, &mut gui);
 					}
 				}
+				input.update_keys_pressed_last();
 
 				// Get frame for drawing on
 				let mut frame = display.draw();

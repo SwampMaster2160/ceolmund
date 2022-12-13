@@ -1,12 +1,13 @@
-use crate::{render::{vertex::Vertex, render::{render_gui_string}, render_data::RenderData}, io::input::Input, world::world::World};
+use crate::{render::{vertex::Vertex, render_data::RenderData}, io::input::Input, world::world::World};
 
-use super::{gui_alignment::GUIAlignment, gui_element::GUIElement};
+use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 
 #[derive(Clone)]
 pub enum GUIMenu {
 	Test,
+	Paused,
 }
 
 impl GUIMenu {
@@ -21,6 +22,15 @@ impl GUIMenu {
 				},
 				GUIElement::Text { text: "Hello", pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
 			],
+			Self::Paused => vec![
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Button {
+					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume",
+					tick_mut_self: (|_, _, _, _| ()),
+					tick_mut_gui: (|_, gui, _, _, _| {gui.menus.pop();}),
+				},
+				GUIElement::Text { text: "Game Paused", pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+			],
 		}
 	}
 
@@ -31,6 +41,23 @@ impl GUIMenu {
 	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &Input, render_data: &RenderData) {
 		for element in self.get_elements() {
 			element.render(vertices, input, render_data);
+		}
+	}
+
+	pub fn does_menu_pause_game(&self) -> bool {
+		match self {
+			Self::Test => false,
+			Self::Paused => true,
+		}
+	}
+
+	pub fn menu_close_button_action(self, gui: &mut GUI, world: &mut Option<World>, input: &mut Input, render_data: &RenderData) {
+		match self {
+			GUIMenu::Test => {}
+			GUIMenu::Paused => {
+				gui.menus.pop();
+				input.update_keys_pressed_last();
+			},
 		}
 	}
 }
