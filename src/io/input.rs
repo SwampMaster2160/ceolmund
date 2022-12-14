@@ -1,7 +1,5 @@
 use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
 
-use crate::gui::gui_alignment::GUIAlignment;
-
 use super::game_key::GameKey;
 
 pub struct Input {
@@ -74,7 +72,7 @@ impl Input {
 		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
 	}
 
-	pub fn get_mouse_pos_as_gui_pos(&self, alignment: GUIAlignment) -> [f32; 2] {
+	pub fn get_mouse_pos_as_gui_pos(&self) -> [f32; 2] {
 		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
 	}
 

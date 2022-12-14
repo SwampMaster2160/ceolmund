@@ -40,11 +40,11 @@ impl ChunkPool {
 		}
 	}
 
-	pub fn tick(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32) {
+	pub fn tick(&mut self, _player: &Entity, _player_visable_width: u64, _async_runtime: &Runtime, _seed: u32) {
 
 	}
 
-	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32) {
+	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool) {
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
 
@@ -55,11 +55,13 @@ impl ChunkPool {
 		let chunk_x_to_load_end = (player.pos[0] + player_visable_width as i64 / 2).div_euclid(64) + 1;
 
 		// Start generating chunks if in bounds and not loaded.
-		for y in chunk_y_to_load_start..=chunk_y_to_load_end {
-			for x in chunk_x_to_load_start..=chunk_x_to_load_end {
-				let pos = [x, y];
-				if !self.chunks.contains_key(&pos) {
-					self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos, seed))));
+		if !is_freeing {
+			for y in chunk_y_to_load_start..=chunk_y_to_load_end {
+				for x in chunk_x_to_load_start..=chunk_x_to_load_end {
+					let pos = [x, y];
+					if !self.chunks.contains_key(&pos) {
+						self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos, seed))));
+					}
 				}
 			}
 		}
@@ -70,7 +72,8 @@ impl ChunkPool {
 		for (pos, chunk_slot) in self.chunks.iter_mut() {
 			match chunk_slot {
 				ChunkSlot::Chunk(chunk) => {
-					if (chunk_x_to_load_start..=chunk_x_to_load_end).contains(&pos[0]) && (chunk_y_to_load_start..=chunk_y_to_load_end).contains(&pos[1]) {
+					if (chunk_x_to_load_start..=chunk_x_to_load_end).contains(&pos[0]) && (chunk_y_to_load_start..=chunk_y_to_load_end).contains(&pos[1])
+					&& !is_freeing {
 						chunk.tick(pos);
 					}
 					else {
@@ -96,6 +99,9 @@ impl ChunkPool {
 		}
 		for pos in to_remove.iter() {
 			self.chunks.remove(pos);
+		}
+		if is_freeing && self.chunks.len() == 0 {
+			*is_freed = true;
 		}
 	}
 

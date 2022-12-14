@@ -8,6 +8,9 @@ const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 pub enum GUIMenu {
 	Test,
 	Paused,
+	ExitingGame,
+	ExitingToTitle,
+	Title,
 }
 
 impl GUIMenu {
@@ -24,12 +27,61 @@ impl GUIMenu {
 			],
 			Self::Paused => vec![
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Game Paused", pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume",
 					tick_mut_self: (|_, _, _, _| ()),
 					tick_mut_gui: (|_, gui, _, _, _| {gui.menus.pop();}),
 				},
-				GUIElement::Text { text: "Game Paused", pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Button {
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game",
+					tick_mut_self: (|_, _, _, _| ()),
+					tick_mut_gui: (|_, gui, world, _, _| {
+						if let Some(world) = world {
+							world.is_freeing = true;
+						}
+						gui.menus.pop();
+						gui.menus.push(GUIMenu::ExitingGame);
+					}),
+				},
+				GUIElement::Button {
+					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit to Title",
+					tick_mut_self: (|_, _, _, _| ()),
+					tick_mut_gui: (|_, gui, world, _, _| {
+						if let Some(world) = world {
+							world.is_freeing = true;
+						}
+						gui.menus.pop();
+						gui.menus.push(GUIMenu::ExitingToTitle);
+					}),
+				},
+			],
+			Self::ExitingGame => vec![
+				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Closing World...", pos: [127, 120], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+			],
+			Self::ExitingToTitle => vec![
+				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Closing World...", pos: [127, 120], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+			],
+			Self::Title => vec![
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Ceolmund", pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Button {
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game",
+					tick_mut_self: (|_, _, _, _| ()),
+					tick_mut_gui: (|_, gui, _, _, _| {
+						gui.should_close_game = true;
+					}),
+				},
+				GUIElement::Button {
+					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World",
+					tick_mut_self: (|_, _, _, _| ()),
+					tick_mut_gui: (|_, gui, world, _, _| {
+						*world = Some(World::new());
+						gui.menus = vec![];
+					}),
+				},
 			],
 		}
 	}
@@ -48,16 +100,45 @@ impl GUIMenu {
 		match self {
 			Self::Test => false,
 			Self::Paused => true,
+			Self::ExitingGame => true,
+			Self::ExitingToTitle => true,
+			Self::Title => true,
 		}
 	}
 
-	pub fn menu_close_button_action(self, gui: &mut GUI, world: &mut Option<World>, input: &mut Input, render_data: &RenderData) {
+	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, input: &mut Input, _render_data: &RenderData) {
 		match self {
-			GUIMenu::Test => {}
 			GUIMenu::Paused => {
 				gui.menus.pop();
 				input.update_keys_pressed_last();
 			},
+			_ => {}
+		}
+	}
+
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, input: &mut Input, _render_data: &RenderData) {
+		match self {
+			GUIMenu::ExitingGame => {
+				if let Some(world) = world {
+					if world.is_freed {
+						gui.should_close_game = true;
+					}
+				}
+			}
+			GUIMenu::ExitingToTitle => {
+				let mut set_world_to_none = false;
+				if let Some(world) = world {
+					if world.is_freed {
+						gui.menus.pop();
+						gui.menus.push(GUIMenu::Title);
+						set_world_to_none = true;
+					}
+				}
+				if set_world_to_none {
+					*world = None;
+				}
+			}
+			_ => {}
 		}
 	}
 }

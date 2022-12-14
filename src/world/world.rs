@@ -9,6 +9,8 @@ pub struct World {
 	player: Entity,
 	chunk_pool: ChunkPool,
 	seed: u32,
+	pub is_freeing: bool,
+	pub is_freed: bool
 }
 
 impl World {
@@ -22,6 +24,8 @@ impl World {
 			},
 			chunk_pool: ChunkPool::new(),
 			seed: 420,
+			is_freeing: false,
+			is_freed: false,
 		}
 	}
 
@@ -42,7 +46,7 @@ impl World {
 		self.player.tick(&mut self.chunk_pool);
 	}
 
-	pub fn tick_always(&mut self, input: &Input, async_runtime: &Runtime, player_visable_width: u64, gui: &mut GUI) {
-		self.chunk_pool.tick_always(&self.player, player_visable_width, async_runtime, self.seed);
+	pub fn tick_always(&mut self, _input: &Input, async_runtime: &Runtime, player_visable_width: u64, _gui: &mut GUI) {
+		self.chunk_pool.tick_always(&self.player, player_visable_width, async_runtime, self.seed, self.is_freeing, &mut self.is_freed);
 	}
 }

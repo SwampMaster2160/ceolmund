@@ -17,18 +17,17 @@ pub enum GUIElement<'a> {
 }
 
 impl GUIElement<'_> {
-	pub fn is_mouse_over(&self, input: &Input, render_data: &RenderData) -> bool {
+	pub fn is_mouse_over(&self, input: &Input, _render_data: &RenderData) -> bool {
 		match self {
-			Self::Rect{pos, size, alignment, color} => false,
-			Self::Button { pos, size, alignment, text, .. } => {
-				let mouse_pos = input.get_mouse_pos_as_gui_pos(*alignment);
+			Self::Button { pos, size, alignment, .. } => {
+				let mouse_pos = input.get_mouse_pos_as_gui_pos();
 				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, input);
 				let button_screen_size = gui_size_to_screen_size(*size);
 				let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
 				mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
 				mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
 			}
-			Self::Text { text: string, pos, alignment, text_alignment } => false,
+			_ => false,
 		}
 	}
 

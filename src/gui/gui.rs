@@ -4,6 +4,7 @@ use super::{gui_menu::GUIMenu};
 
 pub struct GUI {
 	pub menus: Vec<GUIMenu>,
+	pub should_close_game: bool,
 }
 
 impl GUI {
@@ -17,7 +18,8 @@ impl GUI {
 
 	pub fn new() -> Self {
 		Self {
-			menus: vec![],
+			menus: vec![GUIMenu::Title],
+			should_close_game: false,
 		}
 	}
 
@@ -36,6 +38,9 @@ impl GUI {
 			if let Some(top_menu) = self.menus.last_mut().cloned() {
 				top_menu.menu_close_button_action(self, world, input, render_data);
 			}
+		}
+		if let Some(top_menu) = self.menus.last_mut().cloned() {
+			top_menu.tick(self, world, input, render_data);
 		}
 	}
 

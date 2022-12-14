@@ -37,7 +37,7 @@ fn main() {
 	let async_runtime = Runtime::new().unwrap();
 
 	// Game
-	let mut world = Some(World::new());
+	let mut world = None;
 	//let mut guis = vec![GUIMenu::Test];
 	let mut gui = GUI::new();
 	let mut input = Input::new();
@@ -172,6 +172,9 @@ fn main() {
 				frame.finish().unwrap();
 			}
 			_ => {}
+		}
+		if gui.should_close_game {
+			*control_flow = ControlFlow::Exit;
 		}
 	});
 }
