@@ -12,6 +12,8 @@ pub enum Tile {
 	Flowers,
 	FlowersRedYellow,
 	Rocks,
+	Gravel,
+	BlackSand,
 }
 
 impl Tile {
@@ -25,6 +27,8 @@ impl Tile {
 			Self::Flowers => Texture::Flowers,
 			Self::FlowersRedYellow => Texture::FlowersRedYellow,
 			Self::Rocks => Texture::Rocks,
+			Self::Gravel => Texture::Gravel,
+			Self::BlackSand => Texture::BlackSand,
 		}
 	}
 
@@ -44,6 +48,8 @@ impl Tile {
 			Self::Flowers => TileMovementType::Clear,
 			Self::FlowersRedYellow => TileMovementType::Clear,
 			Self::Rocks => TileMovementType::Wall,
+			Self::BlackSand => TileMovementType::Clear,
+			Self::Gravel => TileMovementType::Clear,
 		}
 	}
 

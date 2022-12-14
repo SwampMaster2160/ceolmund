@@ -116,7 +116,7 @@ impl GUIMenu {
 		}
 	}
 
-	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, input: &mut Input, _render_data: &RenderData) {
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut Input, _render_data: &RenderData) {
 		match self {
 			GUIMenu::ExitingGame => {
 				if let Some(world) = world {
