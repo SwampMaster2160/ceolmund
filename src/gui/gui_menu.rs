@@ -11,6 +11,7 @@ pub enum GUIMenu {
 	ExitingGame,
 	ExitingToTitle,
 	Title,
+	IngameHUD,
 }
 
 impl GUIMenu {
@@ -79,10 +80,11 @@ impl GUIMenu {
 					tick_mut_self: (|_, _, _, _| ()),
 					tick_mut_gui: (|_, gui, world, _, _| {
 						*world = Some(World::new());
-						gui.menus = vec![];
+						gui.menus = vec![Self::IngameHUD];
 					}),
 				},
 			],
+			Self::IngameHUD => vec![],
 		}
 	}
 
@@ -103,6 +105,7 @@ impl GUIMenu {
 			Self::ExitingGame => true,
 			Self::ExitingToTitle => true,
 			Self::Title => true,
+			Self::IngameHUD => false,
 		}
 	}
 
@@ -116,7 +119,14 @@ impl GUIMenu {
 		}
 	}
 
-	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut Input, _render_data: &RenderData) {
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut Input, _render_data: &RenderData, request_game_close: bool) {
+		if world.is_some() && request_game_close {
+			if let Some(world) = world {
+				world.is_freeing = true;
+			}
+			gui.menus = Vec::new();
+			gui.menus.push(GUIMenu::ExitingGame);
+		}
 		match self {
 			GUIMenu::ExitingGame => {
 				if let Some(world) = world {
@@ -138,6 +148,20 @@ impl GUIMenu {
 					*world = None;
 				}
 			}
+			GUIMenu::Title => {
+				if request_game_close {
+					gui.should_close_game = true;
+				}
+			}
+			/*GUIMenu::Paused => {
+				if request_game_close {
+					if let Some(world) = world {
+						world.is_freeing = true;
+					}
+					gui.menus.pop();
+					gui.menus.push(GUIMenu::ExitingGame);
+				}
+			}*/
 			_ => {}
 		}
 	}

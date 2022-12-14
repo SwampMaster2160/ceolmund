@@ -3,7 +3,7 @@ use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
 use super::game_key::GameKey;
 
 pub struct Input {
-	game_keys_keyboard: [bool; GameKey::Count.get_id()],
+	pub game_keys_keyboard: [bool; GameKey::Count.get_id()],
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
 	keys_pressed_last: [bool; GameKey::Count.get_id()],
 	pub aspect_ratio: f32,

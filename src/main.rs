@@ -1,5 +1,5 @@
 // Don't open a console window when the program starts
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 pub mod world;
 pub mod render;
@@ -9,7 +9,7 @@ pub mod gui;
 use std::{io::Cursor, time::Instant};
 
 use gui::gui::GUI;
-use io::input::Input;
+use io::{input::Input, game_key::GameKey};
 use render::render_data::RenderData;
 use tokio::runtime::Runtime;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
@@ -84,7 +84,7 @@ fn main() {
 		*control_flow = ControlFlow::Poll;
 		match event {
 			Event::WindowEvent { event: window_event, .. } => match window_event {
-				WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+				WindowEvent::CloseRequested => input.game_keys_keyboard[GameKey::CloseGame.get_id()] = true,
 				WindowEvent::Resized(size) => window_size = [size.width, size.height],
 				WindowEvent::KeyboardInput { device_id: _, input: key_input, .. } => {
 					if key_input.virtual_keycode == Some(VirtualKeyCode::F11) && key_input.state == ElementState::Released {

@@ -40,7 +40,7 @@ impl GUI {
 			}
 		}
 		if let Some(top_menu) = self.menus.last_mut().cloned() {
-			top_menu.tick(self, world, input, render_data);
+			top_menu.tick(self, world, input, render_data, input.get_game_key(GameKey::CloseGame));
 		}
 	}
 
