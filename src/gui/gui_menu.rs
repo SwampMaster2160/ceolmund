@@ -84,15 +84,12 @@ impl GUIMenu {
 					tick_mut_gui: (|_, gui, world, _, _| {
 						if let GUIElement::TextEntry{text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
 							let seed = text.parse::<u32>();
-							match seed {
-								Ok(seed) => {
-									*world = Some(World::new(seed));
-									gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
-								}
-								Err(_) => {
-									
-								}
-							}
+							let seed = match seed {
+								Ok(seed) => seed,
+								Err(_) => 420,
+							};
+							*world = Some(World::new(seed));
+							gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
 						}
 					}),
 				},
