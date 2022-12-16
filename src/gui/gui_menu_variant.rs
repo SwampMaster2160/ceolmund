@@ -7,4 +7,5 @@ pub enum GUIMenuVariant {
 	Title,
 	IngameHUD,
 	CreateWorld,
+	Error,
 }

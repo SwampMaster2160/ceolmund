@@ -68,7 +68,7 @@ impl GUIMenu {
 				},
 				GUIElement::Button {
 					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
-					tick_mut_gui: (|_, gui, world, _, _| {
+					tick_mut_gui: (|_, gui, _, _, _| {
 						gui.menus.pop();
 						gui.menus.push(Self::new(GUIMenuVariant::CreateWorld));
 					}),
@@ -78,25 +78,48 @@ impl GUIMenu {
 			GUIMenuVariant::CreateWorld => vec![
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+				GUIElement::Text { text: "Name:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
 					tick_mut_gui: (|_, gui, world, _, _| {
-						if let GUIElement::TextEntry{text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
-							let seed = text.parse::<u32>();
-							let seed = match seed {
-								Ok(seed) => seed,
-								Err(_) => 420,
-							};
-							*world = Some(World::new(seed));
-							gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
+						if let GUIElement::TextEntry{text: name_text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
+							if let GUIElement::TextEntry{text: seed_text, ..} = &gui.menus.last().unwrap().extra_elements[1] {
+								let seed = seed_text.parse::<u32>();
+								let seed = match seed {
+									Ok(seed) => seed,
+									Err(_) if *seed_text == "".to_string() => 420,
+									Err(_) => {
+										gui.menus.push(GUIMenu::new_error("Invalid seed.".to_string()));
+										return
+									},
+								};
+								match World::new(seed, name_text.clone()) {
+									Some(valid_world) => *world = Some(valid_world),
+									None => {
+										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
+										return
+									},
+								};
+								gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
+							}
 						}
 					}),
 				},
 				GUIElement::Button {
 					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(),
-					tick_mut_gui: (|_, gui, world, _, _| {
+					tick_mut_gui: (|_, gui, _, _, _| {
 						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+					}),
+				},
+			],
+			GUIMenuVariant::Error => vec![
+				GUIElement::Rect { pos: [53, 90], size: [150, 76], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Error".to_string(), pos: [127, 50], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Button {
+					pos: [53, 136], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(),
+					tick_mut_gui: (|_, gui, _, _, _| {
+						gui.menus.pop();
 					}),
 				},
 			],
@@ -123,7 +146,8 @@ impl GUIMenu {
 			GUIMenuVariant::ExitingToTitle => true,
 			GUIMenuVariant::Title => true,
 			GUIMenuVariant::IngameHUD => false,
-			GUIMenuVariant::CreateWorld => false,
+			GUIMenuVariant::CreateWorld => true,
+			GUIMenuVariant::Error => true,
 		}
 	}
 
@@ -183,10 +207,20 @@ impl GUIMenu {
 			variant,
 			extra_elements: match variant {
 				GUIMenuVariant::CreateWorld => vec![
-					GUIElement::TextEntry { text: "".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
+					GUIElement::TextEntry { text: "".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 20 },
+					GUIElement::TextEntry { text: "".to_string(), pos: [53, 90], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
 				],
 				_ => Vec::new(),
 			},
+		}
+	}
+
+	pub fn new_error(error: String) -> Self {
+		Self {
+			variant: GUIMenuVariant::Error,
+			extra_elements: vec![
+				GUIElement::Text { text: error, pos: [127, 96], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+			],
 		}
 	}
 }

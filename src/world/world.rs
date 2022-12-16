@@ -1,3 +1,5 @@
+use std::fs::create_dir;
+
 use tokio::runtime::Runtime;
 
 use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::input::Input, gui::gui::GUI};
@@ -10,12 +12,19 @@ pub struct World {
 	chunk_pool: ChunkPool,
 	seed: u32,
 	pub is_freeing: bool,
-	pub is_freed: bool
+	pub is_freed: bool,
+	name: String,
+	filename: String,
 }
 
 impl World {
-	pub fn new(seed: u32) -> Self {
-		Self { 
+	pub fn new(seed: u32, name: String) -> Option<Self> {
+		let filename: String = name.chars().map(|chr| match chr {
+			'/' | '\\' | '<' | '>' | ':' | '\'' | '|' | '?' | '*' | '.' | '~' | '#' | '%' | '&' | '+' | '-' | '{' | '}' | '@' | '"' | '!' | '`' | '=' => '_',
+			_ => chr,
+		}).collect();
+		create_dir(&filename).ok()?;
+		let out = Self { 
 			player: Entity {
 				pos: [0, 0],
 				action_state: EntityActionState::Idle,
@@ -26,7 +35,10 @@ impl World {
 			seed,
 			is_freeing: false,
 			is_freed: false,
-		}
+			name,
+			filename,
+		};
+		Some(out)
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.

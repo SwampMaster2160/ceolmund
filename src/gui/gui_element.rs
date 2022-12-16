@@ -1,3 +1,5 @@
+use unicode_segmentation::UnicodeSegmentation;
+
 use crate::{io::{input::Input, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{RenderData}}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI};
@@ -73,7 +75,7 @@ impl GUIElement {
 		}
 	}
 
-	pub fn tick_mut_self(&mut self, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, input: &Input, render_data: &RenderData) {
 		let is_mouse_over = self.is_mouse_over(input, render_data);
 		if input.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
@@ -87,7 +89,7 @@ impl GUIElement {
 			GUIElement::TextEntry { is_selected, text, text_length_limit, .. } => {
 				if *is_selected {
 					for chr in input.key_chars.iter() {
-						if !chr.is_control() && text.len() < *text_length_limit {
+						if !chr.is_control() && text.graphemes(true).count() < *text_length_limit {
 							text.push(*chr);
 						}
 						if *chr == '\x08' {

@@ -1,4 +1,7 @@
+use std::{path::PathBuf, fs::create_dir};
+
 use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
+use home::home_dir;
 
 use super::game_key::GameKey;
 
@@ -10,10 +13,18 @@ pub struct Input {
 	pub window_size: [u32; 2],
 	pub mouse_pos: [u32; 2],
 	pub key_chars: Vec<char>,
+	pub home_path: PathBuf,
+	pub worlds_path: PathBuf,
 }
 
 impl Input {
 	pub fn new() -> Self {
+		let mut home_path = home_dir().unwrap();
+		home_path.push(".ceolmund");
+		let mut worlds_path = home_path.clone();
+		worlds_path.push("worlds");
+		create_dir(&home_path).ok();
+		create_dir(&worlds_path).ok();
 		Self {
 			game_keys_keyboard: [false; GameKey::Count.get_id()],
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
@@ -22,6 +33,8 @@ impl Input {
 			window_size: [0, 0],
 			mouse_pos: [0, 0],
 			key_chars: Vec::new(),
+			home_path,
+			worlds_path,
 		}
 	}
 
