@@ -14,7 +14,7 @@ pub struct World {
 }
 
 impl World {
-	pub fn new() -> Self {
+	pub fn new(seed: u32) -> Self {
 		Self { 
 			player: Entity {
 				pos: [0, 0],
@@ -23,7 +23,7 @@ impl World {
 				entity_type: EntityType::Player,
 			},
 			chunk_pool: ChunkPool::new(),
-			seed: 420,
+			seed,
 			is_freeing: false,
 			is_freed: false,
 		}

@@ -15,7 +15,7 @@ pub enum GUIElement {
 		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) -> (),
 	},
 	Text {text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment},
-	TextEntry {text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool},
+	TextEntry {text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize},
 }
 
 impl GUIElement {
@@ -57,7 +57,7 @@ impl GUIElement {
 			}
 			Self::Text { text: string, pos, alignment, text_alignment } =>
 				render_gui_string(string, *pos, *alignment, *text_alignment, input, render_data, vertices),
-			Self::TextEntry { text, pos, size, alignment, is_selected } => {
+			Self::TextEntry { text, pos, size, alignment, is_selected, .. } => {
 				let mut color = TEXT_ENTRY_GRAY_COLOR;
 				if self.is_mouse_over(input, render_data) {
 					color = BUTTON_HOVER_COLOR;
@@ -84,9 +84,16 @@ impl GUIElement {
 			}
 		}
 		match self {
-			GUIElement::TextEntry { is_selected, text, .. } => {
+			GUIElement::TextEntry { is_selected, text, text_length_limit, .. } => {
 				if *is_selected {
-
+					for chr in input.key_chars.iter() {
+						if !chr.is_control() && text.len() < *text_length_limit {
+							text.push(*chr);
+						}
+						if *chr == '\x08' {
+							text.pop();
+						}
+					}
 				}
 			},
 			_ => {}

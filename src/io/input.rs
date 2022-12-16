@@ -9,6 +9,7 @@ pub struct Input {
 	pub aspect_ratio: f32,
 	pub window_size: [u32; 2],
 	pub mouse_pos: [u32; 2],
+	pub key_chars: Vec<char>,
 }
 
 impl Input {
@@ -20,6 +21,7 @@ impl Input {
 			aspect_ratio: 0.,
 			window_size: [0, 0],
 			mouse_pos: [0, 0],
+			key_chars: Vec::new(),
 		}
 	}
 

@@ -78,11 +78,22 @@ impl GUIMenu {
 			GUIMenuVariant::CreateWorld => vec![
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
 					tick_mut_gui: (|_, gui, world, _, _| {
-						*world = Some(World::new());
-						gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
+						if let GUIElement::TextEntry{text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
+							let seed = text.parse::<u32>();
+							match seed {
+								Ok(seed) => {
+									*world = Some(World::new(seed));
+									gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
+								}
+								Err(_) => {
+									
+								}
+							}
+						}
 					}),
 				},
 				GUIElement::Button {
@@ -175,7 +186,7 @@ impl GUIMenu {
 			variant,
 			extra_elements: match variant {
 				GUIMenuVariant::CreateWorld => vec![
-					GUIElement::TextEntry { text: "Hi".to_string(), pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false },
+					GUIElement::TextEntry { text: "".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
 				],
 				_ => Vec::new(),
 			},

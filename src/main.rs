@@ -97,6 +97,7 @@ fn main() {
 						input.key_press(key_input);
 					}
 				}
+				WindowEvent::ReceivedCharacter(chr) => input.key_chars.push(*chr),
 				WindowEvent::CursorMoved { device_id: _, position, .. } =>
 					input.mouse_pos = [position.x as u32, position.y as u32],
 				WindowEvent::MouseInput { device_id: _, state, button, .. } => input.mouse_press(*state, *button),
@@ -127,6 +128,7 @@ fn main() {
 					}
 				}
 				input.update_keys_pressed_last();
+				input.key_chars.clear();
 
 				// Get frame for drawing on
 				let mut frame = display.draw();
