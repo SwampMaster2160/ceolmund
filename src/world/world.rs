@@ -14,6 +14,7 @@ pub struct World {
 	pub name: String,
 	pub filepath: PathBuf,
 	pub chunks_filepath: PathBuf,
+	pub overview_filepath: PathBuf,
 }
 
 impl World {
@@ -28,6 +29,8 @@ impl World {
 		let mut chunks_filepath = filepath.clone();
 		chunks_filepath.push("chunks".to_string());
 		create_dir(&chunks_filepath).ok()?;
+		let mut overview_filepath = filepath.clone();
+		overview_filepath.push("overview.wld".to_string());
 		let out = Self { 
 			player: Entity {
 				pos: [0, 0],
@@ -41,7 +44,8 @@ impl World {
 			is_freed: false,
 			name,
 			filepath,
-			chunks_filepath
+			chunks_filepath,
+			overview_filepath,
 		};
 		Some(out)
 	}
