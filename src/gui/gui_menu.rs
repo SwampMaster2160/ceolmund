@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex, render_data::RenderData}, io::io::IO, world::world::World};
+use crate::{render::vertex::Vertex, io::io::IO, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant};
 
@@ -18,7 +18,7 @@ impl GUIMenu {
 				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR },
 				GUIElement::Button {
 					pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi".to_string(),
-					tick_mut_gui: (|_, _, _, _, _| println!("Hi")),
+					tick_mut_gui: (|_, _, _, _| println!("Hi")),
 				},
 				GUIElement::Text { text: "Hello".to_string(), pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
 			],
@@ -27,11 +27,11 @@ impl GUIMenu {
 				GUIElement::Text { text: "Game Paused".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume".to_string(),
-					tick_mut_gui: (|_, gui, _, _, _| {gui.menus.pop();}),
+					tick_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
 				},
 				GUIElement::Button {
 					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(),
-					tick_mut_gui: (|_, gui, world, _, _| {
+					tick_mut_gui: (|_, gui, world, _| {
 						if let Some(world) = world {
 							world.is_freeing = true;
 						}
@@ -41,7 +41,7 @@ impl GUIMenu {
 				},
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit to Title".to_string(),
-					tick_mut_gui: (|_, gui, world, _, _| {
+					tick_mut_gui: (|_, gui, world, _| {
 						if let Some(world) = world {
 							world.is_freeing = true;
 						}
@@ -63,13 +63,13 @@ impl GUIMenu {
 				GUIElement::Text { text: "Ceolmund".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(),
-					tick_mut_gui: (|_, gui, _, _, _| {
+					tick_mut_gui: (|_, gui, _, _| {
 						gui.should_close_game = true;
 					}),
 				},
 				GUIElement::Button {
 					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
-					tick_mut_gui: (|_, gui, _, _, _| {
+					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus.pop();
 						gui.menus.push(Self::new(GUIMenuVariant::CreateWorld));
 					}),
@@ -83,7 +83,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
-					tick_mut_gui: (|_, gui, world, io, _| {
+					tick_mut_gui: (|_, gui, world, io| {
 						if let GUIElement::TextEntry{text: name_text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
 							if let GUIElement::TextEntry{text: seed_text, ..} = &gui.menus.last().unwrap().extra_elements[1] {
 								let seed = seed_text.parse::<u32>();
@@ -109,7 +109,7 @@ impl GUIMenu {
 				},
 				GUIElement::Button {
 					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(),
-					tick_mut_gui: (|_, gui, _, _, _| {
+					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
 					}),
 				},
@@ -120,7 +120,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Error".to_string(), pos: [127, 74], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 150], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(),
-					tick_mut_gui: (|_, gui, _, _, _| {
+					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus.pop();
 					}),
 				},
@@ -134,9 +134,9 @@ impl GUIMenu {
 		out
 	}
 
-	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &IO, render_data: &RenderData) {
+	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
 		for element in self.get_elements() {
-			element.render(vertices, input, render_data);
+			element.render(vertices, io);
 		}
 	}
 
@@ -153,17 +153,17 @@ impl GUIMenu {
 		}
 	}
 
-	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, input: &mut IO, _render_data: &RenderData) {
+	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, io: &mut IO) {
 		match self.variant {
 			GUIMenuVariant::Paused => {
 				gui.menus.pop();
-				input.update_keys_pressed_last();
+				io.update_keys_pressed_last();
 			},
 			_ => {}
 		}
 	}
 
-	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut IO, _render_data: &RenderData, request_game_close: bool) {
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _io: &mut IO, request_game_close: bool) {
 		if request_game_close {
 			if world.is_some() {
 				if let Some(world) = world {

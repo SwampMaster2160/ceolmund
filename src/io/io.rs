@@ -2,9 +2,11 @@ use std::{path::PathBuf, fs::create_dir};
 
 use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
 use home::home_dir;
+use tokio::runtime::Runtime;
 
 use super::game_key::GameKey;
 
+/// For everything hardware related.
 pub struct IO {
 	pub game_keys_keyboard: [bool; GameKey::Count.get_id()],
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
@@ -15,6 +17,8 @@ pub struct IO {
 	pub key_chars: Vec<char>,
 	pub home_path: PathBuf,
 	pub worlds_path: PathBuf,
+	pub char_widths: Vec<u8>,
+	pub async_runtime: Runtime,
 }
 
 impl IO {
@@ -25,6 +29,11 @@ impl IO {
 		worlds_path.push("worlds");
 		create_dir(&home_path).ok();
 		create_dir(&worlds_path).ok();
+
+		let mut char_widths = Vec::new();
+		char_widths.extend(include_bytes!("../asset/render_width/0.cwt"));
+		char_widths.extend(include_bytes!("../asset/render_width/1.cwt"));
+		char_widths.extend(include_bytes!("../asset/render_width/2.cwt"));
 		Self {
 			game_keys_keyboard: [false; GameKey::Count.get_id()],
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
@@ -35,6 +44,8 @@ impl IO {
 			key_chars: Vec::new(),
 			home_path,
 			worlds_path,
+			char_widths,
+			async_runtime: Runtime::new().unwrap(),
 		}
 	}
 

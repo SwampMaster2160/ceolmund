@@ -62,12 +62,14 @@ impl Chunk {
 		}
 	}
 
+	/// Load or generate chunk
 	pub async fn get(pos: [i64; 2], seed: u32) -> Self {
 		let mut out = Self::new();
 		out.generate(pos, seed);
 		out
 	}
 
+	/// Save and free chunk
 	pub async fn free(self, _pos: [i64; 2]) {
 		
 	}

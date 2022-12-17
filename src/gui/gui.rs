@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex, render_data::RenderData}, io::{io::IO, game_key::GameKey}, world::world::World};
+use crate::{render::vertex::Vertex, io::{io::IO, game_key::GameKey}, world::world::World};
 
 use super::{gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant};
 
@@ -8,10 +8,10 @@ pub struct GUI {
 }
 
 impl GUI {
-	pub fn render(&self, input: &IO, render_data: &RenderData) -> Vec<Vertex> {
+	pub fn render(&self, io: &IO) -> Vec<Vertex> {
 		let mut vertices: Vec<Vertex> = Vec::new();
 		for menu in &self.menus {
-			menu.render(&mut vertices, input, render_data);
+			menu.render(&mut vertices, io);
 		}
 		vertices
 	}
@@ -23,24 +23,24 @@ impl GUI {
 		}
 	}
 
-	pub fn tick(&mut self, world: &mut Option<World>, input: &mut IO, render_data: &RenderData) {
+	pub fn tick(&mut self, world: &mut Option<World>, io: &mut IO) {
 		if let Some(top_menu) = self.menus.last_mut() {
 			for element in &mut top_menu.extra_elements {
-				element.tick_mut_self(world, input, render_data);
+				element.tick_mut_self(world, io);
 			}
 		}
 		if let Some(top_menu) = self.menus.last_mut().cloned() {
 			for element in top_menu.get_elements() {
-				element.tick_mut_gui(self, world, input, render_data);
+				element.tick_mut_gui(self, world, io);
 			}
 		}
-		if input.get_game_key_starting_now(GameKey::MenuOpenClose) {
+		if io.get_game_key_starting_now(GameKey::MenuOpenClose) {
 			if let Some(top_menu) = self.menus.last_mut().cloned() {
-				top_menu.menu_close_button_action(self, world, input, render_data);
+				top_menu.menu_close_button_action(self, world, io);
 			}
 		}
 		if let Some(top_menu) = self.menus.last_mut().cloned() {
-			top_menu.tick(self, world, input, render_data, input.get_game_key(GameKey::CloseGame));
+			top_menu.tick(self, world, io, io.get_game_key(GameKey::CloseGame));
 		}
 	}
 

@@ -45,10 +45,11 @@ impl ChunkPool {
 	}
 
 	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool) {
+		// Dummy thread context (used and discarded, wakers are discarded).
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
 
-		// Get the bounds of what should be generated.
+		// Get the bounds of what should be loaded.
 		let chunk_y_to_load_start = player.pos[1].div_euclid(64) - 1;
 		let chunk_y_to_load_end = chunk_y_to_load_start + 2;
 		let chunk_x_to_load_start = (player.pos[0] - player_visable_width as i64 / 2).div_euclid(64) - 1;
@@ -71,6 +72,7 @@ impl ChunkPool {
 		let mut to_remove: Vec<[i64; 2]> = Vec::new();
 		for (pos, chunk_slot) in self.chunks.iter_mut() {
 			match chunk_slot {
+				// Free loaded chunks if out of load bounds.
 				ChunkSlot::Chunk(chunk) => {
 					if (chunk_x_to_load_start..=chunk_x_to_load_end).contains(&pos[0]) && (chunk_y_to_load_start..=chunk_y_to_load_end).contains(&pos[1])
 					&& !is_freeing {
@@ -79,12 +81,14 @@ impl ChunkPool {
 					else {
 						to_free.push(*pos);
 					}
-				},
+				}
+				// Unwrap a loading chunk if it has been loaded and add to loaded chunks.
 				ChunkSlot::Getting(chunk_getting) => {
 					if let Poll::Ready(chunk) = chunk_getting.poll_unpin(&mut cx) {
 						*chunk_slot = ChunkSlot::Chunk(chunk.unwrap());
 					}
 				}
+				// If a chunk is finished freeing then finally delete it.
 				ChunkSlot::Freeing(chunk_freeing) => {
 					if let Poll::Ready(_) = chunk_freeing.poll_unpin(&mut cx) {
 						to_remove.push(*pos);
@@ -105,6 +109,7 @@ impl ChunkPool {
 		}
 	}
 
+	/// Get the tile stack at the world pos wrapped in Some if the chunk it is in is loaded, else get None.
 	pub fn get_tile_stack_at(&mut self, pos: [i64; 2]) -> Option<&mut TileStack> {
 		if let ChunkSlot::Chunk(chunk) = self.chunks.get_mut(&[pos[0].div_euclid(64), pos[1].div_euclid(64)])? {
 			return Some(&mut chunk.tile_stacks[pos[1].rem_euclid(64) as usize][pos[0].rem_euclid(64) as usize])

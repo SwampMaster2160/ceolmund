@@ -1,6 +1,6 @@
 use crate::{io::io::IO, gui::gui_alignment::GUIAlignment};
 
-use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE, render_data::RenderData};
+use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE};
 
 const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 
@@ -47,8 +47,8 @@ pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
 	]
 }
 
-pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, input: &IO, render_data: &RenderData) -> ([Vertex; 6], u8) {
-	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
+pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
+	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, io);
 	let gui_size = gui_size_to_screen_size([8, 16]);
 	let end_x = start_x + gui_size[0];
 	let end_y = start_y + gui_size[1];
@@ -72,17 +72,17 @@ pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, input:
 		Vertex { position: [end_x, start_y],   texture_position: [texture_x_end, texture_y_start],   color: [0., 0., 0., 0.] },
 		Vertex { position: [end_x, end_y],     texture_position: [texture_x_end, texture_y_end],     color: [0., 0., 0., 0.] },
 		Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
-	], match render_data.widths.get(char_id as usize) {
+	], match io.char_widths.get(char_id as usize) {
 		Some(width) => *width,
 		None => 8,
 	})
 }
 
-pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, input: &IO, render_data: &RenderData, vertices: &mut Vec<Vertex>) {
+pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, io: &IO, vertices: &mut Vec<Vertex>) {
 	let mut width = 0u32;
 	for chr in string.chars() {
 		let char_id: u32 = chr.into();
-		width += (match render_data.widths.get(char_id as usize) {
+		width += (match io.char_widths.get(char_id as usize) {
 			Some(width) => *width,
 			None => 8,
 		} + 1) as u32;
@@ -94,7 +94,7 @@ pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, t
 	};
 	let mut x = pos[0].saturating_sub(offset as u16);
 	for chr in string.chars() {
-		let (char_vertices, char_width) = render_gui_char(chr, [x, pos[1]], alignment, input, render_data);
+		let (char_vertices, char_width) = render_gui_char(chr, [x, pos[1]], alignment, io);
 		vertices.extend(char_vertices);
 		x += char_width as u16 + 1;
 	}

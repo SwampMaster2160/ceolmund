@@ -53,7 +53,8 @@ impl Tile {
 		}
 	}
 
-	pub fn try_move_to(&mut self, _entity: &mut Entity) -> bool {
+	/// Called when an entity trys to move to this tile and returns weather or not the entity can move to this tile.
+	pub fn entity_try_move_to(&mut self, _entity: &mut Entity) -> bool {
 		match self.get_tile_movement_type() {
 			TileMovementType::Clear => true,
 			TileMovementType::Wall => false,

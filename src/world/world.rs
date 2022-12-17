@@ -1,7 +1,5 @@
 use std::{fs::create_dir, path::PathBuf};
 
-use tokio::runtime::Runtime;
-
 use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::io::IO, gui::gui::GUI};
 
 use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
@@ -59,13 +57,15 @@ impl World {
 		(vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()))
 	}
 
-	pub fn tick(&mut self, input: &IO, async_runtime: &Runtime, player_visable_width: u64, gui: &mut GUI) {
-		self.chunk_pool.tick(&self.player, player_visable_width, async_runtime, self.seed);
-		self.player.player_tick(&mut self.chunk_pool, input, gui);
+	/// Tick called when the game is not paused.
+	pub fn tick(&mut self, io: &IO, player_visable_width: u64, gui: &mut GUI) {
+		self.chunk_pool.tick(&self.player, player_visable_width, &io.async_runtime, self.seed);
+		self.player.player_tick(&mut self.chunk_pool, io, gui);
 		self.player.tick(&mut self.chunk_pool);
 	}
 
-	pub fn tick_always(&mut self, _input: &IO, async_runtime: &Runtime, player_visable_width: u64, _gui: &mut GUI) {
-		self.chunk_pool.tick_always(&self.player, player_visable_width, async_runtime, self.seed, self.is_freeing, &mut self.is_freed);
+	/// Tick always called.
+	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
+		self.chunk_pool.tick_always(&self.player, player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed);
 	}
 }

@@ -47,7 +47,7 @@ impl Entity {
 			}
 			if try_move {
 				if let Some(tile_stack) = chunks.get_tile_stack_at(self.get_pos_in_front()) {
-					tile_stack.try_move_to(self);
+					tile_stack.entity_try_move_to(self);
 				}
 			}
 		}

@@ -35,6 +35,7 @@ impl TileStack {
 		self.needs_redrawing = false;
 	}
 
+	/// Create an empty tile stack.
 	pub fn new() -> Self {
 		Self {
 			tiles: Vec::new(),
@@ -43,6 +44,7 @@ impl TileStack {
 		}
 	}
 
+	/// Generates tiles onto an empty tile stack.
 	pub fn generate(&mut self, pos: [i64; 2], world_seed: u32) {
 		let height = Fbm::<Perlin>::new(world_seed).get([pos[0] as f64 / 64., pos[1] as f64 / 64.]);
 		let sand_type = Fbm::<Perlin>::new(world_seed + 3).get([pos[0] as f64 / 64., pos[1] as f64 / 64.]);
@@ -82,9 +84,10 @@ impl TileStack {
 		}
 	}
 
-	pub fn try_move_to(&mut self, entity: &mut Entity) {
+	/// Called when an entity trys to move to this tile stack. If so, the entity start walking.
+	pub fn entity_try_move_to(&mut self, entity: &mut Entity) {
 		if let Some(top_tile) = self.tiles.last_mut() {
-			let can_move = top_tile.try_move_to(entity);
+			let can_move = top_tile.entity_try_move_to(entity);
 			if can_move {
 				entity.action_state = EntityActionState::Walking(0);
 			}
