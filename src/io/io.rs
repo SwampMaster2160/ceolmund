@@ -5,7 +5,7 @@ use home::home_dir;
 
 use super::game_key::GameKey;
 
-pub struct Input {
+pub struct IO {
 	pub game_keys_keyboard: [bool; GameKey::Count.get_id()],
 	game_keys_gamepad: [bool; GameKey::Count.get_id()],
 	keys_pressed_last: [bool; GameKey::Count.get_id()],
@@ -17,7 +17,7 @@ pub struct Input {
 	pub worlds_path: PathBuf,
 }
 
-impl Input {
+impl IO {
 	pub fn new() -> Self {
 		let mut home_path = home_dir().unwrap();
 		home_path.push(".ceolmund");

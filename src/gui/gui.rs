@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex, render_data::RenderData}, io::{input::Input, game_key::GameKey}, world::world::World};
+use crate::{render::{vertex::Vertex, render_data::RenderData}, io::{io::IO, game_key::GameKey}, world::world::World};
 
 use super::{gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant};
 
@@ -8,7 +8,7 @@ pub struct GUI {
 }
 
 impl GUI {
-	pub fn render(&self, input: &Input, render_data: &RenderData) -> Vec<Vertex> {
+	pub fn render(&self, input: &IO, render_data: &RenderData) -> Vec<Vertex> {
 		let mut vertices: Vec<Vertex> = Vec::new();
 		for menu in &self.menus {
 			menu.render(&mut vertices, input, render_data);
@@ -23,7 +23,7 @@ impl GUI {
 		}
 	}
 
-	pub fn tick(&mut self, world: &mut Option<World>, input: &mut Input, render_data: &RenderData) {
+	pub fn tick(&mut self, world: &mut Option<World>, input: &mut IO, render_data: &RenderData) {
 		if let Some(top_menu) = self.menus.last_mut() {
 			for element in &mut top_menu.extra_elements {
 				element.tick_mut_self(world, input, render_data);

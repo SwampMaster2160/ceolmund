@@ -1,4 +1,4 @@
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, input::Input}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
@@ -24,7 +24,7 @@ impl Entity {
 	}
 
 	/// A tick for the player that reads the io input.
-	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &Input, gui: &mut GUI) {
+	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &IO, gui: &mut GUI) {
 		if input.get_game_key_starting_now(GameKey::MenuOpenClose) {
 			gui.menus.push(GUIMenu::new(GUIMenuVariant::Paused));
 		}

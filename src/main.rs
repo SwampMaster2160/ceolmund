@@ -9,7 +9,7 @@ pub mod gui;
 use std::{io::Cursor, time::Instant};
 
 use gui::gui::GUI;
-use io::{input::Input, game_key::GameKey};
+use io::{io::IO, game_key::GameKey};
 use render::render_data::RenderData;
 use tokio::runtime::Runtime;
 use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
@@ -39,7 +39,7 @@ fn main() {
 	let mut world = None;
 	//let mut guis = vec![GUIMenu::Test];
 	let mut gui = GUI::new();
-	let mut input = Input::new();
+	let mut input = IO::new();
 	let render_data = RenderData::new();
 
 	// Window

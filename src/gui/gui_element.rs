@@ -1,6 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{io::{input::Input, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string}, render_data::{RenderData}}, world::world::World};
+use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string, render_screen_grayout}, render_data::{RenderData}}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI};
 
@@ -14,14 +14,15 @@ pub enum GUIElement {
 	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
 	Button {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment,
-		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) -> (),
+		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, input: &IO, render_data: &RenderData) -> (),
 	},
 	Text {text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment},
 	TextEntry {text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize},
+	Grayout {color: [u8; 4]},
 }
 
 impl GUIElement {
-	pub fn is_mouse_over(&self, input: &Input, _render_data: &RenderData) -> bool {
+	pub fn is_mouse_over(&self, input: &IO, _render_data: &RenderData) -> bool {
 		match self {
 			Self::Button { pos, size, alignment, .. } => {
 				let mouse_pos = input.get_mouse_pos_as_gui_pos();
@@ -43,7 +44,7 @@ impl GUIElement {
 		}
 	}
 
-	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &Input, render_data: &RenderData) {
+	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &IO, render_data: &RenderData) {
 		match self {
 			Self::Rect{pos, size, alignment, color} =>
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, input)),
@@ -72,10 +73,11 @@ impl GUIElement {
 				let text_pos = [pos[0] + 1, pos[1] + size[1] / 2 - 8];
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Left, input, render_data, vertices);
 			}
+			Self::Grayout { color } => vertices.extend(render_screen_grayout(*color, input)),
 		}
 	}
 
-	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, input: &IO, render_data: &RenderData) {
 		let is_mouse_over = self.is_mouse_over(input, render_data);
 		if input.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
@@ -102,7 +104,7 @@ impl GUIElement {
 		}
 	}
 
-	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, input: &Input, render_data: &RenderData) {
+	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, input: &IO, render_data: &RenderData) {
 		if input.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(input, render_data) {
 			match self {
 				GUIElement::Button { tick_mut_gui, .. } => tick_mut_gui(self, gui, world, input, render_data),

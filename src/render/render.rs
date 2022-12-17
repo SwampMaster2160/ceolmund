@@ -1,10 +1,10 @@
-use crate::{io::input::Input, gui::gui_alignment::GUIAlignment};
+use crate::{io::io::IO, gui::gui_alignment::GUIAlignment};
 
 use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE, render_data::RenderData};
 
 const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 
-pub fn gui_pos_to_screen_pos(pos: [u16; 2], alignment: GUIAlignment, input: &Input) -> [f32; 2] {
+pub fn gui_pos_to_screen_pos(pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [f32; 2] {
 	let offset = match alignment {
 		GUIAlignment::Left => 0.,
 		GUIAlignment::Center => (input.aspect_ratio - 1.) / 2.,
@@ -17,7 +17,7 @@ pub fn gui_size_to_screen_size(size: [u16; 2]) -> [f32; 2] {
 	[size[0] as f32, size[1] as f32]
 }
 
-pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], input: &Input) -> [Vertex; 6] {
+pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], input: &IO) -> [Vertex; 6] {
 	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
 	let gui_size = gui_size_to_screen_size(size);
 	let end_x = start_x + gui_size[0];
@@ -33,7 +33,21 @@ pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, c
 	]
 }
 
-pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, input: &Input, render_data: &RenderData) -> ([Vertex; 6], u8) {
+pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
+	let [start_x, start_y] = gui_pos_to_screen_pos([0, 0], GUIAlignment::Left, io);
+	let [end_x, end_y] = gui_pos_to_screen_pos([256, 256], GUIAlignment::Right, io);
+	let render_color = [color[0] as f32 / 255., color[1] as f32 / 255., color[2] as f32 / 255., color[3] as f32 / 255.];
+	[
+		Vertex { position: [start_x, start_y], texture_position: [0., 0.], color: render_color },
+		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: render_color },
+		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: render_color },
+		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: render_color },
+		Vertex { position: [end_x, end_y],     texture_position: [0., 0.], color: render_color },
+		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: render_color },
+	]
+}
+
+pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, input: &IO, render_data: &RenderData) -> ([Vertex; 6], u8) {
 	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
 	let gui_size = gui_size_to_screen_size([8, 16]);
 	let end_x = start_x + gui_size[0];
@@ -64,7 +78,7 @@ pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, input:
 	})
 }
 
-pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, input: &Input, render_data: &RenderData, vertices: &mut Vec<Vertex>) {
+pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, input: &IO, render_data: &RenderData, vertices: &mut Vec<Vertex>) {
 	let mut width = 0u32;
 	for chr in string.chars() {
 		let char_id: u32 = chr.into();

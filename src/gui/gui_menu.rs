@@ -1,8 +1,9 @@
-use crate::{render::{vertex::Vertex, render_data::RenderData}, io::input::Input, world::world::World};
+use crate::{render::{vertex::Vertex, render_data::RenderData}, io::io::IO, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
+const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
 
 #[derive(Clone)]
 pub struct GUIMenu {
@@ -82,7 +83,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
-					tick_mut_gui: (|_, gui, world, _, _| {
+					tick_mut_gui: (|_, gui, world, io, _| {
 						if let GUIElement::TextEntry{text: name_text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
 							if let GUIElement::TextEntry{text: seed_text, ..} = &gui.menus.last().unwrap().extra_elements[1] {
 								let seed = seed_text.parse::<u32>();
@@ -94,7 +95,7 @@ impl GUIMenu {
 										return
 									},
 								};
-								match World::new(seed, name_text.clone()) {
+								match World::new(seed, name_text.clone(), io) {
 									Some(valid_world) => *world = Some(valid_world),
 									None => {
 										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
@@ -114,10 +115,11 @@ impl GUIMenu {
 				},
 			],
 			GUIMenuVariant::Error => vec![
+				GUIElement::Grayout { color: GRAYOUT_COLOR },
 				GUIElement::Rect { pos: [53, 90], size: [150, 76], alignment: GUIAlignment::Center, color: RECT_COLOR },
-				GUIElement::Text { text: "Error".to_string(), pos: [127, 50], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Text { text: "Error".to_string(), pos: [127, 74], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
-					pos: [53, 136], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(),
+					pos: [53, 150], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(),
 					tick_mut_gui: (|_, gui, _, _, _| {
 						gui.menus.pop();
 					}),
@@ -132,7 +134,7 @@ impl GUIMenu {
 		out
 	}
 
-	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &Input, render_data: &RenderData) {
+	pub fn render(&self, vertices: &mut Vec<Vertex>, input: &IO, render_data: &RenderData) {
 		for element in self.get_elements() {
 			element.render(vertices, input, render_data);
 		}
@@ -151,7 +153,7 @@ impl GUIMenu {
 		}
 	}
 
-	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, input: &mut Input, _render_data: &RenderData) {
+	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, input: &mut IO, _render_data: &RenderData) {
 		match self.variant {
 			GUIMenuVariant::Paused => {
 				gui.menus.pop();
@@ -161,7 +163,7 @@ impl GUIMenu {
 		}
 	}
 
-	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut Input, _render_data: &RenderData, request_game_close: bool) {
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _input: &mut IO, _render_data: &RenderData, request_game_close: bool) {
 		if request_game_close {
 			if world.is_some() {
 				if let Some(world) = world {
@@ -219,7 +221,7 @@ impl GUIMenu {
 		Self {
 			variant: GUIMenuVariant::Error,
 			extra_elements: vec![
-				GUIElement::Text { text: error, pos: [127, 96], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Text { text: error, pos: [127, 116], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 			],
 		}
 	}

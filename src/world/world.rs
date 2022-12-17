@@ -1,8 +1,8 @@
-use std::fs::create_dir;
+use std::{fs::create_dir, path::PathBuf};
 
 use tokio::runtime::Runtime;
 
-use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::input::Input, gui::gui::GUI};
+use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::io::IO, gui::gui::GUI};
 
 use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
 
@@ -13,17 +13,23 @@ pub struct World {
 	seed: u32,
 	pub is_freeing: bool,
 	pub is_freed: bool,
-	name: String,
-	filename: String,
+	pub name: String,
+	pub filepath: PathBuf,
+	pub chunks_filepath: PathBuf,
 }
 
 impl World {
-	pub fn new(seed: u32, name: String) -> Option<Self> {
-		let filename: String = name.chars().map(|chr| match chr {
+	pub fn new(seed: u32, name: String, io: &IO) -> Option<Self> {
+		let dirname: String = name.chars().map(|chr| match chr {
 			'/' | '\\' | '<' | '>' | ':' | '\'' | '|' | '?' | '*' | '.' | '~' | '#' | '%' | '&' | '+' | '-' | '{' | '}' | '@' | '"' | '!' | '`' | '=' => '_',
 			_ => chr,
 		}).collect();
-		create_dir(&filename).ok()?;
+		let mut filepath = io.worlds_path.clone();
+		filepath.push(dirname);
+		create_dir(&filepath).ok()?;
+		let mut chunks_filepath = filepath.clone();
+		chunks_filepath.push("chunks".to_string());
+		create_dir(&chunks_filepath).ok()?;
 		let out = Self { 
 			player: Entity {
 				pos: [0, 0],
@@ -36,7 +42,8 @@ impl World {
 			is_freeing: false,
 			is_freed: false,
 			name,
-			filename,
+			filepath,
+			chunks_filepath
 		};
 		Some(out)
 	}
@@ -52,13 +59,13 @@ impl World {
 		(vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()))
 	}
 
-	pub fn tick(&mut self, input: &Input, async_runtime: &Runtime, player_visable_width: u64, gui: &mut GUI) {
+	pub fn tick(&mut self, input: &IO, async_runtime: &Runtime, player_visable_width: u64, gui: &mut GUI) {
 		self.chunk_pool.tick(&self.player, player_visable_width, async_runtime, self.seed);
 		self.player.player_tick(&mut self.chunk_pool, input, gui);
 		self.player.tick(&mut self.chunk_pool);
 	}
 
-	pub fn tick_always(&mut self, _input: &Input, async_runtime: &Runtime, player_visable_width: u64, _gui: &mut GUI) {
+	pub fn tick_always(&mut self, _input: &IO, async_runtime: &Runtime, player_visable_width: u64, _gui: &mut GUI) {
 		self.chunk_pool.tick_always(&self.player, player_visable_width, async_runtime, self.seed, self.is_freeing, &mut self.is_freed);
 	}
 }
