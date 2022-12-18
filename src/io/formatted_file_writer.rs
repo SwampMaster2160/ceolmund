@@ -1,8 +1,8 @@
 use std::{path::PathBuf, fs::{File, remove_file, rename}, io::Write};
 
 pub struct FormattedFileWriter {
-	version: u32,
-	body: Vec<u8>,
+	pub version: u32,
+	pub body: Vec<u8>,
 	strings: Vec<u8>,
 }
 
@@ -15,7 +15,7 @@ impl FormattedFileWriter {
 		}
 	}
 
-	pub fn write(&self, path: PathBuf) -> Option<()> {
+	pub fn write(&self, path: &PathBuf) -> Option<()> {
 		// Move old file
 		let mut backup_path = path.clone();
 		backup_path.push(".bak");
@@ -40,5 +40,12 @@ impl FormattedFileWriter {
 		// Delete old file
 		remove_file(backup_path).ok()?;
 		Some(())
+	}
+
+	pub fn push_string(&mut self, string: &String) -> Option<u32> {
+		let pos = self.strings.len().try_into().ok()?;
+		self.strings.extend(string.as_bytes());
+		self.strings.push(0);
+		Some(pos)
 	}
 }

@@ -1,6 +1,6 @@
 use std::{fs::create_dir, path::PathBuf};
 
-use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::io::IO, gui::gui::GUI};
+use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter}, gui::gui::GUI};
 
 use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
 
@@ -47,6 +47,7 @@ impl World {
 			chunks_filepath,
 			overview_filepath,
 		};
+		out.save_overview();
 		Some(out)
 	}
 
@@ -71,5 +72,18 @@ impl World {
 	/// Tick always called.
 	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
 		self.chunk_pool.tick_always(&self.player, player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed);
+	}
+
+	pub fn save_overview(&self) {
+		// Create file
+		let mut file = FormattedFileWriter::new(0);
+		// Push world name
+		let name_pos = file.push_string(&self.name).unwrap().to_le_bytes();
+		file.body.extend(name_pos);
+		// Push seed
+		let seed = self.seed.to_le_bytes();
+		file.body.extend(seed);
+		// Write file
+		file.write(&self.overview_filepath);
 	}
 }

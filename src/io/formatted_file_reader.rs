@@ -1,3 +1,4 @@
+use std::ffi::CStr;
 use std::path::PathBuf;
 
 use std::fs::{read, remove_file, rename};
@@ -5,11 +6,11 @@ use std::fs::{read, remove_file, rename};
 pub struct FormattedFileReader {
 	pub version: u32,
 	pub body: Vec<u8>,
-	pub strings: Vec<u8>,
+	strings: Vec<u8>,
 }
 
 impl FormattedFileReader {
-	pub fn read_from_file(path: PathBuf) -> Option<Self> {
+	pub fn read_from_file(path: &PathBuf) -> Option<Self> {
 		// Restore backup in case of file save error
 		let mut backup_path = path.clone();
 		backup_path.push(".bak");
@@ -28,14 +29,21 @@ impl FormattedFileReader {
 		let string_area_ptr: [u8; 4] = data.get(4..8)?.try_into().ok()?;
 		let string_area_ptr = u32::from_le_bytes(string_area_ptr);
 		// Read body
-		let body: Vec<u8> = data.get(8..string_area_ptr as usize)?.iter().map(|byte| *byte).collect();
+		let body: Vec<u8> = (*data.get(8..string_area_ptr as usize)?).try_into().ok()?;
 		// Read strings
-		let strings: Vec<u8> = data.get(string_area_ptr as usize..)?.iter().map(|byte| *byte).collect();
+		let strings: Vec<u8> = (*data.get(string_area_ptr as usize..)?).try_into().ok()?;
 		// Return
 		Some(Self {
 			version,
 			body,
 			strings,
 		})
+	}
+
+	pub fn get_string(&self, start_index: u32) -> Option<String> {
+		let slice = self.strings.get(start_index as usize..)?;
+		let end = slice.iter().position(|item| *item == 0)?;
+		let cstr = CStr::from_bytes_with_nul(&slice[..=end]).ok()?;
+		Some(cstr.to_str().ok()?.to_string())
 	}
 }
