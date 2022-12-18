@@ -29,11 +29,11 @@ impl FormattedFileWriter {
 		let mut file = File::create(path).ok()?;
 		// Write version
 		let version = self.version.to_le_bytes();
-		file.write_all(&version).ok()?;
+		file.write(&version).ok()?;
 		// Write string area pointer
 		let string_area_ptr: u32 = (version.len() * 2 + self.body.len()).try_into().ok()?;
 		let string_area_ptr = string_area_ptr.to_le_bytes();
-		file.write_all(&string_area_ptr).ok()?;
+		file.write(&string_area_ptr).ok()?;
 		// Write body and strings
 		file.write(self.body.as_slice()).ok()?;
 		file.write(self.strings.as_slice()).ok()?;
