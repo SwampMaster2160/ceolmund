@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::fs::{read, remove_file, rename};
 
 pub struct FormattedFileReader {
-	version: u32,
-	body: Vec<u8>,
-	strings: Vec<u8>,
+	pub version: u32,
+	pub body: Vec<u8>,
+	pub strings: Vec<u8>,
 }
 
 impl FormattedFileReader {
