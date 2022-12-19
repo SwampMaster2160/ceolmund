@@ -132,34 +132,74 @@ impl GUIMenu {
 					}),
 				},
 			],
-			GUIMenuVariant::LoadWorld { page, load_world_data } => vec![
-				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
-				GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-				GUIElement::Button {
-					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
-					tick_mut_gui: (|_, gui, _, _| {
-						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
-					}),
-				},
-				GUIElement::Button {
-					pos: [53, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "<-".to_string(), enabled: *page > 0,
-					tick_mut_gui: (|_, gui, _, _| {
-						let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
-						if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
-							gui.menus.push(GUIMenu::new_load_world(page - 1, load_world_data));
-						}
-					}),
-				},
-				GUIElement::Button {
-					pos: [130, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "->".to_string(), enabled: (page + 1) * 8 < load_world_data.worlds.len(),
-					tick_mut_gui: (|_, gui, _, _| {
-						let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
-						if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
-							gui.menus.push(GUIMenu::new_load_world(page + 1, load_world_data));
-						}
-					}),
-				},
-			],
+			GUIMenuVariant::LoadWorld { page, load_world_data } => {
+					let mut out = vec![
+					GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+					GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+					GUIElement::Button {
+						pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
+						tick_mut_gui: (|_, gui, _, _| {
+							gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+						}),
+					},
+					GUIElement::Button {
+						pos: [53, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "<-".to_string(), enabled: *page > 0,
+						tick_mut_gui: (|_, gui, _, _| {
+							let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
+							if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
+								gui.menus.push(GUIMenu::new_load_world(page - 1, load_world_data));
+							}
+						}),
+					},
+					GUIElement::Button {
+						pos: [130, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "->".to_string(), enabled: (page + 1) * 8 < load_world_data.worlds.len(),
+						tick_mut_gui: (|_, gui, _, _| {
+							let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
+							if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
+								gui.menus.push(GUIMenu::new_load_world(page + 1, load_world_data));
+							}
+						}),
+					},
+					
+					/*GUIElement::Button {
+						pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
+						tick_mut_gui: (|_, gui, _, _| {
+							gui.should_close_game = true;
+						}),
+					},*/
+				];
+
+				let world_count = load_world_data.worlds.len();
+				let start = page * 8;
+				let end = (start + 8).min(world_count);
+				let button_count = end - start;
+
+				for x in 0..button_count {
+					let world_index = x + start;
+					let world = load_world_data.worlds[world_index].clone();
+					out.push(GUIElement::Button {
+						pos: [53, 30 + x as u16 * 20], size: [150, 16], alignment: GUIAlignment::Center, text: world.0, enabled: true,
+						tick_mut_gui: (|element, gui, world, _| {
+							//gui.should_close_game = true;
+							if let GUIElement::Button { pos, .. } = element {
+								let button_y = ((pos[1] - 30) / 20) as usize;
+								let top_menu = &gui.menus.last().unwrap().variant;
+								if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
+									let world_index = button_y + page * 8;
+									//println!("{world_index}");
+									let world_path = &load_world_data.worlds[world_index].1;
+									if let Some(new_world) = World::load(world_path.clone()) {
+										*world = Some(new_world);
+										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
+									}
+								}
+							}
+						}),
+					},)
+				}
+
+				out
+			}
 		}
 	}
 

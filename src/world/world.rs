@@ -1,6 +1,6 @@
 use std::{fs::create_dir, path::PathBuf};
 
-use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter}, gui::gui::GUI};
+use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI};
 
 use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
 
@@ -48,6 +48,41 @@ impl World {
 			overview_filepath,
 		};
 		out.save_overview();
+		Some(out)
+	}
+
+	pub fn load(filepath: PathBuf) -> Option<Self> {
+		let mut chunks_filepath = filepath.clone();
+		chunks_filepath.push("chunks".to_string());
+		let mut overview_filepath = filepath.clone();
+		overview_filepath.push("overview.wld".to_string());
+		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
+
+		let name_pos = overview.body.get(0..4)?;
+		let name_pos: [u8; 4] = name_pos.try_into().ok()?;
+		let name_pos = u32::from_le_bytes(name_pos);
+		let name = overview.get_string(name_pos)?;
+
+		let seed = overview.body.get(4..8)?;
+		let seed: [u8; 4] = seed.try_into().ok()?;
+		let seed = u32::from_le_bytes(seed);
+
+		let out = Self { 
+			player: Entity {
+				pos: [0, 0],
+				action_state: EntityActionState::Idle,
+    			facing: Direction4::South,
+				entity_type: EntityType::Player,
+			},
+			chunk_pool: ChunkPool::new(),
+			seed,
+			is_freeing: false,
+			is_freed: false,
+			name,
+			filepath,
+			chunks_filepath,
+			overview_filepath,
+		};
 		Some(out)
 	}
 
