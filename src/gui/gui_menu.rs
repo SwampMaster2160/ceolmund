@@ -1,6 +1,6 @@
 use crate::{render::vertex::Vertex, io::io::IO, world::world::World};
 
-use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant};
+use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
@@ -13,11 +13,11 @@ pub struct GUIMenu {
 
 impl GUIMenu {
 	pub fn get_const_elements(&self) -> Vec<GUIElement> {
-		match self.variant {
+		match &self.variant {
 			GUIMenuVariant::Test => vec![
 				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR },
 				GUIElement::Button {
-					pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi".to_string(),
+					pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi".to_string(), enabled: true,
 					tick_mut_gui: (|_, _, _, _| println!("Hi")),
 				},
 				GUIElement::Text { text: "Hello".to_string(), pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
@@ -26,11 +26,11 @@ impl GUIMenu {
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Game Paused".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
-					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume".to_string(),
+					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
 				},
 				GUIElement::Button {
-					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(),
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, world, _| {
 						if let Some(world) = world {
 							world.is_freeing = true;
@@ -40,7 +40,7 @@ impl GUIMenu {
 					}),
 				},
 				GUIElement::Button {
-					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit to Title".to_string(),
+					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit to Title".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, world, _| {
 						if let Some(world) = world {
 							world.is_freeing = true;
@@ -62,16 +62,23 @@ impl GUIMenu {
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Ceolmund".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
-					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(),
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, _, _| {
 						gui.should_close_game = true;
 					}),
 				},
 				GUIElement::Button {
-					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
+					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus.pop();
 						gui.menus.push(Self::new(GUIMenuVariant::CreateWorld));
+					}),
+				},
+				GUIElement::Button {
+					pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, text: "Load World".to_string(), enabled: true,
+					tick_mut_gui: (|_, gui, _, io| {
+						gui.menus.pop();
+						gui.menus.push(Self::new_load_world(0, LoadWorldData::new(io)));
 					}),
 				},
 			],
@@ -82,7 +89,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Name:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
-					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(),
+					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, world, io| {
 						if let GUIElement::TextEntry{text: name_text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
 							if let GUIElement::TextEntry{text: seed_text, ..} = &gui.menus.last().unwrap().extra_elements[1] {
@@ -108,7 +115,7 @@ impl GUIMenu {
 					}),
 				},
 				GUIElement::Button {
-					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(),
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
 					}),
@@ -119,9 +126,37 @@ impl GUIMenu {
 				GUIElement::Rect { pos: [53, 90], size: [150, 76], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Error".to_string(), pos: [127, 74], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
-					pos: [53, 150], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(),
+					pos: [53, 150], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, _, _| {
 						gui.menus.pop();
+					}),
+				},
+			],
+			GUIMenuVariant::LoadWorld { page, load_world_data } => vec![
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+				GUIElement::Button {
+					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
+					tick_mut_gui: (|_, gui, _, _| {
+						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+					}),
+				},
+				GUIElement::Button {
+					pos: [53, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "<-".to_string(), enabled: *page > 0,
+					tick_mut_gui: (|_, gui, _, _| {
+						let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
+						if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
+							gui.menus.push(GUIMenu::new_load_world(page - 1, load_world_data));
+						}
+					}),
+				},
+				GUIElement::Button {
+					pos: [130, 190], size: [73, 16], alignment: GUIAlignment::Center, text: "->".to_string(), enabled: (page + 1) * 8 < load_world_data.worlds.len(),
+					tick_mut_gui: (|_, gui, _, _| {
+						let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
+						if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
+							gui.menus.push(GUIMenu::new_load_world(page + 1, load_world_data));
+						}
 					}),
 				},
 			],
@@ -150,6 +185,7 @@ impl GUIMenu {
 			GUIMenuVariant::IngameHUD => false,
 			GUIMenuVariant::CreateWorld => true,
 			GUIMenuVariant::Error => true,
+			GUIMenuVariant::LoadWorld { .. } => true,
 		}
 	}
 
@@ -206,7 +242,7 @@ impl GUIMenu {
 
 	pub fn new(variant: GUIMenuVariant) -> Self {
 		Self {
-			variant,
+			variant: variant.clone(),
 			extra_elements: match variant {
 				GUIMenuVariant::CreateWorld => vec![
 					GUIElement::TextEntry { text: "".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 20 },
@@ -223,6 +259,13 @@ impl GUIMenu {
 			extra_elements: vec![
 				GUIElement::Text { text: error, pos: [127, 116], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 			],
+		}
+	}
+
+	pub fn new_load_world(page: usize, load_world_data: LoadWorldData) -> Self {
+		Self {
+			variant: GUIMenuVariant::LoadWorld { page, load_world_data },
+			extra_elements: vec![],
 		}
 	}
 }

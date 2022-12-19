@@ -6,6 +6,7 @@ use super::{gui_alignment::GUIAlignment, gui::GUI};
 
 const BUTTON_GRAY_COLOR: [u8; 4] = [95, 95, 95, 255];
 const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
+const BUTTON_DISABLED_COLOR: [u8; 4] = [15, 15, 15, 255];
 const TEXT_ENTRY_GRAY_COLOR: [u8; 4] = [50, 50, 50, 255];
 const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
 
@@ -13,7 +14,7 @@ const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
 pub enum GUIElement {
 	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
 	Button {
-		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment,
+		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool,
 		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
 	},
 	Text {text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment},
@@ -48,10 +49,13 @@ impl GUIElement {
 		match self {
 			Self::Rect{pos, size, alignment, color} =>
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, io)),
-			Self::Button { pos, size, alignment, text, .. } => {
+			Self::Button { pos, size, alignment, text, enabled, .. } => {
 				let mut color = BUTTON_GRAY_COLOR;
 				if self.is_mouse_over(io) {
 					color = BUTTON_HOVER_COLOR;
+				}
+				if !enabled {
+					color = BUTTON_DISABLED_COLOR;
 				}
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, io));
 
@@ -107,7 +111,7 @@ impl GUIElement {
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO) {
 		if io.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(io) {
 			match self {
-				GUIElement::Button { tick_mut_gui, .. } => tick_mut_gui(self, gui, world, io),
+				GUIElement::Button { tick_mut_gui, enabled, .. } if enabled => tick_mut_gui(self, gui, world, io),
 				_ => {}
 			}
 		}

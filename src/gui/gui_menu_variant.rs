@@ -1,4 +1,6 @@
-#[derive(Clone, Copy)]
+use super::load_world_data::LoadWorldData;
+
+#[derive(Clone)]
 pub enum GUIMenuVariant {
 	Test,
 	Paused,
@@ -8,4 +10,5 @@ pub enum GUIMenuVariant {
 	IngameHUD,
 	CreateWorld,
 	Error,
+	LoadWorld { load_world_data: LoadWorldData, page: usize },
 }
