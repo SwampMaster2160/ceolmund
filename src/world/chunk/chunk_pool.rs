@@ -8,6 +8,7 @@ use crate::{render::vertex::Vertex, world::{direction::Direction4, tile::tile_st
 
 use super::{chunk_slot::ChunkSlot, chunk::Chunk};
 
+/// A struct that holds all the chunks weather loaded, loading or freeing.
 pub struct ChunkPool {
 	chunks: HashMap<[i64; 2], ChunkSlot>,
 }

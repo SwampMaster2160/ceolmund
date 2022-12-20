@@ -160,13 +160,6 @@ impl GUIMenu {
 							}
 						}),
 					},
-					
-					/*GUIElement::Button {
-						pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
-						tick_mut_gui: (|_, gui, _, _| {
-							gui.should_close_game = true;
-						}),
-					},*/
 				];
 
 				let world_count = load_world_data.worlds.len();
@@ -180,13 +173,11 @@ impl GUIMenu {
 					out.push(GUIElement::Button {
 						pos: [53, 30 + x as u16 * 20], size: [150, 16], alignment: GUIAlignment::Center, text: world.0, enabled: true,
 						tick_mut_gui: (|element, gui, world, _| {
-							//gui.should_close_game = true;
 							if let GUIElement::Button { pos, .. } = element {
 								let button_y = ((pos[1] - 30) / 20) as usize;
 								let top_menu = &gui.menus.last().unwrap().variant;
 								if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
 									let world_index = button_y + page * 8;
-									//println!("{world_index}");
 									let world_path = &load_world_data.worlds[world_index].1;
 									if let Some(new_world) = World::load(world_path.clone()) {
 										*world = Some(new_world);
@@ -197,7 +188,6 @@ impl GUIMenu {
 						}),
 					},)
 				}
-
 				out
 			}
 		}
