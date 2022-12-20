@@ -183,6 +183,9 @@ impl GUIMenu {
 										*world = Some(new_world);
 										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
 									}
+									else {
+										gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
+									}
 								}
 							}
 						}),

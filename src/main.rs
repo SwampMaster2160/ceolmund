@@ -27,6 +27,20 @@ pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
 	[pos[0] as f32 + offset[0] as f32 / 16., pos[1] as f32 + offset[1] as f32 / 16.]
 }
 
+pub fn validate_filename(mut name: String) -> String {
+	name = name.chars().map(|chr| match chr {
+		'/' | '\\' | '<' | '>' | ':' | '\'' | '|' | '?' | '*' | '.' | '~' | '#' | '%' | '&' | '+' | '-' | '{' | '}' | '@' | '"' | '!' | '`' | '=' => '_',
+		_ => chr,
+	}).collect();
+	match name.to_lowercase().as_str() {
+		"con" | "prn" | "aux" | "nul" |
+		"com1" | "com2" | "com3" | "com4" | "com5" | "com6" | "com7" | "com8" | "com9" |
+		"lpt1" | "lpt2" | "lpt3" | "lpt4" | "lpt5" | "lpt6" | "lpt7" | "lpt8" | "lpt9" => name.push('_'),
+		_ => {}
+	}
+	name
+}
+
 const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
 
 fn main() {

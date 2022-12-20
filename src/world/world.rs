@@ -1,6 +1,6 @@
 use std::{fs::create_dir, path::PathBuf};
 
-use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI};
+use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
 
 use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
 
@@ -21,10 +21,7 @@ impl World {
 	/// Create a world from a name and seed.
 	pub fn new(seed: u32, name: String, io: &IO) -> Option<Self> {
 		// Convert the world name to a world folder filepath, converting character that are not filename safe to underscores.
-		let dirname: String = name.chars().map(|chr| match chr {
-			'/' | '\\' | '<' | '>' | ':' | '\'' | '|' | '?' | '*' | '.' | '~' | '#' | '%' | '&' | '+' | '-' | '{' | '}' | '@' | '"' | '!' | '`' | '=' => '_',
-			_ => chr,
-		}).collect();
+		let dirname: String = validate_filename(name.clone());
 		let mut filepath = io.worlds_path.clone();
 		filepath.push(dirname);
 		// Get the subfolder in the world that is used for storing chunks.
@@ -66,9 +63,6 @@ impl World {
 		overview_filepath.push("overview.wld".to_string());
 		// Read overview
 		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
-		if overview.version > 0 {
-			return None;
-		}
 		// Get world name
 		let name_pos = overview.body.get(0..4)?;
 		let name_pos: [u8; 4] = name_pos.try_into().ok()?;
