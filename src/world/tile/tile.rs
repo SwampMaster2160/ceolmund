@@ -1,8 +1,14 @@
+use std::ops::Deref;
+
+use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
+use strum::{EnumCount, IntoEnumIterator};
+
 use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity};
 
 use super::tile_movement_type::TileMovementType;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, EnumDiscriminants)]
+#[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
 pub enum Tile {
 	Grass,
 	Water,
@@ -17,7 +23,11 @@ pub enum Tile {
 }
 
 impl Tile {
-	pub fn get_texture(&self) -> Texture {
+	/*const fn get_id_variant_array(id: usize) -> [Self; Self::COUNT] {
+		let mut out = [Self::Grass; Self::COUNT];
+	}*/
+
+	pub const fn get_texture(&self) -> Texture {
 		match self {
 			Self::Grass => Texture::Grass,
 			Self::Water => Texture::Water,
@@ -38,7 +48,7 @@ impl Tile {
 		}
 	}
 
-	pub fn get_tile_movement_type(&self) -> TileMovementType {
+	pub const fn get_tile_movement_type(&self) -> TileMovementType {
 		match self {
 			Self::Grass => TileMovementType::Clear,
 			Self::Water => TileMovementType::Wall,
@@ -58,6 +68,23 @@ impl Tile {
 		match self.get_tile_movement_type() {
 			TileMovementType::Clear => true,
 			TileMovementType::Wall => false,
+		}
+	}
+}
+
+impl TileVariant {
+	pub const fn get_id(&self) -> usize {
+		match self {
+			Self::Grass => 0,
+			Self::Water => 1,
+			Self::Sand => 2,
+			Self::PineTree => 3,
+			Self::OakTree => 4,
+			Self::Flowers => 5,
+			Self::FlowersRedYellow => 6,
+			Self::Rocks => 7,
+			Self::Gravel => 8,
+			Self::BlackSand => 9,
 		}
 	}
 }

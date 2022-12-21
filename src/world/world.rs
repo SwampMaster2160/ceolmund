@@ -14,27 +14,23 @@ pub struct World {
 	pub name: String,
 	pub filepath: PathBuf, // Path to the world folder
 	pub chunks_filepath: PathBuf,
+	pub namespaces_filepath: PathBuf,
 	pub overview_filepath: PathBuf,
 }
 
 impl World {
 	/// Create a world from a name and seed.
 	pub fn new(seed: u32, name: String, io: &IO) -> Option<Self> {
-		// Convert the world name to a world folder filepath, converting character that are not filename safe to underscores.
+		// Convert the world name to a world folder filepath, converting character that are not filename safe to underscores. Then create the folder.
 		let dirname: String = validate_filename(name.clone());
 		let mut filepath = io.worlds_path.clone();
 		filepath.push(dirname);
-		// Get the subfolder in the world that is used for storing chunks.
-		let mut chunks_filepath = filepath.clone();
-		chunks_filepath.push("chunks".to_string());
-		// Create the folders
 		create_dir(&filepath).ok()?;
-		create_dir(&chunks_filepath).ok()?;
-		// Get the path to the world overview file.
+		// Create overview path
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
-		// Create world object
-		let out = Self { 
+		// Create dummy world object
+		let dummy_world = Self {
 			player: Entity {
 				pos: [0, 0],
 				action_state: EntityActionState::Idle,
@@ -46,21 +42,30 @@ impl World {
 			is_freeing: false,
 			is_freed: false,
 			name,
-			filepath,
-			chunks_filepath,
+			filepath: filepath.clone(),
+			chunks_filepath: filepath.clone(),
 			overview_filepath,
+			namespaces_filepath: filepath.clone(),
 		};
-		out.save_overview();
-		Some(out)
+		dummy_world.save_overview();
+		Self::load(filepath)
 	}
 
 	/// Load a world given the path to it's world folder.
 	pub fn load(filepath: PathBuf) -> Option<Self> {
-		// Get the paths of the chunks folder and the overview file for the world
-		let mut chunks_filepath = filepath.clone();
-		chunks_filepath.push("chunks".to_string());
+		// Get the path of the overview file for the world
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
+		// Get and create paths of the chunks and namespaces folders for the world
+		let mut chunks_filepath = filepath.clone();
+		chunks_filepath.push("chunks".to_string());
+		create_dir(&chunks_filepath).ok();
+		let mut namespaces_filepath = filepath.clone();
+		namespaces_filepath.push("namespaces".to_string());
+		create_dir(&namespaces_filepath).ok();
+		if !chunks_filepath.exists() || !namespaces_filepath.exists() {
+			return None;
+		}
 		// Read overview
 		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
 		// Get world name
@@ -88,6 +93,7 @@ impl World {
 			filepath,
 			chunks_filepath,
 			overview_filepath,
+			namespaces_filepath,
 		})
 	}
 
