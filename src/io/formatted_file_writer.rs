@@ -42,6 +42,21 @@ impl FormattedFileWriter {
 		Some(())
 	}
 
+	pub fn write_to_vec(&self) -> Option<Vec<u8>> {
+		let mut out = Vec::new();
+		// Write version
+		let version = self.version.to_le_bytes();
+		out.extend(&version);
+		// Write string area pointer
+		let string_area_ptr: u32 = (version.len() * 2 + self.body.len()).try_into().ok()?;
+		let string_area_ptr = string_area_ptr.to_le_bytes();
+		out.extend(&string_area_ptr);
+		// Write body and strings
+		out.extend(self.body.as_slice());
+		out.extend(self.strings.as_slice());
+		Some(out)
+	}
+
 	pub fn push_string(&mut self, string: &String) -> Option<u32> {
 		let pos = self.strings.len().try_into().ok()?;
 		self.strings.extend(string.as_bytes());

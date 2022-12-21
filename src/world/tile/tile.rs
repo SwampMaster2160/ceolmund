@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{EnumCount, IntoEnumIterator};
 
@@ -23,10 +21,6 @@ pub enum Tile {
 }
 
 impl Tile {
-	/*const fn get_id_variant_array(id: usize) -> [Self; Self::COUNT] {
-		let mut out = [Self::Grass; Self::COUNT];
-	}*/
-
 	pub const fn get_texture(&self) -> Texture {
 		match self {
 			Self::Grass => Texture::Grass,
@@ -73,7 +67,7 @@ impl Tile {
 }
 
 impl TileVariant {
-	pub const fn get_id(&self) -> usize {
+	pub const fn get_id(self) -> usize {
 		match self {
 			Self::Grass => 0,
 			Self::Water => 1,
@@ -85,6 +79,29 @@ impl TileVariant {
 			Self::Rocks => 7,
 			Self::Gravel => 8,
 			Self::BlackSand => 9,
+		}
+	}
+
+	pub fn get_variant_array() -> [Self; Self::COUNT] {
+		let mut out = [None; Self::COUNT];
+		for variant in Self::iter() {
+			out[variant.get_id()] = Some(variant);
+		}
+		out.map(|variant| variant.unwrap())
+	}
+
+	pub const fn get_name_id(self) -> &'static str {
+		match self {
+			Self::Grass => "grass",
+			Self::Water => "water",
+			Self::Sand => "sand",
+			Self::PineTree => "pine_tree",
+			Self::OakTree => "oak_tree",
+			Self::Flowers => "flowers",
+			Self::FlowersRedYellow => "red_yellow_flowers",
+			Self::Rocks => "rocks",
+			Self::Gravel => "gravel",
+			Self::BlackSand => "black_sand",
 		}
 	}
 }

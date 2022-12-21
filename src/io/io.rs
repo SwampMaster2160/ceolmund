@@ -1,10 +1,12 @@
 use std::{path::PathBuf, fs::create_dir};
+use crate::world::tile::tile::TileVariant;
 
+use crc64::crc64;
 use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
 use home::home_dir;
 use tokio::runtime::Runtime;
 
-use super::game_key::GameKey;
+use super::{game_key::GameKey, formatted_file_writer::FormattedFileWriter};
 
 /// For everything hardware related.
 pub struct IO {
@@ -19,21 +21,38 @@ pub struct IO {
 	pub worlds_path: PathBuf,
 	pub char_widths: Vec<u8>,
 	pub async_runtime: Runtime,
+	pub saving_namespace: Vec<u8>,
+	pub saving_namespace_hash: u64,
 }
 
 impl IO {
 	pub fn new() -> Self {
+		// Get and create paths
 		let mut home_path = home_dir().unwrap();
 		home_path.push(".ceolmund");
 		let mut worlds_path = home_path.clone();
 		worlds_path.push("worlds");
 		create_dir(&home_path).ok();
 		create_dir(&worlds_path).ok();
-
+		// Get the widths of chars in the gui.
 		let mut char_widths = Vec::new();
 		char_widths.extend(include_bytes!("../asset/render_width/0.cwt"));
 		char_widths.extend(include_bytes!("../asset/render_width/1.cwt"));
 		char_widths.extend(include_bytes!("../asset/render_width/2.cwt"));
+		// Create namespace for saving worlds
+		let mut saving_namespace = FormattedFileWriter::new(0);
+		// Add tile namespace
+		let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
+		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		for tile_variant in TileVariant::get_variant_array() {
+			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
+			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		}
+		saving_namespace.body.extend(0u32.to_le_bytes());
+
+		saving_namespace.body.extend(0u32.to_le_bytes());
+		let saving_namespace = saving_namespace.write_to_vec().unwrap();
+
 		Self {
 			game_keys_keyboard: [false; GameKey::Count.get_id()],
 			game_keys_gamepad: [false; GameKey::Count.get_id()],
@@ -46,6 +65,8 @@ impl IO {
 			worlds_path,
 			char_widths,
 			async_runtime: Runtime::new().unwrap(),
+			saving_namespace: saving_namespace.clone(),
+			saving_namespace_hash: crc64(0, saving_namespace.as_slice()),
 		}
 	}
 

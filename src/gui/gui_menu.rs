@@ -172,14 +172,14 @@ impl GUIMenu {
 					let world = load_world_data.worlds[world_index].clone();
 					out.push(GUIElement::Button {
 						pos: [53, 30 + x as u16 * 20], size: [150, 16], alignment: GUIAlignment::Center, text: world.0, enabled: true,
-						tick_mut_gui: (|element, gui, world, _| {
+						tick_mut_gui: (|element, gui, world, io| {
 							if let GUIElement::Button { pos, .. } = element {
 								let button_y = ((pos[1] - 30) / 20) as usize;
 								let top_menu = &gui.menus.last().unwrap().variant;
 								if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
 									let world_index = button_y + page * 8;
 									let world_path = &load_world_data.worlds[world_index].1;
-									if let Some(new_world) = World::load(world_path.clone()) {
+									if let Some(new_world) = World::load(world_path.clone(), io) {
 										*world = Some(new_world);
 										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
 									}

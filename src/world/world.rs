@@ -1,4 +1,4 @@
-use std::{fs::create_dir, path::PathBuf};
+use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
 use crate::{world_pos_to_render_pos, render::vertex::Vertex, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
 
@@ -48,11 +48,11 @@ impl World {
 			namespaces_filepath: filepath.clone(),
 		};
 		dummy_world.save_overview();
-		Self::load(filepath)
+		Self::load(filepath, io)
 	}
 
 	/// Load a world given the path to it's world folder.
-	pub fn load(filepath: PathBuf) -> Option<Self> {
+	pub fn load(filepath: PathBuf, io: &IO) -> Option<Self> {
 		// Get the path of the overview file for the world
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
@@ -65,6 +65,13 @@ impl World {
 		create_dir(&namespaces_filepath).ok();
 		if !chunks_filepath.exists() || !namespaces_filepath.exists() {
 			return None;
+		}
+		// Save namespace
+		let mut namespace_filepath = namespaces_filepath.clone();
+		namespace_filepath.push(format!("{:16x}.nsp", io.saving_namespace_hash));
+		if !namespace_filepath.exists() {
+			let mut file = File::create(namespace_filepath).ok()?;
+			file.write(&io.saving_namespace).ok()?;
 		}
 		// Read overview
 		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
