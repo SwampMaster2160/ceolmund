@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{EnumCount, IntoEnumIterator};
 
@@ -103,5 +105,13 @@ impl TileVariant {
 			Self::Gravel => "gravel",
 			Self::BlackSand => "black_sand",
 		}
+	}
+
+	pub fn get_name_map() -> HashMap<String, Self> {
+		let mut out = HashMap::new();
+		for tile in Self::iter() {
+			out.insert(tile.get_name_id().to_string(), tile);
+		}
+		out
 	}
 }
