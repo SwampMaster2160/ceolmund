@@ -1,6 +1,6 @@
-use std::ops::Range;
+use std::{ops::Range, path::PathBuf};
 
-use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack};
+use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::formatted_file_writer::FormattedFileWriter};
 
 pub struct Chunk {
 	pub tile_stacks: [Box<[TileStack; 64]>; 64],
@@ -70,7 +70,13 @@ impl Chunk {
 	}
 
 	/// Save and free chunk
-	pub async fn free(self, _pos: [i64; 2]) {
-		
+	pub async fn free(self, pos: [i64; 2], chunks_filepath: PathBuf) -> Option<()> {
+		// Open file
+		let file = FormattedFileWriter::new(0);
+		// Get filepath for chunk and save
+		let mut chunk_filepath = chunks_filepath.clone();
+		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
+		file.write(&chunk_filepath)?;
+		Some(())
 	}
 }

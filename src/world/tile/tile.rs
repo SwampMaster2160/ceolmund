@@ -66,6 +66,12 @@ impl Tile {
 			TileMovementType::Wall => false,
 		}
 	}
+
+	pub fn save(&self) -> Vec<u8> {
+		let mut out = Vec::new();
+		out.push(TileVariant::from(self).get_id());
+		out
+	}
 }
 
 impl TileVariant {
