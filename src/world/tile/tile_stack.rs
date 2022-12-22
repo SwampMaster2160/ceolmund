@@ -93,4 +93,17 @@ impl TileStack {
 			}
 		}
 	}
+
+	pub fn save(&self, lengths: &mut Vec<u8>, tile_datas: &mut Vec<u8>) {
+		for tile in &self.tiles {
+			let tile_data = tile.save();
+			let length: u8 = tile_data.len().try_into().unwrap();
+			if length > 0x7F {
+				panic!();
+			}
+			lengths.extend(length.to_le_bytes());
+			tile_datas.extend(tile_data);
+		}
+		lengths.extend(0u8.to_le_bytes());
+	}
 }

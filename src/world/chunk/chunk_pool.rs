@@ -45,7 +45,7 @@ impl ChunkPool {
 
 	}
 
-	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf) {
+	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespace_hash: u64) {
 		// Dummy thread context (used and discarded, wakers are discarded).
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
@@ -99,7 +99,7 @@ impl ChunkPool {
 		}
 		for pos in to_free.iter() {
 			if let ChunkSlot::Chunk(chunk) = self.chunks.remove(pos).unwrap() {
-				self.chunks.insert(*pos, ChunkSlot::Freeing(async_runtime.spawn(chunk.free(*pos, chunks_filepath.clone()))));
+				self.chunks.insert(*pos, ChunkSlot::Freeing(async_runtime.spawn(chunk.free(*pos, chunks_filepath.clone(), namespace_hash))));
 			}
 		}
 		for pos in to_remove.iter() {

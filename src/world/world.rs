@@ -124,7 +124,7 @@ impl World {
 
 	/// Tick always called.
 	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
-		self.chunk_pool.tick_always(&self.player, player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath);
+		self.chunk_pool.tick_always(&self.player, player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, io.saving_namespace_hash);
 	}
 
 	pub fn save_overview(&self) {

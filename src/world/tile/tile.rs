@@ -69,7 +69,7 @@ impl Tile {
 
 	pub fn save(&self) -> Vec<u8> {
 		let mut out = Vec::new();
-		out.push(TileVariant::from(self).get_id());
+		out.push(TileVariant::from(self).get_id().try_into().unwrap());
 		out
 	}
 }

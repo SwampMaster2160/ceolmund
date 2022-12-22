@@ -70,9 +70,26 @@ impl Chunk {
 	}
 
 	/// Save and free chunk
-	pub async fn free(self, pos: [i64; 2], chunks_filepath: PathBuf) -> Option<()> {
+	pub async fn free(self, pos: [i64; 2], chunks_filepath: PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let file = FormattedFileWriter::new(0);
+		let mut file = FormattedFileWriter::new(0);
+		// Push namespace hash
+		file.body.extend(namespace_hash.to_le_bytes());
+		// Create file arrays
+		let mut tile_lengths: Vec<u8> = Vec::new();
+		let mut tile_datas: Vec<u8> = Vec::new();
+		// Get tile datas
+		for tile_stack_row in &self.tile_stacks {
+			for tile_stack in tile_stack_row.iter() {
+				tile_stack.save(&mut tile_lengths, &mut tile_datas);
+			}
+		}
+		// Push tile datas pointer
+		let tile_datas_ptr: u32 = (8 + tile_lengths.len()).try_into().unwrap();
+		file.body.extend(tile_datas_ptr.to_le_bytes());
+		// Push tile lengths and datas
+		file.body.extend(tile_lengths);
+		file.body.extend(tile_datas);
 		// Get filepath for chunk and save
 		let mut chunk_filepath = chunks_filepath.clone();
 		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
