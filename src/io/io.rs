@@ -2,17 +2,18 @@ use std::{path::PathBuf, fs::create_dir};
 use crate::world::tile::tile::TileVariant;
 
 use crc64::crc64;
-use glium::glutin::event::{KeyboardInput, ElementState, MouseButton};
+use glium::glutin::{event::{KeyboardInput, ElementState, MouseButton}, dpi::PhysicalSize};
 use home::home_dir;
+use strum::EnumCount;
 use tokio::runtime::Runtime;
 
 use super::{game_key::GameKey, formatted_file_writer::FormattedFileWriter};
 
 /// For everything hardware related.
 pub struct IO {
-	pub game_keys_keyboard: [bool; GameKey::Count.get_id()],
-	game_keys_gamepad: [bool; GameKey::Count.get_id()],
-	keys_pressed_last: [bool; GameKey::Count.get_id()],
+	pub game_keys_keyboard: [bool; GameKey::COUNT],
+	game_keys_gamepad: [bool; GameKey::COUNT],
+	keys_pressed_last: [bool; GameKey::COUNT],
 	pub aspect_ratio: f32,
 	pub window_size: [u32; 2],
 	pub mouse_pos: [u32; 2],
@@ -54,9 +55,9 @@ impl IO {
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
 
 		Self {
-			game_keys_keyboard: [false; GameKey::Count.get_id()],
-			game_keys_gamepad: [false; GameKey::Count.get_id()],
-			keys_pressed_last: [false; GameKey::Count.get_id()],
+			game_keys_keyboard: [false; GameKey::COUNT],
+			game_keys_gamepad: [false; GameKey::COUNT],
+			keys_pressed_last: [false; GameKey::COUNT],
 			aspect_ratio: 0.,
 			window_size: [0, 0],
 			mouse_pos: [0, 0],
@@ -70,14 +71,10 @@ impl IO {
 		}
 	}
 
+	/// Set a game key as pressed or unpressed.
 	pub fn key_press(&mut self, keyboard_input: &KeyboardInput) {
-		if let Some(keycode) = keyboard_input.virtual_keycode {
-			for game_key in GameKey::from_key_code(keycode) {
-				self.game_keys_keyboard[game_key.get_id()] = match keyboard_input.state {
-					ElementState::Pressed => true,
-					ElementState::Released => false,
-				}
-			}
+		for game_key in GameKey::from_key_code(keyboard_input.virtual_keycode) {
+			self.game_keys_keyboard[game_key.get_id()] = keyboard_input.state == ElementState::Pressed;
 		}
 	}
 	
@@ -97,23 +94,24 @@ impl IO {
 		}
 	}
 
+	/// Update weather the mouse is clicking or not.
 	pub fn mouse_press(&mut self, state: ElementState, button: MouseButton) {
 		if matches!(button, MouseButton::Left) {
-			self.game_keys_keyboard[GameKey::GUIInteract.get_id()] = match state {
-				ElementState::Pressed => true,
-				ElementState::Released => false,
-			}
+			self.game_keys_keyboard[GameKey::GUIInteract.get_id()] = state == ElementState::Pressed;
 		}
 	}
 
+	/// Get weather a game key is being pressed or not.
 	pub fn get_game_key(&self, game_key: GameKey) -> bool {
 		self.get_game_key_via_id(game_key.get_id())
 	}
 
+	/// Get weather a game key (selected via it's id) is being pressed or not.
 	pub fn get_game_key_via_id(&self, game_key: usize) -> bool {
 		self.game_keys_keyboard[game_key] || self.game_keys_gamepad[game_key]
 	}
 
+	/// Get the weather a key is being pressed or not, starting since update_keys_pressed_last() was last called.
 	pub fn get_game_key_starting_now(&self, game_key: GameKey) -> bool {
 		let id = game_key.get_id();
 		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
@@ -123,9 +121,16 @@ impl IO {
 		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio, self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
 	}
 
+	/// All keys pressed will be set as pressed last.
 	pub fn update_keys_pressed_last(&mut self) {
-		for x in 0..GameKey::Count.get_id() {
+		for x in 0..GameKey::COUNT {
 			self.keys_pressed_last[x] = self.get_game_key_via_id(x);
 		}
+	}
+
+	/// Updates window_size and aspect_ratio. Should be called when the game's window size changes.
+	pub fn set_window_size(&mut self, size: &PhysicalSize<u32>) {
+		self.window_size = [size.width, size.height];
+		self.aspect_ratio = size.width as f32 / size.height as f32;
 	}
 }

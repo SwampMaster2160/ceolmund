@@ -2,6 +2,7 @@ use std::{ops::Range, path::PathBuf};
 
 use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}};
 
+/// A 64x64 grid of tile stacks
 pub struct Chunk {
 	pub tile_stacks: [Box<[TileStack; 64]>; 64],
 	pub basic_vertices: Vec<Vertex>,
@@ -10,15 +11,17 @@ pub struct Chunk {
 
 impl Chunk {
 	pub fn render(&mut self, pos: [i64; 2], vertices_in_out: &mut Vec<Vertex>, render_range: &[Range<i64>; 2]) {
+		// Get the tile pos of the chunk
 		let world_x = pos[0] * 64;
 		let world_y = pos[1] * 64;
-
+		// Get where to start and stop rendering the chunk
 		let render_start_x = (render_range[0].start - world_x).clamp(0, 64) as usize;
 		let render_start_y = (render_range[1].start - world_y).clamp(0, 64) as usize;
 		let render_end_x = (render_range[0].end - world_x).clamp(0, 64) as usize;
 		let render_end_y = (render_range[1].end - world_y).clamp(0, 64) as usize;
 
 		let mut extra_vertices: Vec<Vertex> = Vec::new();
+		// For each tile in the render region
 		for y in render_start_y..render_end_y {
 			for x in render_start_x..render_end_x {
 				let tile_stack = &mut self.tile_stacks[y][x];
@@ -35,11 +38,13 @@ impl Chunk {
 		vertices_in_out.extend(extra_vertices.iter());
 	}
 
+	/// Do a tick on the chunk
 	pub fn tick(&mut self, _pos: &[i64; 2]) {
 		
 	}
 
-	pub fn new() -> Self {
+	/// Create a chunk consisting of blank tile stacks.
+	pub fn new_blank() -> Self {
 		let mut vertices = Vec::new();
 		vertices.reserve(48 * 64 * 64);
 		for _ in 0..(48 * 64 * 64) {
@@ -52,11 +57,15 @@ impl Chunk {
 		}
 	}
 
+	/// Generate a chunk using the world generator
 	pub fn generate(&mut self, pos: [i64; 2], seed: u32) {
+		// Get the tile pos of the chunk
 		let tile_x_start = pos[0] * 64;
 		let tile_y_start = pos[1] * 64;
+		// For each tile
 		for x in 0..64 {
 			for y in 0..64 {
+				// Generate tile
 				self.tile_stacks[y][x].generate([tile_x_start + x as i64, tile_y_start + y as i64], seed);
 			}
 		}
@@ -64,14 +73,17 @@ impl Chunk {
 
 	/// Load or generate chunk
 	pub async fn get(pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf, seed: u32) -> Option<Self> {
-		let mut out = Self::new();
+		// Create blank chunk
+		let mut out = Self::new_blank();
+		// Try to load chunk otherwise generate said chunk
 		if !out.load(pos, chunks_filepath, namespaces_filepath)? {
 			out.generate(pos, seed);
 		}
+		
 		Some(out)
 	}
 
-	/// Load chunk
+	/// Load chunk, returning weather it exists or not wrapped in an option that is none when there is an error loading the chunk.
 	pub fn load(&mut self, pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf) -> Option<bool> {
 		// Get filepath for chunk and load
 		let mut chunk_filepath = chunks_filepath.clone();

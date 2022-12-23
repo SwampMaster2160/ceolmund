@@ -2,57 +2,56 @@ use std::path::PathBuf;
 
 use crate::world::{tile::tile::TileVariant};
 
-use super::{formatted_file_reader::FormattedFileReader};
+use super::{formatted_file_reader::FormattedFileReader, namespace_name::NamespaceName};
 
+/// A namespace loaded from disk
 pub struct Namespace {
 	pub tiles: Vec<TileVariant>,
 }
 
 impl Namespace {
+	/// Load a namespace from a hash and a namespace folder path.
 	pub fn load(hash: u64, namespaces_filepath: PathBuf) -> Option<Self> {
+		// Get the path of the namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:16x}.nsp", hash));
 		let file = FormattedFileReader::read_from_file(&namespace_filepath)?;
+		// Error if the namespace is a future version.
 		if file.version > 0 {
 			return None;
 		}
-		let mut meta_namespace: Vec<(String, Vec<String>)> = Vec::new();
-		let mut x = 0;
+		// Data to extract
+		let tile_name_map = TileVariant::get_name_map();
+		let mut tiles = Vec::new();
+		// The index to where we are indexing to in the body vec.
+		let mut body_index = 0;
+		// For each namespace
 		loop {
-			let mut namespace = Vec::new();
-			let namespace_name: [u8; 4] = file.body.get(x..x + 4)?.try_into().ok()?;
-			let string_ptr = u32::from_le_bytes(namespace_name);
+			// Get the name of the namespace and break the loop if we are at the end of the namespaces.
+			let string_ptr: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
+			let string_ptr = u32::from_le_bytes(string_ptr);
 			if string_ptr == 0xFFFFFFFF {
 				break;
 			}
 			let namespace_name = file.get_string(string_ptr)?;
-			x += 4;
+			let namespace_name = NamespaceName::from_name(&namespace_name)?;
+			// Point to the next string pointer
+			body_index += 4;
+			// For each name
 			loop {
-				let name: [u8; 4] = file.body.get(x..x + 4)?.try_into().ok()?;
+				// Get the name and break if we are at the end of the namespace.
+				let name: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
 				let string_ptr = u32::from_le_bytes(name);
 				if string_ptr == 0xFFFFFFFF {
 					break;
 				}
 				let name = file.get_string(string_ptr)?;
-				x += 4;
-				namespace.push(name);
-			}
-			meta_namespace.push((namespace_name, namespace));
-		}
-
-		let tile_name_map = TileVariant::get_name_map();
-
-		let mut tiles = Vec::new();
-
-		for (namespace_name, namespace) in meta_namespace {
-			match namespace_name.as_str() {
-				"tile" => {
-					for name in namespace {
-						let tile = tile_name_map.get(&name)?;
-						tiles.push(*tile);
-					}
+				// Point to the next string pointer
+				body_index += 4;
+				// Convert
+				match namespace_name {
+					NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
 				}
-				_ => return None,
 			}
 		}
 

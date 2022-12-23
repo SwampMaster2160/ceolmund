@@ -101,15 +101,15 @@ impl TileVariant {
 		match self {
 			Self::Grass => 0,
 			Self::Water => 1,
-			Self::Sand => 2,
+			Self::Sand => 10,
 			Self::PineTree => 3,
 			Self::OakTree => 4,
 			Self::Path => 5,
-			Self::Flowers => 6,
-			Self::FlowersRedYellow => 7,
+			Self::Flowers => 7,
+			Self::FlowersRedYellow => 6,
 			Self::Rocks => 8,
 			Self::Gravel => 9,
-			Self::BlackSand => 10,
+			Self::BlackSand => 2,
 		}
 	}
 

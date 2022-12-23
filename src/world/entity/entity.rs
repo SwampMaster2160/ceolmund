@@ -2,6 +2,7 @@ use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{dir
 use crate::world::tile::tile::TileVariant;
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
+/// A world object that is can move from tile to tile.
 pub struct Entity {
 	pub pos: [i64; 2],
 	pub action_state: EntityActionState,
@@ -46,11 +47,11 @@ impl Entity {
 				try_move = false;
 			}
 			if try_move {
-				if let Some(tile_stack) = chunks.get_tile_stack_at(self.get_pos_in_front()) {
+				if let Some(tile_stack) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
 					tile_stack.entity_try_move_to(self);
 				}
 			}
-			if let Some(tile_stack_in_front) = chunks.get_tile_stack_at(self.get_pos_in_front()) {
+			if let Some(tile_stack_in_front) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
 				let tiles = &mut tile_stack_in_front.tiles;
 				if input.get_game_key_starting_now(GameKey::DeleteTile) {
 					tiles.pop();
@@ -131,6 +132,7 @@ impl Entity {
 		}
 	}
 
+	/// Get the pos of the tile directly in front of the entity.
 	pub fn get_pos_in_front(&self) -> [i64; 2] {
 		let pos = self.pos;
 		match self.facing {
@@ -141,6 +143,7 @@ impl Entity {
 		}
 	}
 
+	/// Get a vertex of tris for the entity.
 	pub fn render(&self, vertices_in_out: &mut Vec<Vertex>) {
 		let texture = self.entity_type.get_texture();
 		vertices_in_out.extend(texture.render_entity(self.pos, self.get_subtile_pos(), self.facing, match self.action_state {

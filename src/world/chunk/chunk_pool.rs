@@ -20,11 +20,14 @@ impl ChunkPool {
 		}
 	}
 
+	/// Rendef all tiles in the visable area.
 	pub fn render(&mut self, player: &Entity, player_visable_width: u64, vertices_in_out: &mut Vec<Vertex>) {
+		// Get visable area
 		let mut render_start_x = player.pos[0] - player_visable_width as i64 / 2;
 		let mut render_end_x = player.pos[0] + player_visable_width as i64 / 2 + 1;
 		let mut render_start_y = player.pos[1] - 8;
 		let mut render_end_y = player.pos[1] + 9;
+		// If the player is walking then extend the visable area by one in that direction
 		if matches!(player.action_state, EntityActionState::Walking(_)) {
 			match player.facing {
 				Direction4::North => render_start_y -= 1,
@@ -33,7 +36,9 @@ impl ChunkPool {
 				Direction4::West => render_start_x -= 1,
 			}
 		}
+
 		let render_range = [render_start_x..render_end_x, render_start_y..render_end_y];
+		// Render chunks that are not loading or freeing
 		for (pos, chunk_slot) in self.chunks.iter_mut() {
 			if let ChunkSlot::Chunk(chunk) = chunk_slot {
 				chunk.render(*pos, vertices_in_out, &render_range);
@@ -41,10 +46,12 @@ impl ChunkPool {
 		}
 	}
 
+	/// Tick the chunks
 	pub fn tick(&mut self, _player: &Entity, _player_visable_width: u64, _async_runtime: &Runtime, _seed: u32) {
 
 	}
 
+	/// Tick that should always be called even if the game is paused.
 	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespaces_filepath: &PathBuf, namespace_hash: u64) {
 		// Dummy thread context (used and discarded, wakers are discarded).
 		let waker = noop_waker();
@@ -111,10 +118,9 @@ impl ChunkPool {
 	}
 
 	/// Get the tile stack at the world pos wrapped in Some if the chunk it is in is loaded, else get None.
-	pub fn get_tile_stack_at(&mut self, pos: [i64; 2]) -> Option<&mut TileStack> {
-		if let ChunkSlot::Chunk(chunk) = self.chunks.get_mut(&[pos[0].div_euclid(64), pos[1].div_euclid(64)])? {
-			return Some(&mut chunk.tile_stacks[pos[1].rem_euclid(64) as usize][pos[0].rem_euclid(64) as usize])
-		}
-		None
+	pub fn get_tile_stack_at_mut(&mut self, pos: [i64; 2]) -> Option<&mut TileStack> {
+		let chunk_slot = self.chunks.get_mut(&[pos[0].div_euclid(64), pos[1].div_euclid(64)])?;
+		let chunk = chunk_slot.get_loaded_mut()?;
+		Some(&mut chunk.tile_stacks[pos[1].rem_euclid(64) as usize][pos[0].rem_euclid(64) as usize])
 	}
 }

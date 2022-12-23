@@ -3,12 +3,14 @@ use std::path::PathBuf;
 
 use std::fs::{read, remove_file, rename};
 
+/// For reading a file structure that allows for a file version, a body consisting of an array of u8 values and an array of strings.
 pub struct FormattedFileReader {
 	pub version: u32,
 	pub body: Vec<u8>,
 	strings: Vec<u8>,
 }
 
+/// Load a file reader from disk.
 impl FormattedFileReader {
 	pub fn read_from_file(path: &PathBuf) -> Option<Self> {
 		// Restore backup in case of file save error
@@ -40,6 +42,7 @@ impl FormattedFileReader {
 		})
 	}
 
+	/// Get a string at a index in the string area.
 	pub fn get_string(&self, start_index: u32) -> Option<String> {
 		let slice = self.strings.get(start_index as usize..)?;
 		let end = slice.iter().position(|item| *item == 0)?;
