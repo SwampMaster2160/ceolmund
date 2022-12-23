@@ -1,4 +1,4 @@
-use std::{path::PathBuf, fs::{File, remove_file, rename}, io::Write};
+use std::{path::PathBuf, fs::{File, remove_file}, io::Write};
 
 pub struct FormattedFileWriter {
 	pub version: u32,
@@ -23,7 +23,8 @@ impl FormattedFileWriter {
 			remove_file(&backup_path).ok()?;
 		}
 		if path.exists() {
-			rename(&path, &backup_path).ok()?;
+			remove_file(&path).ok()?;
+			//rename(&path, &backup_path).ok()?;
 		}
 		// Create file
 		let mut file = File::create(path).ok()?;
@@ -38,7 +39,9 @@ impl FormattedFileWriter {
 		file.write(self.body.as_slice()).ok()?;
 		file.write(self.strings.as_slice()).ok()?;
 		// Delete old file
-		remove_file(backup_path).ok()?;
+		if backup_path.exists() {
+			remove_file(backup_path).ok()?;
+		}
 		Some(())
 	}
 

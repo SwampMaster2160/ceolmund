@@ -90,6 +90,8 @@ impl TileStack {
 			let can_move = top_tile.entity_try_move_to(entity);
 			if can_move {
 				entity.action_state = EntityActionState::Walking(0);
+				//*top_tile = Tile::Gravel;
+				//self.needs_redrawing = true;
 			}
 		}
 	}
