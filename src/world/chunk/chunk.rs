@@ -122,7 +122,7 @@ impl Chunk {
 			}
 		}
 		// Push tile datas pointer
-		let tile_datas_ptr: u32 = (8 + tile_lengths.len()).try_into().unwrap();
+		let tile_datas_ptr: u32 = (12 + tile_lengths.len()).try_into().unwrap();
 		file.body.extend(tile_datas_ptr.to_le_bytes());
 		// Push tile lengths and datas
 		file.body.extend(tile_lengths);

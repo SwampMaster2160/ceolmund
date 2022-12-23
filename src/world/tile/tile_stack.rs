@@ -108,6 +108,16 @@ impl TileStack {
 	}
 
 	pub fn load(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace) -> Option<()> {
-		None
+		loop {
+			let length = *tile_lengths.get(*tile_lengths_index)? as usize;
+			*tile_lengths_index += 1;
+			if length == 0 {
+				break;
+			}
+			let tile_data = tile_datas.get(*tile_datas_index..*tile_datas_index + length)?;
+			self.tiles.push(Tile::load(tile_data, namespace)?);
+			*tile_datas_index += length;
+		}
+		Some(())
 	}
 }

@@ -1,5 +1,5 @@
 // Don't open a console window when the program starts
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 pub mod world;
 pub mod render;

@@ -48,9 +48,9 @@ impl IO {
 			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
 			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		}
-		saving_namespace.body.extend(0u32.to_le_bytes());
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 
-		saving_namespace.body.extend(0u32.to_le_bytes());
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
 
 		Self {

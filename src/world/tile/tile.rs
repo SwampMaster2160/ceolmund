@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{EnumCount, IntoEnumIterator};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::namespace::Namespace};
 
 use super::tile_movement_type::TileMovementType;
 
@@ -71,6 +71,23 @@ impl Tile {
 		let mut out = Vec::new();
 		out.push(TileVariant::from(self).get_id().try_into().unwrap());
 		out
+	}
+
+	pub fn load(data: &[u8], namespace: &Namespace) -> Option<Self> {
+		let tile_id = *data.get(0)? as usize;
+		let tile_variant = *namespace.tiles.get(tile_id)?;
+		Some(match tile_variant {
+			TileVariant::Grass => Self::Grass,
+			TileVariant::Water => Self::Water,
+			TileVariant::Sand => Self::Sand,
+			TileVariant::PineTree => Self::PineTree,
+			TileVariant::OakTree => Self::OakTree,
+			TileVariant::Flowers => Self::Flowers,
+			TileVariant::FlowersRedYellow => Self::FlowersRedYellow,
+			TileVariant::Rocks => Self::Rocks,
+			TileVariant::Gravel => Self::Gravel,
+			TileVariant::BlackSand => Self::BlackSand,
+		})
 	}
 }
 

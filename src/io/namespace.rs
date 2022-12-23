@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::world::{tile::tile::TileVariant, world::World};
+use crate::world::{tile::tile::TileVariant};
 
 use super::{formatted_file_reader::FormattedFileReader};
 
@@ -22,7 +22,7 @@ impl Namespace {
 			let mut namespace = Vec::new();
 			let namespace_name: [u8; 4] = file.body.get(x..x + 4)?.try_into().ok()?;
 			let string_ptr = u32::from_le_bytes(namespace_name);
-			if string_ptr == 0 {
+			if string_ptr == 0xFFFFFFFF {
 				break;
 			}
 			let namespace_name = file.get_string(string_ptr)?;
@@ -30,7 +30,7 @@ impl Namespace {
 			loop {
 				let name: [u8; 4] = file.body.get(x..x + 4)?.try_into().ok()?;
 				let string_ptr = u32::from_le_bytes(name);
-				if string_ptr == 0 {
+				if string_ptr == 0xFFFFFFFF {
 					break;
 				}
 				let name = file.get_string(string_ptr)?;
