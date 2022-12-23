@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::namespace::Namespace};
 
 use super::tile::Tile;
 
@@ -105,5 +105,9 @@ impl TileStack {
 			tile_datas.extend(tile_data);
 		}
 		lengths.extend(0u8.to_le_bytes());
+	}
+
+	pub fn load(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace) -> Option<()> {
+		None
 	}
 }

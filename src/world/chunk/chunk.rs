@@ -1,6 +1,6 @@
 use std::{ops::Range, path::PathBuf};
 
-use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::formatted_file_writer::FormattedFileWriter};
+use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}};
 
 pub struct Chunk {
 	pub tile_stacks: [Box<[TileStack; 64]>; 64],
@@ -63,10 +63,47 @@ impl Chunk {
 	}
 
 	/// Load or generate chunk
-	pub async fn get(pos: [i64; 2], seed: u32) -> Self {
+	pub async fn get(pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf, seed: u32) -> Option<Self> {
 		let mut out = Self::new();
-		out.generate(pos, seed);
-		out
+		if !out.load(pos, chunks_filepath, namespaces_filepath)? {
+			out.generate(pos, seed);
+		}
+		Some(out)
+	}
+
+	/// Load chunk
+	pub fn load(&mut self, pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf) -> Option<bool> {
+		// Get filepath for chunk and load
+		let mut chunk_filepath = chunks_filepath.clone();
+		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
+		let file = match FormattedFileReader::read_from_file(&chunk_filepath) {
+			Some(file) => file,
+			None => return Some(false),
+		};
+		if file.version > 0 {
+			return None;
+		}
+		// Get chunk namespace hash
+		let namespace_hash: [u8; 8] = file.body.get(0..8)?.try_into().ok()?;
+		let namespace_hash = u64::from_le_bytes(namespace_hash);
+		// Get namespace
+		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
+		// Get pointer to tile datas
+		let tile_datas_ptr: [u8; 4] = file.body.get(8..12)?.try_into().ok()?;
+		let tile_datas_ptr = u32::from_le_bytes(tile_datas_ptr) as usize;
+		// Get datas
+		let tile_lengths = file.body.get(12..tile_datas_ptr)?;
+		let tile_datas = file.body.get(tile_datas_ptr..)?;
+		// Go over each chunk
+		let mut tile_lengths_index = 0usize;
+		let mut tile_datas_index = 0usize;
+		for tile_stack_row in &mut self.tile_stacks {
+			for tile_stack in tile_stack_row.iter_mut() {
+				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace)?;
+			}
+		}
+		//
+		Some(true)
 	}
 
 	/// Save and free chunk

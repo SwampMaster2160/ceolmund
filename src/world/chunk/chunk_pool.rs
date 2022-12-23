@@ -45,7 +45,7 @@ impl ChunkPool {
 
 	}
 
-	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespace_hash: u64) {
+	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespaces_filepath: &PathBuf, namespace_hash: u64) {
 		// Dummy thread context (used and discarded, wakers are discarded).
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
@@ -62,7 +62,7 @@ impl ChunkPool {
 				for x in chunk_x_to_load_start..=chunk_x_to_load_end {
 					let pos = [x, y];
 					if !self.chunks.contains_key(&pos) {
-						self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos, seed))));
+						self.chunks.insert(pos, ChunkSlot::Getting(async_runtime.spawn(Chunk::get(pos, chunks_filepath.clone(), namespaces_filepath.clone(), seed))));
 					}
 				}
 			}
@@ -86,7 +86,7 @@ impl ChunkPool {
 				// Unwrap a loading chunk if it has been loaded and add to loaded chunks.
 				ChunkSlot::Getting(chunk_getting) => {
 					if let Poll::Ready(chunk) = chunk_getting.poll_unpin(&mut cx) {
-						*chunk_slot = ChunkSlot::Chunk(chunk.unwrap());
+						*chunk_slot = ChunkSlot::Chunk(chunk.unwrap().unwrap());
 					}
 				}
 				// If a chunk is finished freeing then finally delete it.

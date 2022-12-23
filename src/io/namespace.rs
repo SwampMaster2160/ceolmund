@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::world::{tile::tile::TileVariant, world::World};
 
 use super::{formatted_file_reader::FormattedFileReader};
@@ -7,8 +9,8 @@ pub struct Namespace {
 }
 
 impl Namespace {
-	pub fn load(hash: u64, world: &World) -> Option<Self> {
-		let mut namespace_filepath = world.namespaces_filepath.clone();
+	pub fn load(hash: u64, namespaces_filepath: PathBuf) -> Option<Self> {
+		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:16x}.nsp", hash));
 		let file = FormattedFileReader::read_from_file(&namespace_filepath)?;
 		if file.version > 0 {
