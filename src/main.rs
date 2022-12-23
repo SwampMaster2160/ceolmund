@@ -88,7 +88,7 @@ fn main() {
 		*control_flow = ControlFlow::Poll;
 		match event {
 			Event::WindowEvent { event: window_event, .. } => match window_event {
-				WindowEvent::CloseRequested => io.game_keys_keyboard[GameKey::CloseGame.get_id()] = true,
+				WindowEvent::CloseRequested => io.game_keys_keyboard[GameKey::CloseGame as usize] = true,
 				WindowEvent::Resized(size) => io.set_window_size(size),
 				WindowEvent::KeyboardInput { device_id: _, input: key_input, .. } => {
 					if key_input.virtual_keycode == Some(VirtualKeyCode::F11) && key_input.state == ElementState::Released {

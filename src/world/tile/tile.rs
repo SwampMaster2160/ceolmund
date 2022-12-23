@@ -9,18 +9,19 @@ use super::tile_movement_type::TileMovementType;
 
 #[derive(Clone, EnumDiscriminants)]
 #[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
+#[repr(u8)]
 pub enum Tile {
-	Grass,
-	Water,
-	Sand,
-	PineTree,
-	OakTree,
-	Flowers,
-	FlowersRedYellow,
-	Rocks,
-	Gravel,
-	BlackSand,
-	Path,
+	Grass = 0,
+	Water = 1,
+	Sand = 10,
+	PineTree = 3,
+	OakTree = 4,
+	Flowers = 5,
+	FlowersRedYellow = 7,
+	Rocks = 6,
+	Gravel = 8,
+	BlackSand = 9,
+	Path = 2,
 }
 
 impl Tile {
@@ -73,7 +74,7 @@ impl Tile {
 
 	pub fn save(&self) -> Vec<u8> {
 		let mut out = Vec::new();
-		out.push(TileVariant::from(self).get_id().try_into().unwrap());
+		out.push(TileVariant::from(self) as u8);
 		out
 	}
 
@@ -97,26 +98,10 @@ impl Tile {
 }
 
 impl TileVariant {
-	pub const fn get_id(self) -> usize {
-		match self {
-			Self::Grass => 0,
-			Self::Water => 1,
-			Self::Sand => 10,
-			Self::PineTree => 3,
-			Self::OakTree => 4,
-			Self::Path => 5,
-			Self::Flowers => 7,
-			Self::FlowersRedYellow => 6,
-			Self::Rocks => 8,
-			Self::Gravel => 9,
-			Self::BlackSand => 2,
-		}
-	}
-
 	pub fn get_variant_array() -> [Self; Self::COUNT] {
 		let mut out = [None; Self::COUNT];
 		for variant in Self::iter() {
-			out[variant.get_id()] = Some(variant);
+			out[variant as usize] = Some(variant);
 		}
 		out.map(|variant| variant.unwrap())
 	}

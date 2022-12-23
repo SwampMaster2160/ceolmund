@@ -25,29 +25,6 @@ pub enum GameKey {
 }
 
 impl GameKey {
-	pub const fn get_id(self) -> usize {
-		match self {
-			Self::WalkNorth => 0,
-			Self::WalkEast => 1,
-			Self::WalkSouth => 2,
-			Self::WalkWest => 3,
-			Self::GUIInteract => 4,
-			Self::MenuOpenClose => 5,
-			Self::CloseGame => 6,
-			Self::DeleteTile => 7,
-			Self::Build1 => 8,
-			Self::Build2 => 9,
-			Self::Build3 => 10,
-			Self::Build4 => 11,
-			Self::Build5 => 12,
-			Self::Build6 => 13,
-			Self::Build7 => 14,
-			Self::Build8 => 15,
-			Self::Build9 => 16,
-			Self::Build0 => 17,
-		}
-	}
-
 	/// What real keys translate to what game keys.
 	pub fn from_key_code(key_code: Option<VirtualKeyCode>) -> Vec<Self> {
 		let key_code = match key_code {

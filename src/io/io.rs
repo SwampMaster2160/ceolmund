@@ -74,7 +74,7 @@ impl IO {
 	/// Set a game key as pressed or unpressed.
 	pub fn key_press(&mut self, keyboard_input: &KeyboardInput) {
 		for game_key in GameKey::from_key_code(keyboard_input.virtual_keycode) {
-			self.game_keys_keyboard[game_key.get_id()] = keyboard_input.state == ElementState::Pressed;
+			self.game_keys_keyboard[game_key as usize] = keyboard_input.state == ElementState::Pressed;
 		}
 	}
 	
@@ -86,10 +86,10 @@ impl IO {
 		let handle = rusty_xinput::XInputHandle::load_default().unwrap();
 		for x in 0..4 {
 			if let Ok(gamepad) = handle.get_state(x) {
-				self.game_keys_gamepad[GameKey::WalkNorth.get_id()] = gamepad.arrow_up();
-				self.game_keys_gamepad[GameKey::WalkEast.get_id()] = gamepad.arrow_right();
-				self.game_keys_gamepad[GameKey::WalkSouth.get_id()] = gamepad.arrow_down();
-				self.game_keys_gamepad[GameKey::WalkWest.get_id()] = gamepad.arrow_left();
+				self.game_keys_gamepad[GameKey::WalkNorth as usize] = gamepad.arrow_up();
+				self.game_keys_gamepad[GameKey::WalkEast as usize] = gamepad.arrow_right();
+				self.game_keys_gamepad[GameKey::WalkSouth as usize] = gamepad.arrow_down();
+				self.game_keys_gamepad[GameKey::WalkWest as usize] = gamepad.arrow_left();
 			}
 		}
 	}
@@ -97,13 +97,13 @@ impl IO {
 	/// Update weather the mouse is clicking or not.
 	pub fn mouse_press(&mut self, state: ElementState, button: MouseButton) {
 		if matches!(button, MouseButton::Left) {
-			self.game_keys_keyboard[GameKey::GUIInteract.get_id()] = state == ElementState::Pressed;
+			self.game_keys_keyboard[GameKey::GUIInteract as usize] = state == ElementState::Pressed;
 		}
 	}
 
 	/// Get weather a game key is being pressed or not.
 	pub fn get_game_key(&self, game_key: GameKey) -> bool {
-		self.get_game_key_via_id(game_key.get_id())
+		self.get_game_key_via_id(game_key as usize)
 	}
 
 	/// Get weather a game key (selected via it's id) is being pressed or not.
@@ -113,7 +113,7 @@ impl IO {
 
 	/// Get the weather a key is being pressed or not, starting since update_keys_pressed_last() was last called.
 	pub fn get_game_key_starting_now(&self, game_key: GameKey) -> bool {
-		let id = game_key.get_id();
+		let id = game_key as usize;
 		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
 	}
 
