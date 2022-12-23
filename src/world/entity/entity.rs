@@ -60,6 +60,7 @@ impl Entity {
 					if input.get_game_key_starting_now(GameKey::Build1) {
 						tiles.push(Tile::Grass);
 						tile_stack_in_front.needs_redrawing = true;
+						return;
 					}
 					if input.get_game_key_starting_now(GameKey::Build2) {
 						tiles.push(Tile::Sand);
@@ -101,6 +102,13 @@ impl Entity {
 					if tile_variant == TileVariant::Grass || tile_variant == TileVariant::Water {
 						if input.get_game_key_starting_now(GameKey::Build0) {
 							tiles.push(Tile::Rocks);
+							tile_stack_in_front.needs_redrawing = true;
+						}
+					}
+					if tile_variant == TileVariant::Grass || tile_variant == TileVariant::BlackSand ||
+					tile_variant == TileVariant::Gravel || tile_variant == TileVariant::Sand {
+						if input.get_game_key_starting_now(GameKey::Build1) {
+							tiles.push(Tile::Path);
 							tile_stack_in_front.needs_redrawing = true;
 						}
 					}

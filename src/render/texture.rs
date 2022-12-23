@@ -25,7 +25,8 @@ pub enum Texture {
 	NoTexture,
 	Gravel,
 	Pit,
-	BlackSand
+	BlackSand,
+	Path,
 	//GreenThing,
 	//BlueThing,
 }
@@ -47,6 +48,7 @@ impl Texture {
 			Self::Gravel => const_static_ptr!([u16; 4], grid_texture(0x12)),
 			Self::Pit => const_static_ptr!([u16; 4], grid_texture(0x13)),
 			Self::BlackSand => const_static_ptr!([u16; 4], grid_texture(0x14)),
+			Self::Path => const_static_ptr!([u16; 4], grid_texture(0x15)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -68,6 +70,7 @@ impl Texture {
 			Self::Gravel => TextureType::Basic,
 			Self::Pit => TextureType::Basic,
 			Self::BlackSand => TextureType::Basic,
+			Self::Path => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}

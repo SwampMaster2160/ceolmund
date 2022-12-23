@@ -20,6 +20,7 @@ pub enum Tile {
 	Rocks,
 	Gravel,
 	BlackSand,
+	Path,
 }
 
 impl Tile {
@@ -35,6 +36,7 @@ impl Tile {
 			Self::Rocks => Texture::Rocks,
 			Self::Gravel => Texture::Gravel,
 			Self::BlackSand => Texture::BlackSand,
+			Self::Path => Texture::Path,
 		}
 	}
 
@@ -56,6 +58,7 @@ impl Tile {
 			Self::Rocks => TileMovementType::Wall,
 			Self::BlackSand => TileMovementType::Clear,
 			Self::Gravel => TileMovementType::Clear,
+			Self::Path => TileMovementType::Clear,
 		}
 	}
 
@@ -88,6 +91,7 @@ impl Tile {
 			TileVariant::Rocks => Self::Rocks,
 			TileVariant::Gravel => Self::Gravel,
 			TileVariant::BlackSand => Self::BlackSand,
+			TileVariant::Path => Self::Path,
 		})
 	}
 }
@@ -100,11 +104,12 @@ impl TileVariant {
 			Self::Sand => 2,
 			Self::PineTree => 3,
 			Self::OakTree => 4,
-			Self::Flowers => 5,
-			Self::FlowersRedYellow => 6,
-			Self::Rocks => 7,
-			Self::Gravel => 8,
-			Self::BlackSand => 9,
+			Self::Path => 5,
+			Self::Flowers => 6,
+			Self::FlowersRedYellow => 7,
+			Self::Rocks => 8,
+			Self::Gravel => 9,
+			Self::BlackSand => 10,
 		}
 	}
 
@@ -128,6 +133,7 @@ impl TileVariant {
 			Self::Rocks => "rocks",
 			Self::Gravel => "gravel",
 			Self::BlackSand => "black_sand",
+			Self::Path => "path",
 		}
 	}
 
