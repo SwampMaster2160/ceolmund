@@ -86,13 +86,15 @@ impl TileStack {
 
 	/// Called when an entity trys to move to this tile stack. If so, the entity start walking.
 	pub fn entity_try_move_to(&mut self, entity: &mut Entity) {
+		let mut walk = false;
 		if let Some(top_tile) = self.tiles.last_mut() {
-			let can_move = top_tile.entity_try_move_to(entity);
-			if can_move {
-				entity.action_state = EntityActionState::Walking(0);
-				//*top_tile = Tile::Gravel;
-				//self.needs_redrawing = true;
-			}
+			walk = top_tile.entity_try_move_to(entity);
+		}
+		if self.tiles.len() == 0 {
+			walk = true;
+		}
+		if walk {
+			entity.action_state = EntityActionState::Walking(0);
 		}
 	}
 

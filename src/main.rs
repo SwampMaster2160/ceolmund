@@ -131,6 +131,7 @@ fn main() {
 							world.tick(&io, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2, &mut gui);
 						}
 						world.tick_always(&io, ((window_size[0] as f32 / window_size[1] as f32) * 16.) as u64 + 2, &mut gui);
+						io.update_keys_pressed_last();
 					}
 				}
 				io.update_keys_pressed_last();
