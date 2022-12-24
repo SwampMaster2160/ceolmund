@@ -1,8 +1,8 @@
 use std::mem::swap;
 
-use crate::{const_static_ptr, world_pos_to_render_pos, render::vertex::Vertex, world::direction::Direction4};
+use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4};
 
-use super::texture_type::TextureType;
+use super::{texture_type::TextureType, render::world_pos_to_render_pos};
 
 /// Size of the texture sheet in pixels.
 pub const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];
@@ -11,6 +11,7 @@ const fn grid_texture(id: u8) -> [u16; 4] {
 	[id as u16 % 16 * 16, id as u16 / 16 * 16, 16, 16]
 }
 
+/// A texture that can be drawn
 #[derive(Copy, Clone)]
 pub enum Texture {
 	Grass,
@@ -94,6 +95,7 @@ impl Texture {
 		}
 	}
 
+	/// Render the texture
 	fn render(self, tile_pos: [i64; 2], subtile_pos: [i8; 2], reverse: bool, index: u8) -> [Vertex; 6] {
 		let texture_sheet_points = self.get_texture_sheet_points();
 

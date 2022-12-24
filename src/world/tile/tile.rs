@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
-use strum::{EnumCount, IntoEnumIterator};
+use strum::{IntoEnumIterator};
 
 use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::namespace::Namespace};
 
@@ -11,17 +11,17 @@ use super::tile_movement_type::TileMovementType;
 #[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum Tile {
-	Grass = 0,
-	Water = 1,
-	Sand = 10,
-	PineTree = 3,
-	OakTree = 4,
-	Flowers = 5,
-	FlowersRedYellow = 7,
-	Rocks = 6,
-	Gravel = 8,
-	BlackSand = 9,
-	Path = 2,
+	Grass,
+	Water,
+	Path,
+	PineTree,
+	OakTree,
+	Flowers,
+	Rocks,
+	FlowersRedYellow,
+	Gravel,
+	BlackSand,
+	Sand,
 }
 
 impl Tile {
@@ -98,14 +98,6 @@ impl Tile {
 }
 
 impl TileVariant {
-	pub fn get_variant_array() -> [Self; Self::COUNT] {
-		let mut out = [None; Self::COUNT];
-		for variant in Self::iter() {
-			out[variant as usize] = Some(variant);
-		}
-		out.map(|variant| variant.unwrap())
-	}
-
 	pub const fn get_name_id(self) -> &'static str {
 		match self {
 			Self::Grass => "grass",

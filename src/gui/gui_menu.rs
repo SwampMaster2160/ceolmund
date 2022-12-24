@@ -5,6 +5,7 @@ use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
 
+/// A GUI menu, these are stacked.
 #[derive(Clone)]
 pub struct GUIMenu {
 	variant: GUIMenuVariant,
@@ -12,6 +13,7 @@ pub struct GUIMenu {
 }
 
 impl GUIMenu {
+	/// Get the elements that do not need to be stored from frame to frame.
 	pub fn get_const_elements(&self) -> Vec<GUIElement> {
 		match &self.variant {
 			GUIMenuVariant::Test => vec![
@@ -196,18 +198,21 @@ impl GUIMenu {
 		}
 	}
 
+	/// Get all elements.
 	pub fn get_elements(&self) -> Vec<GUIElement> {
 		let mut out = self.get_const_elements();
 		out.extend(self.extra_elements.clone());
 		out
 	}
 
+	/// Render all elements.
 	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
 		for element in self.get_elements() {
 			element.render(vertices, io);
 		}
 	}
 
+	/// Weather the game should pause when this menu is in the GUI stack.
 	pub fn does_menu_pause_game(&self) -> bool {
 		match self.variant {
 			GUIMenuVariant::Test => false,
@@ -222,6 +227,7 @@ impl GUIMenu {
 		}
 	}
 
+	/// What to do when Esc is pressed.
 	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, io: &mut IO) {
 		match self.variant {
 			GUIMenuVariant::Paused => {
@@ -232,6 +238,7 @@ impl GUIMenu {
 		}
 	}
 
+	/// Menu tick.
 	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _io: &mut IO, request_game_close: bool) {
 		if request_game_close {
 			if world.is_some() {
@@ -273,6 +280,7 @@ impl GUIMenu {
 		}
 	}
 
+	/// Create the menu setting all the elements that need to be stored between frames.
 	pub fn new(variant: GUIMenuVariant) -> Self {
 		Self {
 			variant: variant.clone(),
@@ -286,6 +294,7 @@ impl GUIMenu {
 		}
 	}
 
+	/// Create a error GUI menu from a string.
 	pub fn new_error(error: String) -> Self {
 		Self {
 			variant: GUIMenuVariant::Error,
@@ -295,6 +304,7 @@ impl GUIMenu {
 		}
 	}
 
+	/// Create a load world menu.
 	pub fn new_load_world(page: usize, load_world_data: LoadWorldData) -> Self {
 		Self {
 			variant: GUIMenuVariant::LoadWorld { page, load_world_data },

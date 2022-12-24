@@ -23,10 +23,6 @@ macro_rules! const_static_ptr {
 	};
 }
 
-pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
-	[pos[0] as f32 + offset[0] as f32 / 16., pos[1] as f32 + offset[1] as f32 / 16.]
-}
-
 pub fn validate_filename(mut name: String) -> String {
 	name = name.chars().map(|chr| match chr {
 		'/' | '\\' | '<' | '>' | ':' | '\'' | '|' | '?' | '*' | '.' | '~' | '#' | '%' | '&' | '+' | '-' | '{' | '}' | '@' | '"' | '!' | '`' | '=' => '_',

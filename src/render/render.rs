@@ -4,6 +4,7 @@ use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE};
 
 const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 
+/// Converts a GUI pos and alignment to a y 0-256 screen pos.
 pub fn gui_pos_to_screen_pos(pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [f32; 2] {
 	let offset = match alignment {
 		GUIAlignment::Left => 0.,
@@ -13,10 +14,17 @@ pub fn gui_pos_to_screen_pos(pos: [u16; 2], alignment: GUIAlignment, input: &IO)
 	[pos[0] as f32 + offset * 256., pos[1] as f32]
 }
 
+/// Converts a world pos and alignment to a y 0-256 screen pos.
+pub fn world_pos_to_render_pos(pos: [i64; 2], offset: [i8; 2]) -> [f32; 2] {
+	[pos[0] as f32 + offset[0] as f32 / 16., pos[1] as f32 + offset[1] as f32 / 16.]
+}
+
+/// Converts a GUI size and alignment to a y 0-256 screen size.
 pub fn gui_size_to_screen_size(size: [u16; 2]) -> [f32; 2] {
 	[size[0] as f32, size[1] as f32]
 }
 
+/// Render a rectangle at the GUI pos and alignment.
 pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], input: &IO) -> [Vertex; 6] {
 	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
 	let gui_size = gui_size_to_screen_size(size);
@@ -33,6 +41,7 @@ pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, c
 	]
 }
 
+/// Tint the entire screen a color.
 pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
 	let [start_x, start_y] = gui_pos_to_screen_pos([0, 0], GUIAlignment::Left, io);
 	let [end_x, end_y] = gui_pos_to_screen_pos([256, 256], GUIAlignment::Right, io);
@@ -47,6 +56,7 @@ pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
 	]
 }
 
+/// Render a char at pos and alignment getting the tris and the GUI pixel width of the char
 pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
 	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, io);
 	let gui_size = gui_size_to_screen_size([8, 16]);
@@ -78,6 +88,7 @@ pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &I
 	})
 }
 
+/// Render a string at a GUI pos and alignment.
 pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, io: &IO, vertices: &mut Vec<Vertex>) {
 	let mut width = 0u32;
 	for chr in string.chars() {

@@ -4,7 +4,7 @@ use crate::world::tile::tile::TileVariant;
 use crc64::crc64;
 use glium::glutin::{event::{KeyboardInput, ElementState, MouseButton}, dpi::PhysicalSize};
 use home::home_dir;
-use strum::EnumCount;
+use strum::{EnumCount, IntoEnumIterator};
 use tokio::runtime::Runtime;
 
 use super::{game_key::GameKey, formatted_file_writer::FormattedFileWriter};
@@ -45,7 +45,7 @@ impl IO {
 		// Add tile namespace
 		let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in TileVariant::get_variant_array() {
+		for tile_variant in TileVariant::iter() {
 			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
 			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		}

@@ -2,12 +2,14 @@ use std::{path::PathBuf};
 
 use crate::io::{io::IO, formatted_file_reader::FormattedFileReader};
 
+/// A struct containing the name and path of all the worlds in the users world folder.
 #[derive(Clone)]
 pub struct LoadWorldData {
 	pub worlds: Vec<(String, PathBuf)>,
 }
 
 impl LoadWorldData {
+	/// Get all the worlds.
 	pub fn new(io: &IO) -> Self {
 		let mut worlds = Vec::new();
 		for item in io.worlds_path.read_dir().unwrap() {

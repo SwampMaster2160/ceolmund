@@ -10,6 +10,7 @@ const BUTTON_DISABLED_COLOR: [u8; 4] = [15, 15, 15, 255];
 const TEXT_ENTRY_GRAY_COLOR: [u8; 4] = [50, 50, 50, 255];
 const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
 
+/// A GUI element.
 #[derive(Clone)]
 pub enum GUIElement {
 	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
@@ -23,6 +24,7 @@ pub enum GUIElement {
 }
 
 impl GUIElement {
+	/// Get weather the mouse is over an element.
 	pub fn is_mouse_over(&self, io: &IO) -> bool {
 		match self {
 			Self::Button { pos, size, alignment, .. } => {
@@ -45,6 +47,7 @@ impl GUIElement {
 		}
 	}
 
+	/// Render the element
 	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
 		match self {
 			Self::Rect{pos, size, alignment, color} =>
@@ -81,6 +84,7 @@ impl GUIElement {
 		}
 	}
 
+	/// Tick the element with a mutable refrence to self.
 	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, io: &IO) {
 		let is_mouse_over = self.is_mouse_over(io);
 		if io.get_game_key_starting_now(GameKey::GUIInteract) {
@@ -108,6 +112,7 @@ impl GUIElement {
 		}
 	}
 
+	/// Tick a copy of the element with a mutable refrence to the gui.
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO) {
 		if io.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(io) {
 			match self {
