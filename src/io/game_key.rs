@@ -22,6 +22,10 @@ pub enum GameKey {
 	Build8,
 	Build9,
 	Build0,
+	InventoryUp,
+	InventoryDown,
+	InventoryLeft,
+	InventoryRight,
 }
 
 impl GameKey {
@@ -48,6 +52,10 @@ impl GameKey {
 			VirtualKeyCode::Key7 => vec![Self::Build7],
 			VirtualKeyCode::Key8 => vec![Self::Build8],
 			VirtualKeyCode::Key9 => vec![Self::Build9],
+			VirtualKeyCode::Up => vec![Self::InventoryUp],
+			VirtualKeyCode::Down => vec![Self::InventoryDown],
+			VirtualKeyCode::Left => vec![Self::InventoryLeft],
+			VirtualKeyCode::Right => vec![Self::InventoryRight],
 			_ => Vec::new(),
 		}
 	}

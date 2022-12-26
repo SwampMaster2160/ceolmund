@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4, gui::gui_alignment::GUIAlignment, io::io::IO};
 
-use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos, gui_size_to_screen_size}};
+use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos}};
 
 /// Size of the texture sheet in pixels.
 pub const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];
@@ -28,6 +28,10 @@ pub enum Texture {
 	Pit,
 	BlackSand,
 	Path,
+	Hammer,
+	Shovel,
+	Axe,
+	SandboxDestroyWand,
 	//GreenThing,
 	//BlueThing,
 }
@@ -50,6 +54,10 @@ impl Texture {
 			Self::Pit => const_static_ptr!([u16; 4], grid_texture(0x13)),
 			Self::BlackSand => const_static_ptr!([u16; 4], grid_texture(0x14)),
 			Self::Path => const_static_ptr!([u16; 4], grid_texture(0x15)),
+			Self::Hammer => const_static_ptr!([u16; 4], grid_texture(0x16)),
+			Self::Shovel => const_static_ptr!([u16; 4], grid_texture(0x17)),
+			Self::Axe => const_static_ptr!([u16; 4], grid_texture(0x18)),
+			Self::SandboxDestroyWand => const_static_ptr!([u16; 4], grid_texture(0x19)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -72,6 +80,10 @@ impl Texture {
 			Self::Pit => TextureType::Basic,
 			Self::BlackSand => TextureType::Basic,
 			Self::Path => TextureType::Basic,
+			Self::Hammer => TextureType::Basic,
+			Self::Shovel => TextureType::Basic,
+			Self::Axe => TextureType::Basic,
+			Self::SandboxDestroyWand => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}

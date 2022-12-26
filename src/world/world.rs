@@ -86,12 +86,7 @@ impl World {
 		let seed = u32::from_le_bytes(seed);
 		// Create world object
 		Some(Self { 
-			player: Entity {
-				pos: [0, 0],
-				action_state: EntityActionState::Idle,
-    			facing: Direction4::South,
-				entity_type: EntityType::Player { inventory: Box::new([(); 50].map(|_| (Item::None, 0))), selected_item: 0 },
-			},
+			player: Entity::new_player(),
 			chunk_pool: ChunkPool::new(),
 			seed,
 			is_freeing: false,

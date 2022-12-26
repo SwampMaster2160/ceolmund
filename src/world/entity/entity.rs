@@ -1,4 +1,4 @@
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use crate::world::tile::tile::TileVariant;
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
@@ -30,6 +30,7 @@ impl Entity {
 			gui.menus.push(GUIMenu::new(GUIMenuVariant::Paused));
 		}
 		if self.action_state == EntityActionState::Idle {
+			// Walk
 			let mut try_move = true;
 			if input.get_game_key(GameKey::WalkNorth) {
 				self.facing = Direction4::North;
@@ -51,6 +52,26 @@ impl Entity {
 					tile_stack.entity_try_move_to(self);
 				}
 			}
+			// Change item
+			let (inventory, selected_item) = match &mut self.entity_type {
+				EntityType::Player { inventory, selected_item } => (inventory, selected_item),
+			};
+			let mut selected_item_x = (*selected_item % 10) as i8;
+			let mut selected_item_y = (*selected_item / 10) as i8;
+			if input.get_game_key_starting_now(GameKey::InventoryUp) {
+				selected_item_y -= 1;
+			}
+			if input.get_game_key_starting_now(GameKey::InventoryDown) {
+				selected_item_y += 1;
+			}
+			if input.get_game_key_starting_now(GameKey::InventoryLeft) {
+				selected_item_x -= 1;
+			}
+			if input.get_game_key_starting_now(GameKey::InventoryRight) {
+				selected_item_x += 1;
+			}
+			*selected_item = selected_item_x.rem_euclid(10) as u8 + selected_item_y.rem_euclid(5) as u8 * 10;
+
 			if let Some(tile_stack_in_front) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
 				let tiles = &mut tile_stack_in_front.tiles;
 				if input.get_game_key_starting_now(GameKey::DeleteTile) {
@@ -150,5 +171,21 @@ impl Entity {
 			EntityActionState::Walking(amount) => amount / 8 + 1,
 			EntityActionState::Idle => 0,
 		}));
+	}
+
+	/// Create a neew player at 0, 0
+	pub fn new_player() -> Self {
+		let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
+		inventory[0] = (Item::SandboxDestroyWand, 1);
+		inventory[1] = (Item::BaseTilePlacer(Tile::Grass), 1);
+		inventory[2] = (Item::BaseTilePlacer(Tile::Gravel), 1);
+		inventory[3] = (Item::BaseTilePlacer(Tile::Sand), 1);
+		inventory[4] = (Item::BaseTilePlacer(Tile::BlackSand), 1);
+		Entity {
+			pos: [0, 0],
+			action_state: EntityActionState::Idle,
+			facing: Direction4::South,
+			entity_type: EntityType::Player { inventory, selected_item: 0 },
+		}
 	}
 }

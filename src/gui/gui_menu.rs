@@ -100,11 +100,11 @@ impl GUIMenu {
 						false => [31, 31, 31, 63],
 					};
 					out.push(GUIElement::Rect { pos: [x * 16, y * 16], size: [16, 16], alignment: GUIAlignment::Left, color });
-					if item_stack.1 > 1 {
+					if item_stack.1 > 0 {
 						out.push(GUIElement::Texture { pos: [x * 16, y * 16], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
 					}
 				}
-				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: [63, 63, 63, 63] });
+				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: [63, 63, 63, 127] });
 				out
 			}
 			GUIMenuVariant::CreateWorld => vec![
