@@ -6,7 +6,7 @@ use noop_waker::noop_waker;
 
 use crate::{render::vertex::Vertex, world::{direction::Direction4, tile::tile_stack::TileStack, entity::{entity::Entity, entity_action_state::EntityActionState}}};
 
-use super::{chunk_slot::ChunkSlot, chunk::Chunk};
+use super::{chunk_slot::ChunkSlot, chunk::Chunk, chunk_pool_offset::ChunkPoolOffset};
 
 /// A struct that holds all the chunks weather loaded, loading or freeing.
 pub struct ChunkPool {
@@ -122,5 +122,13 @@ impl ChunkPool {
 		let chunk_slot = self.chunks.get_mut(&[pos[0].div_euclid(64), pos[1].div_euclid(64)])?;
 		let chunk = chunk_slot.get_loaded_mut()?;
 		Some(&mut chunk.tile_stacks[pos[1].rem_euclid(64) as usize][pos[0].rem_euclid(64) as usize])
+	}
+
+	/// Get an offset version of the chunk.
+	pub fn get_offset(&mut self, offset: [i64; 2]) -> ChunkPoolOffset {
+		ChunkPoolOffset {
+			chunk_pool: self,
+			offset,
+		}
 	}
 }

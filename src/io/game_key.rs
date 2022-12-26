@@ -26,6 +26,7 @@ pub enum GameKey {
 	InventoryDown,
 	InventoryLeft,
 	InventoryRight,
+	Interact,
 }
 
 impl GameKey {
@@ -56,6 +57,7 @@ impl GameKey {
 			VirtualKeyCode::Down => vec![Self::InventoryDown],
 			VirtualKeyCode::Left => vec![Self::InventoryLeft],
 			VirtualKeyCode::Right => vec![Self::InventoryRight],
+			VirtualKeyCode::Return => vec![Self::Interact],
 			_ => Vec::new(),
 		}
 	}

@@ -26,10 +26,12 @@ impl Entity {
 
 	/// A tick for the player that reads the io input.
 	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &IO, gui: &mut GUI) {
+		let pos_in_front = self.get_pos_in_front();
 		if input.get_game_key_starting_now(GameKey::MenuOpenClose) {
 			gui.menus.push(GUIMenu::new(GUIMenuVariant::Paused));
 		}
-		if self.action_state == EntityActionState::Idle {
+		let action_state = self.action_state.clone();
+		if action_state == EntityActionState::Idle {
 			// Walk
 			let mut try_move = true;
 			if input.get_game_key(GameKey::WalkNorth) {
@@ -71,6 +73,13 @@ impl Entity {
 				selected_item_x += 1;
 			}
 			*selected_item = selected_item_x.rem_euclid(10) as u8 + selected_item_y.rem_euclid(5) as u8 * 10;
+
+			// Interact with world
+			let mut chunks_offset = chunks.get_offset(pos_in_front);
+			if input.get_game_key_starting_now(GameKey::Interact) {
+				let item_stack = &mut inventory[*selected_item as usize];
+				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
+			}
 
 			if let Some(tile_stack_in_front) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
 				let tiles = &mut tile_stack_in_front.tiles;
