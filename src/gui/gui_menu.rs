@@ -1,4 +1,4 @@
-use crate::{render::vertex::Vertex, io::io::IO, world::world::World};
+use crate::{render::{vertex::Vertex, texture::Texture}, io::io::IO, world::{world::World, entity::{entity::Entity, entity_type::EntityType}}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
@@ -14,7 +14,7 @@ pub struct GUIMenu {
 
 impl GUIMenu {
 	/// Get the elements that do not need to be stored from frame to frame.
-	pub fn get_const_elements(&self) -> Vec<GUIElement> {
+	pub fn get_const_elements(&self, world: &Option<World>) -> Vec<GUIElement> {
 		match &self.variant {
 			GUIMenuVariant::Test => vec![
 				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR },
@@ -84,7 +84,29 @@ impl GUIMenu {
 					}),
 				},
 			],
-			GUIMenuVariant::IngameHUD => vec![],
+			GUIMenuVariant::IngameHUD => {
+				let mut out = Vec::new();
+				let world = world.as_ref().unwrap();
+				let player = &world.player;
+				let (inventory, selected_item) = match &player.entity_type {
+					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
+					_ => panic!(),
+				};
+				for (item_index, item_stack) in inventory.iter().enumerate() {
+					let x = item_index as u16 % 10;
+					let y = item_index as u16 / 10;
+					let color = match (x % 2 == 0) ^ (y % 2 == 0)  {
+						true => [63, 63, 63, 63],
+						false => [31, 31, 31, 63],
+					};
+					out.push(GUIElement::Rect { pos: [x * 16, y * 16], size: [16, 16], alignment: GUIAlignment::Left, color });
+					if item_stack.1 > 1 {
+						out.push(GUIElement::Texture { pos: [x * 16, y * 16], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
+					}
+				}
+				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: [63, 63, 63, 63] });
+				out
+			}
 			GUIMenuVariant::CreateWorld => vec![
 				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
 				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
@@ -199,15 +221,15 @@ impl GUIMenu {
 	}
 
 	/// Get all elements.
-	pub fn get_elements(&self) -> Vec<GUIElement> {
-		let mut out = self.get_const_elements();
+	pub fn get_elements(&self, world: &Option<World>) -> Vec<GUIElement> {
+		let mut out = self.get_const_elements(world);
 		out.extend(self.extra_elements.clone());
 		out
 	}
 
 	/// Render all elements.
-	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
-		for element in self.get_elements() {
+	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO, world: &Option<World>) {
+		for element in self.get_elements(world) {
 			element.render(vertices, io);
 		}
 	}

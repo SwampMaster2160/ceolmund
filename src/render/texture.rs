@@ -1,8 +1,8 @@
 use std::mem::swap;
 
-use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4};
+use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4, gui::gui_alignment::GUIAlignment, io::io::IO};
 
-use super::{texture_type::TextureType, render::world_pos_to_render_pos};
+use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos, gui_size_to_screen_size}};
 
 /// Size of the texture sheet in pixels.
 pub const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];
@@ -122,5 +122,31 @@ impl Texture {
 			Vertex { position: [end_x, end_y],     texture_position: [texture_x_end, texture_y_end],     color: [0., 0., 0., 0.] },
 			Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
 		]
+	}
+
+	/// Render the texture to the gui
+	pub fn gui_render(self, pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [Vertex; 6] {
+	let texture_sheet_points = self.get_texture_sheet_points();
+
+	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
+	let end_x = start_x + texture_sheet_points[2] as f32;
+	let end_y = start_y + texture_sheet_points[3] as f32;
+
+	let width = texture_sheet_points[2] as f32 / TEXTURE_SHEET_SIZE[0] as f32;
+	let height = texture_sheet_points[3] as f32 / TEXTURE_SHEET_SIZE[1] as f32;
+
+	let texture_x_start = texture_sheet_points[0] as f32 / TEXTURE_SHEET_SIZE[0] as f32 + 0.0001;
+	let texture_y_start = 1. - (texture_sheet_points[1] as f32 / TEXTURE_SHEET_SIZE[1] as f32) - 0.0001;
+	let texture_x_end = texture_x_start + width - 0.0002;
+	let texture_y_end = texture_y_start - height + 0.0001;
+
+	[
+		Vertex { position: [start_x, start_y], texture_position: [texture_x_start, texture_y_start], color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, start_y],   texture_position: [texture_x_end, texture_y_start],   color: [0., 0., 0., 0.] },
+		Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, start_y],   texture_position: [texture_x_end, texture_y_start],   color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, end_y],     texture_position: [texture_x_end, texture_y_end],     color: [0., 0., 0., 0.] },
+		Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
+	]
 	}
 }

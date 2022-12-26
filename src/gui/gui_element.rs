@@ -1,6 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string, render_screen_grayout}}, world::world::World};
+use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string, render_screen_grayout}, texture::Texture}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI};
 
@@ -13,14 +13,15 @@ const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
 /// A GUI element.
 #[derive(Clone)]
 pub enum GUIElement {
-	Rect {pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4]},
+	Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4] },
 	Button {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool,
 		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
 	},
-	Text {text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment},
-	TextEntry {text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize},
-	Grayout {color: [u8; 4]},
+	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
+	TextEntry { text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
+	Grayout { color: [u8; 4] },
+	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
 }
 
 impl GUIElement {
@@ -81,6 +82,9 @@ impl GUIElement {
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Left, io, vertices);
 			}
 			Self::Grayout { color } => vertices.extend(render_screen_grayout(*color, io)),
+			Self::Texture { pos, alignment, texture } => {
+				vertices.extend(texture.gui_render(*pos, *alignment, io));
+			}
 		}
 	}
 

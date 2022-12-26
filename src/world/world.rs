@@ -2,11 +2,11 @@ use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
 use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
 
-use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}};
+use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}, item::item::Item};
 
 /// Contains everthing visable that isn't the GUI.
 pub struct World {
-	player: Entity,
+	pub player: Entity,
 	chunk_pool: ChunkPool,
 	seed: u32,
 	pub is_freeing: bool, // If true, the world is saving all chunks and preparing to be deleted from RAM.
@@ -35,7 +35,7 @@ impl World {
 				pos: [0, 0],
 				action_state: EntityActionState::Idle,
     			facing: Direction4::South,
-				entity_type: EntityType::Player,
+				entity_type: EntityType::Player { inventory: Box::new([(); 50].map(|_| (Item::None, 0))), selected_item: 0 },
 			},
 			chunk_pool: ChunkPool::new(),
 			seed,
@@ -90,7 +90,7 @@ impl World {
 				pos: [0, 0],
 				action_state: EntityActionState::Idle,
     			facing: Direction4::South,
-				entity_type: EntityType::Player,
+				entity_type: EntityType::Player { inventory: Box::new([(); 50].map(|_| (Item::None, 0))), selected_item: 0 },
 			},
 			chunk_pool: ChunkPool::new(),
 			seed,

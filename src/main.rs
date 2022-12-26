@@ -155,7 +155,7 @@ fn main() {
 				}
 
 				// Render gui
-				let vertices = gui.render(&io);
+				let vertices = gui.render(&io, &world);
 
 				let indices = NoIndices(PrimitiveType::TrianglesList);
 				let vertex_buffer = VertexBuffer::new(&display, &vertices).unwrap();

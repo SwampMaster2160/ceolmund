@@ -10,10 +10,10 @@ pub struct GUI {
 
 impl GUI {
 	/// Render the GUI
-	pub fn render(&self, io: &IO) -> Vec<Vertex> {
+	pub fn render(&self, io: &IO, world: &Option<World>) -> Vec<Vertex> {
 		let mut vertices: Vec<Vertex> = Vec::new();
 		for menu in &self.menus {
-			menu.render(&mut vertices, io);
+			menu.render(&mut vertices, io, world);
 		}
 		vertices
 	}
@@ -34,7 +34,7 @@ impl GUI {
 			}
 		}
 		if let Some(top_menu) = self.menus.last_mut().cloned() {
-			for element in top_menu.get_elements() {
+			for element in top_menu.get_elements(world) {
 				element.tick_mut_gui(self, world, io);
 			}
 		}
