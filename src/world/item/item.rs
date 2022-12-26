@@ -26,7 +26,7 @@ impl Item {
 
 	/// The item is used, if false is returned then the item will try to execute using other functions.
 	pub fn use_stack_mut_self(self_stack: &mut (Self, u8), chunk_pool_used_on: &mut ChunkPoolOffset) -> bool {
-		let (item, count) = self_stack;
+		let (item, _count) = self_stack;
 		match item {
 			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {

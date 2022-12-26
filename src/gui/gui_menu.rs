@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex, texture::Texture}, io::io::IO, world::{world::World, entity::{entity::Entity, entity_type::EntityType}}};
+use crate::{render::{vertex::Vertex}, io::io::IO, world::{world::World, entity::entity_type::EntityType}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
@@ -90,7 +90,7 @@ impl GUIMenu {
 				let player = &world.player;
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
-					_ => return Vec::new(),
+					//_ => return Vec::new(),
 				};
 				for (item_index, item_stack) in inventory.iter().enumerate() {
 					let x = item_index as u16 % 10;
