@@ -37,7 +37,7 @@ impl GUIMenu {
 						if let Some(world) = world {
 							world.is_freeing = true;
 						}
-						gui.menus.pop();
+						gui.menus = Vec::new();
 						gui.menus.push(Self::new(GUIMenuVariant::ExitingGame));
 					}),
 				},
@@ -47,7 +47,7 @@ impl GUIMenu {
 						if let Some(world) = world {
 							world.is_freeing = true;
 						}
-						gui.menus.pop();
+						gui.menus = Vec::new();
 						gui.menus.push(Self::new(GUIMenuVariant::ExitingToTitle));
 					}),
 				},
@@ -90,7 +90,7 @@ impl GUIMenu {
 				let player = &world.player;
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
-					_ => panic!(),
+					_ => return Vec::new(),
 				};
 				for (item_index, item_stack) in inventory.iter().enumerate() {
 					let x = item_index as u16 % 10;

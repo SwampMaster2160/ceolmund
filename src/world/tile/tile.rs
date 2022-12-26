@@ -95,6 +95,13 @@ impl Tile {
 			TileVariant::Path => Self::Path,
 		})
 	}
+
+	pub fn is_choppable(&self) -> bool {
+		match self {
+			Self::OakTree | Self::PineTree => true,
+			_ => false,
+		}
+	}
 }
 
 impl TileVariant {
