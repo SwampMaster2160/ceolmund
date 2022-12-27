@@ -28,12 +28,12 @@ impl Item {
 	pub fn use_stack_mut_self(self_stack: &mut (Self, u8), chunk_pool_used_on: &mut ChunkPoolOffset) -> bool {
 		let (item, _count) = self_stack;
 		match item {
-			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel => {
+			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel | Self::None => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
 					None => return false,
 				};
-				if !item.can_use_on(tile_stack) {
+				if !item.can_break(tile_stack) {
 					return false;
 				}
 				tile_stack.tiles.pop();
@@ -56,12 +56,16 @@ impl Item {
 		}
 	}
 
-	pub fn can_use_on(&self, tile_stack: &TileStack) -> bool {
+	pub fn can_break(&self, tile_stack: &TileStack) -> bool {
 		match self {
 			Self::SandboxDestroyWand => true,
 			Self::Shovel => tile_stack.tiles.len() == 1,
 			Self::Axe => match tile_stack.tiles.last() {
 				Some(top_tile) => top_tile.is_choppable(),
+				None => false,
+			}
+			Self::None =>  match tile_stack.tiles.last() {
+				Some(top_tile) => top_tile.is_pluckable(),
 				None => false,
 			}
 			_ => false,

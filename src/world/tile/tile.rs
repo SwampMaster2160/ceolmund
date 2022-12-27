@@ -110,6 +110,7 @@ impl Tile {
 		}
 	}
 
+	/// Can water be placed on top?
 	pub fn is_floodable(&self) -> bool {
 		match self {
 			Self::Sand | Self::BlackSand | Self::Gravel | Self::Rocks => true,
@@ -117,9 +118,18 @@ impl Tile {
 		}
 	}
 
+	/// Can stuff grow on top? (flowers, trees, ect.)
 	pub fn is_fertile(&self) -> bool {
 		match self {
 			Self::Grass => true,
+			_ => false,
+		}
+	}
+
+	/// Can the tile be broken with the fist?
+	pub fn is_pluckable(&self) -> bool {
+		match self {
+			Self::Flowers | Self::FlowersRedYellow => true,
 			_ => false,
 		}
 	}
