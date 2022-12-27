@@ -5,7 +5,7 @@ use strum::{IntoEnumIterator};
 
 use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::namespace::Namespace};
 
-use super::tile_movement_type::TileMovementType;
+use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 
 #[derive(Clone, EnumDiscriminants)]
 #[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
@@ -24,7 +24,9 @@ pub enum Tile {
 	Sand,
 }
 
+/// A tile in the world
 impl Tile {
+	/// The texture that is used to draw the tile
 	pub const fn get_texture(&self) -> Texture {
 		match self {
 			Self::Grass => Texture::Grass,
@@ -41,12 +43,14 @@ impl Tile {
 		}
 	}
 
+	/// Renders the tile to a tri list.
 	pub fn render(&self, pos: [i64; 2], vertices_in_out: &mut Vec<Vertex>) {
 		match self {
 			_ => vertices_in_out.extend(self.get_texture().render_basic(pos, [0, 0])),
 		}
 	}
 
+	/// Get when an entity can move.
 	pub const fn get_tile_movement_type(&self) -> TileMovementType {
 		match self {
 			Self::Grass => TileMovementType::Clear,
@@ -72,12 +76,14 @@ impl Tile {
 		out
 	}
 
+	/// Get data for the tile to save to disk.
 	pub fn save(&self) -> Vec<u8> {
 		let mut out = Vec::new();
 		out.push(TileVariant::from(self) as u8);
 		out
 	}
 
+	/// Create a tile form disk data.
 	pub fn load(data: &[u8], namespace: &Namespace) -> Option<Self> {
 		let tile_id = *data.get(0)? as usize;
 		let tile_variant = *namespace.tiles.get(tile_id)?;
@@ -96,10 +102,54 @@ impl Tile {
 		})
 	}
 
+	/// Can an axe be used on the tile?
 	pub fn is_choppable(&self) -> bool {
 		match self {
 			Self::OakTree | Self::PineTree => true,
 			_ => false,
+		}
+	}
+
+	pub fn is_floodable(&self) -> bool {
+		match self {
+			Self::Sand | Self::BlackSand | Self::Gravel | Self::Rocks => true,
+			_ => false,
+		}
+	}
+
+	pub fn is_fertile(&self) -> bool {
+		match self {
+			Self::Grass => true,
+			_ => false,
+		}
+	}
+
+	/// Can the tile be placed on a tile stack?
+	pub fn can_place_on(&self, tile_stack: &TileStack) -> bool {
+		match self {
+			Self::Grass | Self::Gravel | Self::Sand | Self::BlackSand => tile_stack.tiles.is_empty(),
+			Self::Water => match tile_stack.tiles.last() {
+				Some(top_tile) => top_tile.is_floodable(),
+				None => false,
+			}
+			Self::OakTree | Self::PineTree | Self::Flowers | Self::FlowersRedYellow => match tile_stack.tiles.last() {
+				Some(top_tile) => top_tile.is_fertile(),
+				None => false,
+			}
+			Self::Rocks => match tile_stack.tiles.last() {
+				Some(top_tile) => match top_tile {
+					Self::OakTree | Self::PineTree | Self::Flowers | Self::FlowersRedYellow | Self::Path | Self::Rocks => false,
+					_ => true,
+				},
+				None => false,
+			}
+			Self::Path => match tile_stack.tiles.last() {
+				Some(top_tile) => match top_tile {
+					Self::OakTree | Self::PineTree | Self::Flowers | Self::FlowersRedYellow | Self::Water | Self::Path | Self::Rocks => false,
+					_ => true,
+				},
+				None => false,
+			}
 		}
 	}
 }

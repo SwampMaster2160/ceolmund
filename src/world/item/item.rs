@@ -45,7 +45,7 @@ impl Item {
 					Some(tile_stack) => tile_stack,
 					None => return false,
 				};
-				if !tile_stack.tiles.is_empty() {
+				if !tile.can_place_on(tile_stack) {
 					return false;
 				}
 				tile_stack.tiles.push(tile.clone());
@@ -59,7 +59,7 @@ impl Item {
 	pub fn can_use_on(&self, tile_stack: &TileStack) -> bool {
 		match self {
 			Self::SandboxDestroyWand => true,
-			Self::Shovel => tile_stack.tiles.len() == 0,
+			Self::Shovel => tile_stack.tiles.len() == 1,
 			Self::Axe => match tile_stack.tiles.last() {
 				Some(top_tile) => top_tile.is_choppable(),
 				None => false,

@@ -1,5 +1,4 @@
 use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
-use crate::world::tile::tile::TileVariant;
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 /// A world object that is can move from tile to tile.
@@ -80,71 +79,6 @@ impl Entity {
 				let item_stack = &mut inventory[*selected_item as usize];
 				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
 			}
-
-			if let Some(tile_stack_in_front) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
-				let tiles = &mut tile_stack_in_front.tiles;
-				if input.get_game_key_starting_now(GameKey::DeleteTile) {
-					tiles.pop();
-					tile_stack_in_front.needs_redrawing = true;
-				}
-				if tiles.len() == 0 {
-					if input.get_game_key_starting_now(GameKey::Build1) {
-						tiles.push(Tile::Grass);
-						tile_stack_in_front.needs_redrawing = true;
-						return;
-					}
-					if input.get_game_key_starting_now(GameKey::Build2) {
-						tiles.push(Tile::Sand);
-						tile_stack_in_front.needs_redrawing = true;
-					}
-					if input.get_game_key_starting_now(GameKey::Build3) {
-						tiles.push(Tile::Gravel);
-						tile_stack_in_front.needs_redrawing = true;
-					}
-					if input.get_game_key_starting_now(GameKey::Build4) {
-						tiles.push(Tile::BlackSand);
-						tile_stack_in_front.needs_redrawing = true;
-					}
-				}
-				if input.get_game_key_starting_now(GameKey::Build5) && tiles.len() == 1 {
-					tiles.push(Tile::Water);
-					tile_stack_in_front.needs_redrawing = true;
-				}
-				if let Some(top_tile) = tiles.last() {
-					let tile_variant: TileVariant = top_tile.into();
-					if tile_variant == TileVariant::Grass {
-						if input.get_game_key_starting_now(GameKey::Build6) {
-							tiles.push(Tile::PineTree);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-						if input.get_game_key_starting_now(GameKey::Build7) {
-							tiles.push(Tile::OakTree);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-						if input.get_game_key_starting_now(GameKey::Build8) {
-							tiles.push(Tile::Flowers);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-						if input.get_game_key_starting_now(GameKey::Build9) {
-							tiles.push(Tile::FlowersRedYellow);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-					}
-					if tile_variant == TileVariant::Grass || tile_variant == TileVariant::Water {
-						if input.get_game_key_starting_now(GameKey::Build0) {
-							tiles.push(Tile::Rocks);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-					}
-					if tile_variant == TileVariant::Grass || tile_variant == TileVariant::BlackSand ||
-					tile_variant == TileVariant::Gravel || tile_variant == TileVariant::Sand {
-						if input.get_game_key_starting_now(GameKey::Build1) {
-							tiles.push(Tile::Path);
-							tile_stack_in_front.needs_redrawing = true;
-						}
-					}
-				}
-			}
 		}
 	}
 
@@ -190,6 +124,15 @@ impl Entity {
 		inventory[2] = (Item::BaseTilePlacer(Tile::Gravel), 1);
 		inventory[3] = (Item::BaseTilePlacer(Tile::Sand), 1);
 		inventory[4] = (Item::BaseTilePlacer(Tile::BlackSand), 1);
+		inventory[5] = (Item::BaseTilePlacer(Tile::Rocks), 1);
+		inventory[6] = (Item::BaseTilePlacer(Tile::OakTree), 1);
+		inventory[7] = (Item::BaseTilePlacer(Tile::PineTree), 1);
+		inventory[8] = (Item::BaseTilePlacer(Tile::Flowers), 1);
+		inventory[9] = (Item::BaseTilePlacer(Tile::FlowersRedYellow), 1);
+		inventory[10] = (Item::BaseTilePlacer(Tile::Water), 1);
+		inventory[11] = (Item::BaseTilePlacer(Tile::Path), 1);
+		inventory[12] = (Item::Axe, 1);
+		inventory[13] = (Item::Shovel, 1);
 		Entity {
 			pos: [0, 0],
 			action_state: EntityActionState::Idle,
