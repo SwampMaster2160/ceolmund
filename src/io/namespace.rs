@@ -1,12 +1,17 @@
+use crate::world::entity::entity_type::EntityVariant;
+use crate::world::item::item::ItemVariant;
 use std::path::PathBuf;
 
-use crate::world::{tile::tile::TileVariant};
+use crate::world::{tile::tile::TileVariant, direction::Direction4};
 
 use super::{formatted_file_reader::FormattedFileReader, namespace_name::NamespaceName};
 
 /// A namespace loaded from disk
 pub struct Namespace {
 	pub tiles: Vec<TileVariant>,
+	pub items: Vec<ItemVariant>,
+	pub entities: Vec<EntityVariant>,
+	pub direction_4s: Vec<Direction4>,
 }
 
 impl Namespace {
@@ -22,7 +27,13 @@ impl Namespace {
 		}
 		// Data to extract
 		let tile_name_map = TileVariant::get_name_map();
+		let item_name_map = ItemVariant::get_name_map();
+		let entity_name_map = EntityVariant::get_name_map();
+		let direction_4_name_map = Direction4::get_name_map();
 		let mut tiles = Vec::new();
+		let mut items = Vec::new();
+		let mut entities = Vec::new();
+		let mut direction_4s = Vec::new();
 		// The index to where we are indexing to in the body vec.
 		let mut body_index = 0;
 		// For each namespace
@@ -51,12 +62,18 @@ impl Namespace {
 				// Convert
 				match namespace_name {
 					NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
+					NamespaceName::Item => items.push(*item_name_map.get(&name)?),
+					NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
+					NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
 				}
 			}
 		}
 
 		Some(Self {
 			tiles,
+			entities,
+			direction_4s,
+			items,
 		})
 	}
 }

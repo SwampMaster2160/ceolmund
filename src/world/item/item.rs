@@ -1,6 +1,13 @@
+use std::collections::HashMap;
+
 use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture};
+use strum::{IntoEnumIterator};
+
+use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
 /// An item that can exist in a player's inventory.
+#[derive(Clone, EnumDiscriminants)]
+#[strum_discriminants(name(ItemVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum Item {
 	None,
@@ -8,7 +15,7 @@ pub enum Item {
 	Shovel,
 	Axe,
 	SandboxDestroyWand,
-	BaseTilePlacer(Tile),
+	Tile(Tile),
 }
 
 impl Item {
@@ -20,7 +27,7 @@ impl Item {
 			Self::Axe => Texture::Axe,
 			Self::SandboxDestroyWand => Texture::SandboxDestroyWand,
 			Self::Hammer => Texture::Hammer,
-			Self::BaseTilePlacer(tile) => tile.get_texture(),
+			Self::Tile(tile) => tile.get_texture(),
 		}
 	}
 
@@ -40,7 +47,7 @@ impl Item {
 				tile_stack.needs_redrawing = true;
 				true
 			}
-			Self::BaseTilePlacer(tile) => {
+			Self::Tile(tile) => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
 					None => return false,
@@ -52,7 +59,7 @@ impl Item {
 				tile_stack.needs_redrawing = true;
 				true
 			}
-			_ => false,
+			//_ => false,
 		}
 	}
 
@@ -70,5 +77,26 @@ impl Item {
 			}
 			_ => false,
 		}
+	}
+}
+
+impl ItemVariant {
+	pub const fn get_name_id(self) -> &'static str {
+		match self {
+			Self::Axe => "axe",
+			Self::Tile => "tile",
+			Self::Hammer => "hammer",
+			Self::None => "none",
+			Self::SandboxDestroyWand => "sandbox_destroy_wand",
+			Self::Shovel => "shovel",
+		}
+	}
+
+	pub fn get_name_map() -> HashMap<String, Self> {
+		let mut out = HashMap::new();
+		for tile in Self::iter() {
+			out.insert(tile.get_name_id().to_string(), tile);
+		}
+		out
 	}
 }

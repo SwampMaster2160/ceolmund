@@ -1,3 +1,5 @@
+use crate::world::{entity::entity_type::EntityVariant, direction::Direction4};
+use crate::world::item::item::ItemVariant;
 use std::{path::PathBuf, fs::create_dir};
 use crate::world::tile::tile::TileVariant;
 
@@ -50,7 +52,30 @@ impl IO {
 			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		}
 		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-
+		// Add item namespace
+		let tile_name_ptr =  saving_namespace.push_string(&"item".to_string()).unwrap();
+		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		for tile_variant in ItemVariant::iter() {
+			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
+			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		}
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
+		// Add entity namespace
+		let tile_name_ptr =  saving_namespace.push_string(&"entity".to_string()).unwrap();
+		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		for tile_variant in EntityVariant::iter() {
+			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
+			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		}
+		// Add direction 4 namespace
+		let tile_name_ptr =  saving_namespace.push_string(&"direction_4".to_string()).unwrap();
+		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		for tile_variant in Direction4::iter() {
+			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
+			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		}
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
+		// End namespaces
 		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
 

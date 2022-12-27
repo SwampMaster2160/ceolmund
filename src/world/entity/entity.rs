@@ -120,17 +120,17 @@ impl Entity {
 	pub fn new_player() -> Self {
 		let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
 		inventory[0] = (Item::SandboxDestroyWand, 1);
-		inventory[1] = (Item::BaseTilePlacer(Tile::Grass), 1);
-		inventory[2] = (Item::BaseTilePlacer(Tile::Gravel), 1);
-		inventory[3] = (Item::BaseTilePlacer(Tile::Sand), 1);
-		inventory[4] = (Item::BaseTilePlacer(Tile::BlackSand), 1);
-		inventory[5] = (Item::BaseTilePlacer(Tile::Rocks), 1);
-		inventory[6] = (Item::BaseTilePlacer(Tile::OakTree), 1);
-		inventory[7] = (Item::BaseTilePlacer(Tile::PineTree), 1);
-		inventory[8] = (Item::BaseTilePlacer(Tile::Flowers), 1);
-		inventory[9] = (Item::BaseTilePlacer(Tile::FlowersRedYellow), 1);
-		inventory[10] = (Item::BaseTilePlacer(Tile::Water), 1);
-		inventory[11] = (Item::BaseTilePlacer(Tile::Path), 1);
+		inventory[1] = (Item::Tile(Tile::Grass), 1);
+		inventory[2] = (Item::Tile(Tile::Gravel), 1);
+		inventory[3] = (Item::Tile(Tile::Sand), 1);
+		inventory[4] = (Item::Tile(Tile::BlackSand), 1);
+		inventory[5] = (Item::Tile(Tile::Rocks), 1);
+		inventory[6] = (Item::Tile(Tile::OakTree), 1);
+		inventory[7] = (Item::Tile(Tile::PineTree), 1);
+		inventory[8] = (Item::Tile(Tile::Flowers), 1);
+		inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
+		inventory[10] = (Item::Tile(Tile::Water), 1);
+		inventory[11] = (Item::Tile(Tile::Path), 1);
 		inventory[12] = (Item::Axe, 1);
 		inventory[13] = (Item::Shovel, 1);
 		Entity {
