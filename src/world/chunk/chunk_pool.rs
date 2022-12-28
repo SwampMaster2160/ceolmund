@@ -47,21 +47,28 @@ impl ChunkPool {
 	}
 
 	/// Tick the chunks
-	pub fn tick(&mut self, _player: &Entity, _player_visable_width: u64, _async_runtime: &Runtime, _seed: u32) {
+	pub fn tick(&mut self, _player: Option<&Entity>, _player_visable_width: u64, _async_runtime: &Runtime, _seed: u32) {
 
 	}
 
 	/// Tick that should always be called even if the game is paused.
-	pub fn tick_always(&mut self, player: &Entity, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespaces_filepath: &PathBuf, namespace_hash: u64) {
+	pub fn tick_always(&mut self, player: Option<&Entity>, player_visable_width: u64, async_runtime: &Runtime, seed: u32, is_freeing: bool, is_freed: &mut bool, chunks_filepath: &PathBuf, namespaces_filepath: &PathBuf, namespace_hash: u64) {
 		// Dummy thread context (used and discarded, wakers are discarded).
 		let waker = noop_waker();
 		let mut cx = Context::from_waker(&waker);
 
 		// Get the bounds of what should be loaded.
-		let chunk_y_to_load_start = player.pos[1].div_euclid(64) - 1;
-		let chunk_y_to_load_end = chunk_y_to_load_start + 2;
-		let chunk_x_to_load_start = (player.pos[0] - player_visable_width as i64 / 2).div_euclid(64) - 1;
-		let chunk_x_to_load_end = (player.pos[0] + player_visable_width as i64 / 2).div_euclid(64) + 1;
+		let mut chunk_y_to_load_start = 0;
+		let mut chunk_y_to_load_end = 0;
+		let mut chunk_x_to_load_start = 0;
+		let mut chunk_x_to_load_end = 0;
+
+		if let Some(player) = player {
+			chunk_y_to_load_start = player.pos[1].div_euclid(64) - 1;
+			chunk_y_to_load_end = chunk_y_to_load_start + 2;
+			chunk_x_to_load_start = (player.pos[0] - player_visable_width as i64 / 2).div_euclid(64) - 1;
+			chunk_x_to_load_end = (player.pos[0] + player_visable_width as i64 / 2).div_euclid(64) + 1;
+		}
 
 		// Start generating chunks if in bounds and not loaded.
 		if !is_freeing {

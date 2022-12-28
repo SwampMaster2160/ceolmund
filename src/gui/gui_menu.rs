@@ -87,7 +87,7 @@ impl GUIMenu {
 			GUIMenuVariant::IngameHUD => {
 				let mut out = Vec::new();
 				let world = world.as_ref().unwrap();
-				let player = &world.player;
+				let player = world.player.as_ref().unwrap();
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
 					//_ => return Vec::new(),

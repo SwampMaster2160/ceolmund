@@ -2,11 +2,11 @@ use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
 use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
 
-use super::{direction::Direction4, chunk::chunk_pool::ChunkPool, entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}, item::item::Item};
+use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity};
 
 /// Contains everthing visable that isn't the GUI.
 pub struct World {
-	pub player: Entity,
+	pub player: Option<Entity>,
 	chunk_pool: ChunkPool,
 	seed: u32,
 	pub is_freeing: bool, // If true, the world is saving all chunks and preparing to be deleted from RAM.
@@ -31,12 +31,7 @@ impl World {
 		overview_filepath.push("overview.wld".to_string());
 		// Create dummy world object
 		let dummy_world = Self {
-			player: Entity {
-				pos: [0, 0],
-				action_state: EntityActionState::Idle,
-    			facing: Direction4::South,
-				entity_type: EntityType::Player { inventory: Box::new([(); 50].map(|_| (Item::None, 0))), selected_item: 0 },
-			},
+			player: None,
 			chunk_pool: ChunkPool::new(),
 			seed,
 			is_freeing: false,
@@ -86,7 +81,7 @@ impl World {
 		let seed = u32::from_le_bytes(seed);
 		// Create world object
 		Some(Self { 
-			player: Entity::new_player(),
+			player: Some(Entity::new_player()),
 			chunk_pool: ChunkPool::new(),
 			seed,
 			is_freeing: false,
@@ -102,24 +97,29 @@ impl World {
 	/// Render the world getting a vector of tris and the center pos of the camera.
 	/// The player will be in the center of the screen.
 	pub fn render(&mut self, player_visable_width: u64) -> (Vec<Vertex>, [f32; 2]) {
-		let mut vertices = Vec::new();
-		self.chunk_pool.render(&self.player, player_visable_width, &mut vertices);
-		self.player.render(&mut vertices);
+		if let Some(player) = &self.player {
+			let mut vertices = Vec::new();
+			self.chunk_pool.render(&player, player_visable_width, &mut vertices);
+			player.render(&mut vertices);
 
-		let player = &self.player;
-		(vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()))
+			//let player = &self.player;
+			return (vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()));
+		}
+		(Vec::new(), [0., 0.])
 	}
 
 	/// Tick called when the game is not paused.
 	pub fn tick(&mut self, io: &IO, player_visable_width: u64, gui: &mut GUI) {
-		self.chunk_pool.tick(&self.player, player_visable_width, &io.async_runtime, self.seed);
-		self.player.player_tick(&mut self.chunk_pool, io, gui);
-		self.player.tick(&mut self.chunk_pool);
+		self.chunk_pool.tick(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed);
+		if let Some(player) = &mut self.player {
+			player.player_tick(&mut self.chunk_pool, io, gui);
+			player.tick(&mut self.chunk_pool);
+		}
 	}
 
 	/// Tick always called.
 	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
-		self.chunk_pool.tick_always(&self.player, player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, &self.namespaces_filepath, io.saving_namespace_hash);
+		self.chunk_pool.tick_always(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, &self.namespaces_filepath, io.saving_namespace_hash);
 	}
 
 	pub fn save_overview(&self) {
