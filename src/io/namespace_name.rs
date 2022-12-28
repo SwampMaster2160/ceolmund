@@ -3,6 +3,7 @@ pub enum NamespaceName {
 	Item,
 	Entity,
 	Direction4,
+	EntityActionStates,
 }
 
 impl NamespaceName {
@@ -12,6 +13,7 @@ impl NamespaceName {
 			"item" => Some(Self::Item),
 			"Entity" => Some(Self::Entity),
 			"direction_4" => Some(Self::Direction4),
+			"entity_action_state" => Some(Self::EntityActionStates),
 			_ => None,
 		}
 	}

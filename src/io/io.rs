@@ -1,3 +1,4 @@
+use crate::world::entity::entity_action_state::EntityActionStateVariant;
 use crate::world::{entity::entity_type::EntityVariant, direction::Direction4};
 use crate::world::item::item::ItemVariant;
 use std::{path::PathBuf, fs::create_dir};
@@ -71,6 +72,14 @@ impl IO {
 		let tile_name_ptr =  saving_namespace.push_string(&"direction_4".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		for tile_variant in Direction4::iter() {
+			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
+			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		}
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
+		// Add entity action state namespace
+		let tile_name_ptr =  saving_namespace.push_string(&"entity_action_state".to_string()).unwrap();
+		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
+		for tile_variant in EntityActionStateVariant::iter() {
 			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
 			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		}

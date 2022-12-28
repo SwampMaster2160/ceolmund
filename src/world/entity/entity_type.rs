@@ -18,6 +18,22 @@ impl EntityType {
 			Self::Player { .. } => Texture::Player,
 		}
 	}
+
+	/// Save
+	pub fn save(&self, data: &mut Vec<u8>) {
+		// Push id
+		data.push(EntityVariant::from(self) as u8);
+		
+		match self {
+			Self::Player { inventory, selected_item } => {
+				for (item, stack_amount) in inventory.iter() {
+					item.save(data);
+					data.push(*stack_amount);
+				}
+				data.push(*selected_item);
+			},
+		}
+	}
 }
 
 impl EntityVariant {

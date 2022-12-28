@@ -16,6 +16,7 @@ pub struct World {
 	pub chunks_filepath: PathBuf,
 	pub namespaces_filepath: PathBuf,
 	pub overview_filepath: PathBuf,
+	pub player_filepath: PathBuf,
 }
 
 impl World {
@@ -41,6 +42,7 @@ impl World {
 			chunks_filepath: filepath.clone(),
 			overview_filepath,
 			namespaces_filepath: filepath.clone(),
+			player_filepath: filepath.clone(),
 		};
 		dummy_world.save_overview();
 		Self::load(filepath, io)
@@ -61,6 +63,9 @@ impl World {
 		if !chunks_filepath.exists() || !namespaces_filepath.exists() {
 			return None;
 		}
+		// Get player filepath
+		let mut player_filepath = filepath.clone();
+		player_filepath.push("player.ent".to_string());
 		// Save namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:16x}.nsp", io.saving_namespace_hash));
@@ -91,6 +96,7 @@ impl World {
 			chunks_filepath,
 			overview_filepath,
 			namespaces_filepath,
+			player_filepath,
 		})
 	}
 
@@ -101,8 +107,6 @@ impl World {
 			let mut vertices = Vec::new();
 			self.chunk_pool.render(&player, player_visable_width, &mut vertices);
 			player.render(&mut vertices);
-
-			//let player = &self.player;
 			return (vertices, world_pos_to_render_pos(player.pos, player.get_subtile_pos()));
 		}
 		(Vec::new(), [0., 0.])
@@ -120,6 +124,11 @@ impl World {
 	/// Tick always called.
 	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
 		self.chunk_pool.tick_always(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, &self.namespaces_filepath, io.saving_namespace_hash);
+		if self.is_freeing {
+			if let Some(player) = &self.player {
+				player.save_player(&self.player_filepath, io.saving_namespace_hash).unwrap();
+			}
+		}
 	}
 
 	pub fn save_overview(&self) {

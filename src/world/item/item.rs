@@ -78,6 +78,17 @@ impl Item {
 			_ => false,
 		}
 	}
+
+	/// Save
+	pub fn save(&self, data: &mut Vec<u8>) {
+		// Push id
+		data.push(ItemVariant::from(self) as u8);
+		
+		match self {
+			Self::Tile(tile) => data.extend(tile.save()),
+			_ => {}
+		}
+	}
 }
 
 impl ItemVariant {

@@ -1,11 +1,13 @@
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use std::path::PathBuf;
+
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 /// A world object that is can move from tile to tile.
 pub struct Entity {
 	pub pos: [i64; 2],
-	pub action_state: EntityActionState,
 	pub facing: Direction4,
+	pub action_state: EntityActionState,
 	pub entity_type: EntityType,
 }
 
@@ -139,5 +141,31 @@ impl Entity {
 			facing: Direction4::South,
 			entity_type: EntityType::Player { inventory, selected_item: 0 },
 		}
+	}
+
+	/// Save player to file
+	pub fn save_player(&self, player_filepath: &PathBuf, namespace_hash: u64) -> Option<()> {
+		// Open file
+		let mut file = FormattedFileWriter::new(0);
+		// Push namespace hash
+		file.body.extend(namespace_hash.to_le_bytes());
+		// Get entity data
+		self.save(&mut file.body);
+		// Write
+		file.write(player_filepath)?;
+		Some(())
+	}
+
+	/// Save an entity
+	pub fn save(&self, data: &mut Vec<u8>) {
+		// Push pos
+		data.extend(self.pos[0].to_le_bytes());
+		data.extend(self.pos[1].to_le_bytes());
+		// Push facing
+		data.push(self.facing as u8);
+		// Push action state
+		self.action_state.save(data);
+		// Push type
+		self.entity_type.save(data);
 	}
 }

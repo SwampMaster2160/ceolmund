@@ -1,3 +1,4 @@
+use crate::world::entity::entity_action_state::EntityActionStateVariant;
 use crate::world::entity::entity_type::EntityVariant;
 use crate::world::item::item::ItemVariant;
 use std::path::PathBuf;
@@ -12,6 +13,7 @@ pub struct Namespace {
 	pub items: Vec<ItemVariant>,
 	pub entities: Vec<EntityVariant>,
 	pub direction_4s: Vec<Direction4>,
+	pub entity_action_states: Vec<EntityActionStateVariant>,
 }
 
 impl Namespace {
@@ -30,10 +32,12 @@ impl Namespace {
 		let item_name_map = ItemVariant::get_name_map();
 		let entity_name_map = EntityVariant::get_name_map();
 		let direction_4_name_map = Direction4::get_name_map();
+		let entity_action_state_name_map = EntityActionStateVariant::get_name_map();
 		let mut tiles = Vec::new();
 		let mut items = Vec::new();
 		let mut entities = Vec::new();
 		let mut direction_4s = Vec::new();
+		let mut entity_action_states = Vec::new();
 		// The index to where we are indexing to in the body vec.
 		let mut body_index = 0;
 		// For each namespace
@@ -65,6 +69,7 @@ impl Namespace {
 					NamespaceName::Item => items.push(*item_name_map.get(&name)?),
 					NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
 					NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
+					NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
 				}
 			}
 		}
@@ -74,6 +79,7 @@ impl Namespace {
 			entities,
 			direction_4s,
 			items,
+			entity_action_states,
 		})
 	}
 }
