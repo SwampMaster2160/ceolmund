@@ -190,21 +190,23 @@ impl Entity {
 		let pos_x = data.get(0..8)?.try_into().ok()?;
 		let pos_y = data.get(8..16)?.try_into().ok()?;
 		let pos = [i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)];
+		let mut data_read_size_out = 16;
 		// Get facing
 		let facing = *namespace.direction_4s.get(*data.get(16)? as usize)?;
+		data_read_size_out += 1;
 		// Get action state
-		let (action_state, advanced_amount) = EntityActionState::deserialize(data.get(17..)?, namespace, version)?;
-		let mut data_read_size = 17 + advanced_amount;
-		let data = data.get(17 + advanced_amount..)?;
+		let (action_state, data_read_size) = EntityActionState::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
+		data_read_size_out += data_read_size;
+		let data = data.get(data_read_size_out..)?;
 		// Get entity type
-		let (entity_type, advanced_amount) = EntityType::deserialize(data, namespace, version)?;
-		data_read_size += advanced_amount;
+		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version)?;
+		data_read_size_out += data_read_size;
 
 		Some((Self {
 			pos,
 			facing,
 			action_state,
 			entity_type,
-		}, data_read_size))
+		}, data_read_size_out))
 	}
 }

@@ -101,8 +101,8 @@ impl Item {
 			ItemVariant::SandboxDestroyWand => (Self::SandboxDestroyWand, 1),
 			ItemVariant::Shovel => (Self::Shovel, 1),
 			ItemVariant::Tile => {
-				let (tile, data_advanced_amount) = Tile::deserialize(data.get(1..)?, namespace, version)?;
-				(Self::Tile(tile), 1 + data_advanced_amount)
+				let (tile, data_read_size) = Tile::deserialize(data.get(1..)?, namespace, version)?;
+				(Self::Tile(tile), 1 + data_read_size)
 			},
 		})
 	}
