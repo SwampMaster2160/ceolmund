@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 /// A world object that is can move from tile to tile.
@@ -156,6 +156,21 @@ impl Entity {
 		Some(())
 	}
 
+	// Load player from file
+	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf) -> Option<Self> {
+		// Open file
+		let file = FormattedFileReader::read_from_file(player_filepath)?;
+		if file.version > 0 {
+			return None;
+		}
+		// Get namespace
+		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
+		let namespace_hash = u64::from_le_bytes(namespace_hash);
+		let namespace = Namespace::load(namespace_hash, *namespaces_filepath)?;
+		// Load entity
+		Some(Self::load(file.body.get(8..)?, &namespace, file.version)?.0)
+	}
+
 	/// Save an entity
 	pub fn save(&self, data: &mut Vec<u8>) {
 		// Push pos
@@ -167,5 +182,29 @@ impl Entity {
 		self.action_state.save(data);
 		// Push type
 		self.entity_type.save(data);
+	}
+
+	/// Load an entity
+	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+		// Get pos
+		let pos_x = data.get(0..8)?.try_into().ok()?;
+		let pos_y = data.get(8..16)?.try_into().ok()?;
+		let pos = [i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)];
+		// Get facing
+		let facing = namespace.direction_4s[*data.get(16)? as usize];
+		// Get action state
+		let (action_state, advanced_amount) = EntityActionState::load(data.get(17..)?, namespace, version)?;
+		let data_read_size = 17 + advanced_amount;
+		let data = data.get(17 + advanced_amount..)?;
+		// Get entity type
+		let (entity_type, advanced_amount) = EntityType::load(data, namespace, version)?;
+		data_read_size += advanced_amount;
+
+		Some((Self {
+			pos,
+			facing,
+			action_state,
+			entity_type,
+		}, data_read_size))
 	}
 }

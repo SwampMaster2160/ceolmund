@@ -1,7 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Deref};
 
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
+
+use crate::io::namespace::Namespace;
 
 #[derive(Eq, PartialEq, Clone)]
 #[derive(EnumDiscriminants)]
@@ -22,6 +24,17 @@ impl EntityActionState {
 			Self::Idle => {}
 			Self::Walking(amount) => data.push(*amount),
 		}
+	}
+
+	/// Load
+	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+		// Get id
+		let id = *data.get(0)?;
+		let variant = *namespace.entity_action_states.get(id as usize)?;
+		Some(match variant {
+			EntityActionStateVariant::Idle => (Self::Idle, 1),
+			EntityActionStateVariant::Walking => (Self::Walking(*data.get(1)?), 2),
+		})
 	}
 }
 

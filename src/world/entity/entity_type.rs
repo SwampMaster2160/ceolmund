@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{render::texture::Texture, world::item::item::Item};
+use crate::{render::texture::Texture, world::item::item::Item, io::namespace::Namespace};
 
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -33,6 +33,23 @@ impl EntityType {
 				data.push(*selected_item);
 			},
 		}
+	}
+
+	/// Load an entity
+	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+		// Get variant
+		let variant = *namespace.entities.get(*data.get(0)? as usize)?;
+		let data_advanced_amount = 1;
+
+		Some((match variant {
+			EntityVariant::Player => {
+				let inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
+				for x in 0..50 {
+					
+				}
+				Self::Player { inventory, selected_item }
+			}
+		}, data_advanced_amount))
 	}
 }
 

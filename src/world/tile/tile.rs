@@ -84,10 +84,10 @@ impl Tile {
 	}
 
 	/// Create a tile form disk data.
-	pub fn load(data: &[u8], namespace: &Namespace) -> Option<Self> {
+	pub fn load(data: &[u8], namespace: &Namespace) -> Option<(Self, usize)> {
 		let tile_id = *data.get(0)? as usize;
 		let tile_variant = *namespace.tiles.get(tile_id)?;
-		Some(match tile_variant {
+		Some((match tile_variant {
 			TileVariant::Grass => Self::Grass,
 			TileVariant::Water => Self::Water,
 			TileVariant::Sand => Self::Sand,
@@ -99,7 +99,7 @@ impl Tile {
 			TileVariant::Gravel => Self::Gravel,
 			TileVariant::BlackSand => Self::BlackSand,
 			TileVariant::Path => Self::Path,
-		})
+		}, 1))
 	}
 
 	/// Can an axe be used on the tile?

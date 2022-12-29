@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture};
+use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::namespace::Namespace};
 use strum::{IntoEnumIterator};
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -88,6 +88,22 @@ impl Item {
 			Self::Tile(tile) => data.extend(tile.save()),
 			_ => {}
 		}
+	}
+
+	/// Create a item from disk data.
+	pub fn load(data: &[u8], namespace: &Namespace) -> Option<(Self, usize)> {
+		let tile_id = *data.get(0)? as usize;
+		let tile_variant = *namespace.items.get(item_id)?;
+		Some(match item_id {
+			ItemVariant::Axe => (Self::Axe, 1),
+			ItemVariant::Hammer => (Self::Hammer, 1),
+			ItemVariant::None => (Self::None, 1),
+			ItemVariant::SandboxDestroyWand => (Self::SandboxDestroyWand, 1),
+			ItemVariant::Shovel => (Self::Shovel, 1),
+			ItemVariant::Tile => {
+				(Self::Tile(), 1)
+			},
+		})
 	}
 }
 
