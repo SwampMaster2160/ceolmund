@@ -166,7 +166,7 @@ impl Entity {
 		// Get namespace
 		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
-		let namespace = Namespace::load(namespace_hash, *namespaces_filepath)?;
+		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
 		Some(Self::load(file.body.get(8..)?, &namespace, file.version)?.0)
 	}
@@ -194,7 +194,7 @@ impl Entity {
 		let facing = namespace.direction_4s[*data.get(16)? as usize];
 		// Get action state
 		let (action_state, advanced_amount) = EntityActionState::load(data.get(17..)?, namespace, version)?;
-		let data_read_size = 17 + advanced_amount;
+		let mut data_read_size = 17 + advanced_amount;
 		let data = data.get(17 + advanced_amount..)?;
 		// Get entity type
 		let (entity_type, advanced_amount) = EntityType::load(data, namespace, version)?;

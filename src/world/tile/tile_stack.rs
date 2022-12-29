@@ -119,7 +119,7 @@ impl TileStack {
 				break;
 			}
 			let tile_data = tile_datas.get(*tile_datas_index..*tile_datas_index + length)?;
-			self.tiles.push(Tile::load(tile_data, namespace)?);
+			self.tiles.push(Tile::load(tile_data, namespace)?.0);
 			*tile_datas_index += length;
 		}
 		Some(())

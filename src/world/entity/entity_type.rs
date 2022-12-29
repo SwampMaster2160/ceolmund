@@ -36,17 +36,23 @@ impl EntityType {
 	}
 
 	/// Load an entity
-	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+	pub fn load(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		// Get variant
 		let variant = *namespace.entities.get(*data.get(0)? as usize)?;
-		let data_advanced_amount = 1;
+		let mut data_advanced_amount = 1;
 
 		Some((match variant {
 			EntityVariant::Player => {
-				let inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
+				let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
 				for x in 0..50 {
-					
+					let (item, advanced) = Item::load(data.get(data_advanced_amount..)?, namespace)?;
+					data_advanced_amount += advanced;
+					let amount = *data.get(data_advanced_amount)?;
+					data_advanced_amount += 1;
+					inventory[x] = (item, amount);
 				}
+				let selected_item = *data.get(data_advanced_amount)?;
+				data_advanced_amount += 1;
 				Self::Player { inventory, selected_item }
 			}
 		}, data_advanced_amount))

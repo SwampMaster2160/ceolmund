@@ -92,16 +92,17 @@ impl Item {
 
 	/// Create a item from disk data.
 	pub fn load(data: &[u8], namespace: &Namespace) -> Option<(Self, usize)> {
-		let tile_id = *data.get(0)? as usize;
-		let tile_variant = *namespace.items.get(item_id)?;
-		Some(match item_id {
+		let item_id = *data.get(0)? as usize;
+		let item_variant = *namespace.items.get(item_id)?;
+		Some(match item_variant {
 			ItemVariant::Axe => (Self::Axe, 1),
 			ItemVariant::Hammer => (Self::Hammer, 1),
 			ItemVariant::None => (Self::None, 1),
 			ItemVariant::SandboxDestroyWand => (Self::SandboxDestroyWand, 1),
 			ItemVariant::Shovel => (Self::Shovel, 1),
 			ItemVariant::Tile => {
-				(Self::Tile(), 1)
+				let (tile, data_advanced_amount) = Tile::load(data.get(1..)?, namespace)?;
+				(Self::Tile(tile), 1 + data_advanced_amount)
 			},
 		})
 	}

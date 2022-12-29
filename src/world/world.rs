@@ -84,9 +84,15 @@ impl World {
 		let seed = overview.body.get(4..8)?;
 		let seed: [u8; 4] = seed.try_into().ok()?;
 		let seed = u32::from_le_bytes(seed);
+		// Get player
+		let player = Entity::load_player(&player_filepath, &namespaces_filepath);
+		let player = match player {
+			Some(player) => player,
+			None => Entity::new_player(),
+		};
 		// Create world object
 		Some(Self { 
-			player: Some(Entity::new_player()),
+			player: Some(player),
 			chunk_pool: ChunkPool::new(),
 			seed,
 			is_freeing: false,
