@@ -68,6 +68,7 @@ impl IO {
 			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
 			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		}
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 		// Add direction 4 namespace
 		let tile_name_ptr =  saving_namespace.push_string(&"direction_4".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());

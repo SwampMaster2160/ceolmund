@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Deref};
+use std::collections::HashMap;
 
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -27,7 +27,7 @@ impl EntityActionState {
 	}
 
 	/// Load
-	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+	pub fn load(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		// Get id
 		let id = *data.get(0)?;
 		let variant = *namespace.entity_action_states.get(id as usize)?;

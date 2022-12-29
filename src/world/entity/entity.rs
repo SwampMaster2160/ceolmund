@@ -191,7 +191,7 @@ impl Entity {
 		let pos_y = data.get(8..16)?.try_into().ok()?;
 		let pos = [i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)];
 		// Get facing
-		let facing = namespace.direction_4s[*data.get(16)? as usize];
+		let facing = *namespace.direction_4s.get(*data.get(16)? as usize)?;
 		// Get action state
 		let (action_state, advanced_amount) = EntityActionState::load(data.get(17..)?, namespace, version)?;
 		let mut data_read_size = 17 + advanced_amount;

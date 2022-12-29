@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumCount};
 
-#[derive(PartialEq, Eq, Clone, Copy, EnumCount, EnumIter)]
+#[derive(PartialEq, Eq, Clone, Copy, EnumCount, EnumIter, Debug)]
 /// North/East/South/West direction.
 pub enum Direction4 {
 	North,

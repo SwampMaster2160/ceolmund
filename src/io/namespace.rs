@@ -58,6 +58,7 @@ impl Namespace {
 				let name: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
 				let string_ptr = u32::from_le_bytes(name);
 				if string_ptr == 0xFFFFFFFF {
+					body_index += 4;
 					break;
 				}
 				let name = file.get_string(string_ptr)?;
@@ -73,6 +74,7 @@ impl Namespace {
 				}
 			}
 		}
+		println!("{:?}", tiles);
 
 		Some(Self {
 			tiles,
