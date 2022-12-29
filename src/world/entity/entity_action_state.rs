@@ -16,7 +16,7 @@ pub enum EntityActionState {
 
 impl EntityActionState {
 	/// Save
-	pub fn save(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, data: &mut Vec<u8>) {
 		// Push id
 		data.push(EntityActionStateVariant::from(self) as u8);
 		
@@ -27,7 +27,7 @@ impl EntityActionState {
 	}
 
 	/// Load
-	pub fn load(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		// Get id
 		let id = *data.get(0)?;
 		let variant = *namespace.entity_action_states.get(id as usize)?;

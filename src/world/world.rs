@@ -1,6 +1,6 @@
 use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
-use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
+use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::{IO, SERIALIZATION_VERSION}, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
 
 use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity};
 
@@ -75,6 +75,9 @@ impl World {
 		}
 		// Read overview
 		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
+		if overview.version > SERIALIZATION_VERSION {
+			return None;
+		}
 		// Get world name
 		let name_pos = overview.body.get(0..4)?;
 		let name_pos: [u8; 4] = name_pos.try_into().ok()?;
@@ -139,7 +142,7 @@ impl World {
 
 	pub fn save_overview(&self) {
 		// Create file
-		let mut file = FormattedFileWriter::new(0);
+		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
 		// Push world name
 		let name_pos = file.push_string(&self.name).unwrap().to_le_bytes();
 		file.body.extend(name_pos);

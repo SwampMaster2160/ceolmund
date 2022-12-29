@@ -12,6 +12,8 @@ use tokio::runtime::Runtime;
 
 use super::{game_key::GameKey, formatted_file_writer::FormattedFileWriter};
 
+pub const SERIALIZATION_VERSION: u32 = 0;
+
 /// For everything hardware related.
 pub struct IO {
 	pub game_keys_keyboard: [bool; GameKey::COUNT],
@@ -44,7 +46,7 @@ impl IO {
 		char_widths.extend(include_bytes!("../asset/render_width/1.cwt"));
 		char_widths.extend(include_bytes!("../asset/render_width/2.cwt"));
 		// Create namespace for saving worlds
-		let mut saving_namespace = FormattedFileWriter::new(0);
+		let mut saving_namespace = FormattedFileWriter::new(SERIALIZATION_VERSION);
 		// Add tile namespace
 		let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());

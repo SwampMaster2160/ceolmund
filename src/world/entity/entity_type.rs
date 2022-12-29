@@ -20,14 +20,14 @@ impl EntityType {
 	}
 
 	/// Save
-	pub fn save(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, data: &mut Vec<u8>) {
 		// Push id
 		data.push(EntityVariant::from(self) as u8);
 		
 		match self {
 			Self::Player { inventory, selected_item } => {
 				for (item, stack_amount) in inventory.iter() {
-					item.save(data);
+					item.serialize(data);
 					data.push(*stack_amount);
 				}
 				data.push(*selected_item);
@@ -36,7 +36,7 @@ impl EntityType {
 	}
 
 	/// Load an entity
-	pub fn load(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
 		// Get variant
 		let variant = *namespace.entities.get(*data.get(0)? as usize)?;
 		let mut data_advanced_amount = 1;
@@ -45,7 +45,7 @@ impl EntityType {
 			EntityVariant::Player => {
 				let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
 				for x in 0..50 {
-					let (item, advanced) = Item::load(data.get(data_advanced_amount..)?, namespace)?;
+					let (item, advanced) = Item::deserialize(data.get(data_advanced_amount..)?, namespace, version)?;
 					data_advanced_amount += advanced;
 					let amount = *data.get(data_advanced_amount)?;
 					data_advanced_amount += 1;

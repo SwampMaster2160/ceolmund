@@ -98,20 +98,23 @@ impl TileStack {
 		}
 	}
 
-	pub fn save(&self, lengths: &mut Vec<u8>, tile_datas: &mut Vec<u8>) {
+	pub fn serialize(&self, lengths: &mut Vec<u8>, tile_datas: &mut Vec<u8>) {
 		for tile in &self.tiles {
-			let tile_data = tile.save();
-			let length: u8 = tile_data.len().try_into().unwrap();
+			let start_len = tile_datas.len();
+			//let tile_data = tile.serialize();
+			tile.serialize(tile_datas);
+			//let length: u8 = tile_data.len().try_into().unwrap();
+			let length: u8 = (tile_datas.len() - start_len).try_into().unwrap();
 			if length > 0x7F {
 				panic!();
 			}
 			lengths.extend(length.to_le_bytes());
-			tile_datas.extend(tile_data);
+			//tile_datas.extend(tile_data);
 		}
 		lengths.extend(0u8.to_le_bytes());
 	}
 
-	pub fn load(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace) -> Option<()> {
+	pub fn load(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace, version: u32) -> Option<()> {
 		loop {
 			let length = *tile_lengths.get(*tile_lengths_index)? as usize;
 			*tile_lengths_index += 1;
@@ -119,7 +122,7 @@ impl TileStack {
 				break;
 			}
 			let tile_data = tile_datas.get(*tile_datas_index..*tile_datas_index + length)?;
-			self.tiles.push(Tile::load(tile_data, namespace)?.0);
+			self.tiles.push(Tile::deserialize(tile_data, namespace, version)?.0);
 			*tile_datas_index += length;
 		}
 		Some(())

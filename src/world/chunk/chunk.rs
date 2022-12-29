@@ -1,6 +1,6 @@
 use std::{ops::Range, path::PathBuf};
 
-use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}};
+use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace, io::SERIALIZATION_VERSION}};
 
 /// A 64x64 grid of tile stacks
 pub struct Chunk {
@@ -92,7 +92,7 @@ impl Chunk {
 			Some(file) => file,
 			None => return Some(false),
 		};
-		if file.version > 0 {
+		if file.version > SERIALIZATION_VERSION {
 			return None;
 		}
 		// Get chunk namespace hash
@@ -111,17 +111,17 @@ impl Chunk {
 		let mut tile_datas_index = 0usize;
 		for tile_stack_row in &mut self.tile_stacks {
 			for tile_stack in tile_stack_row.iter_mut() {
-				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace)?;
+				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, file.version)?;
 			}
 		}
 		//
 		Some(true)
 	}
 
-	/// Save and free chunk
-	pub async fn free(self, pos: [i64; 2], chunks_filepath: PathBuf, namespace_hash: u64) -> Option<()> {
+	/// Save chunk
+	pub async fn save(self, pos: [i64; 2], chunks_filepath: PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new(0);
+		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Create file arrays
@@ -130,7 +130,7 @@ impl Chunk {
 		// Get tile datas
 		for tile_stack_row in &self.tile_stacks {
 			for tile_stack in tile_stack_row.iter() {
-				tile_stack.save(&mut tile_lengths, &mut tile_datas);
+				tile_stack.serialize(&mut tile_lengths, &mut tile_datas);
 			}
 		}
 		// Push tile datas pointer

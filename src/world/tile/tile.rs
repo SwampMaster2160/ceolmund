@@ -77,14 +77,12 @@ impl Tile {
 	}
 
 	/// Get data for the tile to save to disk.
-	pub fn save(&self) -> Vec<u8> {
-		let mut out = Vec::new();
-		out.push(TileVariant::from(self) as u8);
-		out
+	pub fn serialize(&self, data: &mut Vec<u8>) {
+		data.push(TileVariant::from(self) as u8);
 	}
 
 	/// Create a tile form disk data.
-	pub fn load(data: &[u8], namespace: &Namespace) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		let tile_id = *data.get(0)? as usize;
 		let tile_variant = *namespace.tiles.get(tile_id)?;
 		Some((match tile_variant {

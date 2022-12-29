@@ -113,7 +113,7 @@ impl ChunkPool {
 		}
 		for pos in to_free.iter() {
 			if let ChunkSlot::Chunk(chunk) = self.chunks.remove(pos).unwrap() {
-				self.chunks.insert(*pos, ChunkSlot::Freeing(async_runtime.spawn(chunk.free(*pos, chunks_filepath.clone(), namespace_hash))));
+				self.chunks.insert(*pos, ChunkSlot::Freeing(async_runtime.spawn(chunk.save(*pos, chunks_filepath.clone(), namespace_hash))));
 			}
 		}
 		for pos in to_remove.iter() {

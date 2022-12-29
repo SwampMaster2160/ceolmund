@@ -80,18 +80,18 @@ impl Item {
 	}
 
 	/// Save
-	pub fn save(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, data: &mut Vec<u8>) {
 		// Push id
 		data.push(ItemVariant::from(self) as u8);
 		
 		match self {
-			Self::Tile(tile) => data.extend(tile.save()),
+			Self::Tile(tile) => tile.serialize(data),
 			_ => {}
 		}
 	}
 
 	/// Create a item from disk data.
-	pub fn load(data: &[u8], namespace: &Namespace) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
 		let item_id = *data.get(0)? as usize;
 		let item_variant = *namespace.items.get(item_id)?;
 		Some(match item_variant {
@@ -101,7 +101,7 @@ impl Item {
 			ItemVariant::SandboxDestroyWand => (Self::SandboxDestroyWand, 1),
 			ItemVariant::Shovel => (Self::Shovel, 1),
 			ItemVariant::Tile => {
-				let (tile, data_advanced_amount) = Tile::load(data.get(1..)?, namespace)?;
+				let (tile, data_advanced_amount) = Tile::deserialize(data.get(1..)?, namespace, version)?;
 				(Self::Tile(tile), 1 + data_advanced_amount)
 			},
 		})

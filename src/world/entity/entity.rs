@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::{IO, SERIALIZATION_VERSION}, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 /// A world object that is can move from tile to tile.
@@ -146,11 +146,11 @@ impl Entity {
 	/// Save player to file
 	pub fn save_player(&self, player_filepath: &PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new(0);
+		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Get entity data
-		self.save(&mut file.body);
+		self.serialize(&mut file.body);
 		// Write
 		file.write(player_filepath)?;
 		Some(())
@@ -160,7 +160,7 @@ impl Entity {
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf) -> Option<Self> {
 		// Open file
 		let file = FormattedFileReader::read_from_file(player_filepath)?;
-		if file.version > 0 {
+		if file.version > SERIALIZATION_VERSION {
 			return None;
 		}
 		// Get namespace
@@ -168,24 +168,24 @@ impl Entity {
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::load(file.body.get(8..)?, &namespace, file.version)?.0)
+		Some(Self::deserialize(file.body.get(8..)?, &namespace, file.version)?.0)
 	}
 
 	/// Save an entity
-	pub fn save(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, data: &mut Vec<u8>) {
 		// Push pos
 		data.extend(self.pos[0].to_le_bytes());
 		data.extend(self.pos[1].to_le_bytes());
 		// Push facing
 		data.push(self.facing as u8);
 		// Push action state
-		self.action_state.save(data);
+		self.action_state.serialize(data);
 		// Push type
-		self.entity_type.save(data);
+		self.entity_type.serialize(data);
 	}
 
 	/// Load an entity
-	pub fn load(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
 		// Get pos
 		let pos_x = data.get(0..8)?.try_into().ok()?;
 		let pos_y = data.get(8..16)?.try_into().ok()?;
@@ -193,11 +193,11 @@ impl Entity {
 		// Get facing
 		let facing = *namespace.direction_4s.get(*data.get(16)? as usize)?;
 		// Get action state
-		let (action_state, advanced_amount) = EntityActionState::load(data.get(17..)?, namespace, version)?;
+		let (action_state, advanced_amount) = EntityActionState::deserialize(data.get(17..)?, namespace, version)?;
 		let mut data_read_size = 17 + advanced_amount;
 		let data = data.get(17 + advanced_amount..)?;
 		// Get entity type
-		let (entity_type, advanced_amount) = EntityType::load(data, namespace, version)?;
+		let (entity_type, advanced_amount) = EntityType::deserialize(data, namespace, version)?;
 		data_read_size += advanced_amount;
 
 		Some((Self {

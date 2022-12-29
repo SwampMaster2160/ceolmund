@@ -1,4 +1,4 @@
-use crate::world::entity::entity_action_state::EntityActionStateVariant;
+use crate::{world::entity::entity_action_state::EntityActionStateVariant, io::io::SERIALIZATION_VERSION};
 use crate::world::entity::entity_type::EntityVariant;
 use crate::world::item::item::ItemVariant;
 use std::path::PathBuf;
@@ -24,7 +24,7 @@ impl Namespace {
 		namespace_filepath.push(format!("{:16x}.nsp", hash));
 		let file = FormattedFileReader::read_from_file(&namespace_filepath)?;
 		// Error if the namespace is a future version.
-		if file.version > 0 {
+		if file.version > SERIALIZATION_VERSION {
 			return None;
 		}
 		// Data to extract
