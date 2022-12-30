@@ -1,9 +1,11 @@
-use crate::{render::{vertex::Vertex}, io::io::IO, world::{world::World, entity::entity_type::EntityType}};
+use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::EntityType}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
+const RECT_BORDER_COLOR: [u8; 4] = [0, 0, 0, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
+const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 
 /// A GUI menu, these are stacked.
 #[derive(Clone)]
@@ -17,7 +19,7 @@ impl GUIMenu {
 	pub fn get_const_elements(&self, world: &Option<World>) -> Vec<GUIElement> {
 		match &self.variant {
 			GUIMenuVariant::Test => vec![
-				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR },
+				GUIElement::Rect { pos: [10, 10], size: [10, 10], alignment: GUIAlignment::Left, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Button {
 					pos: [30, 20], size: [30, 15], alignment: GUIAlignment::Left, text: "Hi".to_string(), enabled: true,
 					tick_mut_gui: (|_, _, _, _| println!("Hi")),
@@ -25,7 +27,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Hello".to_string(), pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
 			],
 			GUIMenuVariant::Paused => vec![
-				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Game Paused".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 30], size: [150, 16], alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
@@ -53,15 +55,15 @@ impl GUIMenu {
 				},
 			],
 			GUIMenuVariant::ExitingGame => vec![
-				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Closing World...".to_string(), pos: [127, 120], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 			],
 			GUIMenuVariant::ExitingToTitle => vec![
-				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 78], size: [150, 100], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Closing World...".to_string(), pos: [127, 120], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 			],
 			GUIMenuVariant::Title => vec![
-				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Ceolmund".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
@@ -99,16 +101,16 @@ impl GUIMenu {
 						true => [63, 63, 63, 63],
 						false => [31, 31, 31, 63],
 					};
-					out.push(GUIElement::Rect { pos: [x * 16, y * 16], size: [16, 16], alignment: GUIAlignment::Left, color });
+					out.push(GUIElement::Rect { pos: [x * 16, y * 16], size: [16, 16], alignment: GUIAlignment::Left, color: NO_COLOR, border_color: color });
 					if item_stack.1 > 0 {
 						out.push(GUIElement::Texture { pos: [x * 16, y * 16], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
 					}
 				}
-				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: [63, 63, 63, 127] });
+				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: NO_COLOR, border_color: [63, 63, 63, 127] });
 				out
 			}
 			GUIMenuVariant::CreateWorld => vec![
-				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Text { text: "Name:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
@@ -147,7 +149,7 @@ impl GUIMenu {
 			],
 			GUIMenuVariant::Error => vec![
 				GUIElement::Grayout { color: GRAYOUT_COLOR },
-				GUIElement::Rect { pos: [53, 90], size: [150, 76], alignment: GUIAlignment::Center, color: RECT_COLOR },
+				GUIElement::Rect { pos: [53, 90], size: [150, 76], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Error".to_string(), pos: [127, 74], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Button {
 					pos: [53, 150], size: [150, 16], alignment: GUIAlignment::Center, text: "OK".to_string(), enabled: true,
@@ -158,7 +160,7 @@ impl GUIMenu {
 			],
 			GUIMenuVariant::LoadWorld { page, load_world_data } => {
 					let mut out = vec![
-					GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR },
+					GUIElement::Rect { pos: [53, 30], size: [150, 196], alignment: GUIAlignment::Center, color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 					GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 					GUIElement::Button {
 						pos: [53, 210], size: [150, 16], alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
@@ -237,7 +239,7 @@ impl GUIMenu {
 	/// Weather the game should pause when this menu is in the GUI stack.
 	pub fn does_menu_pause_game(&self) -> bool {
 		match self.variant {
-			GUIMenuVariant::Test => false,
+			GUIMenuVariant::Test => true,
 			GUIMenuVariant::Paused => true,
 			GUIMenuVariant::ExitingGame => true,
 			GUIMenuVariant::ExitingToTitle => true,
@@ -256,12 +258,16 @@ impl GUIMenu {
 				gui.menus.pop();
 				io.update_keys_pressed_last();
 			},
+			GUIMenuVariant::Test => {
+				gui.menus.pop();
+				io.update_keys_pressed_last();
+			},
 			_ => {}
 		}
 	}
 
 	/// Menu tick.
-	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, _io: &mut IO, request_game_close: bool) {
+	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, io: &mut IO, request_game_close: bool) {
 		if request_game_close {
 			if world.is_some() {
 				if let Some(world) = world {
@@ -278,6 +284,11 @@ impl GUIMenu {
 			}
 		}
 		match self.variant {
+			GUIMenuVariant::IngameHUD => {
+				if io.get_game_key_starting_now(GameKey::Build0) {
+					gui.menus.push(Self::new(GUIMenuVariant::Test))
+				}
+			}
 			GUIMenuVariant::ExitingGame => {
 				if let Some(world) = world {
 					if world.is_freed {

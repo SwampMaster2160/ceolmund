@@ -7,16 +7,24 @@ use super::{gui_alignment::GUIAlignment, gui::GUI};
 const BUTTON_GRAY_COLOR: [u8; 4] = [95, 95, 95, 255];
 const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
 const BUTTON_DISABLED_COLOR: [u8; 4] = [15, 15, 15, 255];
+const BUTTON_BORDER: [u8; 4] = [0, 0, 0, 255];
+const BUTTON_ON_COLOR: [u8; 4] = [0, 95, 0, 255];
+const BUTTON_OFF_COLOR: [u8; 4] = [95, 0, 0, 255];
+const BUTTON_ON_HOVER_COLOR: [u8; 4] = [0, 255, 0, 255];
+const BUTTON_OFF_HOVER_COLOR: [u8; 4] = [255, 0, 0, 255];
 const TEXT_ENTRY_GRAY_COLOR: [u8; 4] = [50, 50, 50, 255];
 const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
 
 /// A GUI element.
 #[derive(Clone)]
 pub enum GUIElement {
-	Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4] },
+	Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4] },
 	Button {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool,
 		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
+	},
+	ToggleButton {
+		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool, state: bool,
 	},
 	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
@@ -29,6 +37,14 @@ impl GUIElement {
 	pub fn is_mouse_over(&self, io: &IO) -> bool {
 		match self {
 			Self::Button { pos, size, alignment, .. } => {
+				let mouse_pos = io.get_mouse_pos_as_gui_pos();
+				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, io);
+				let button_screen_size = gui_size_to_screen_size(*size);
+				let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
+				mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
+				mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
+			}
+			Self::ToggleButton { pos, size, alignment, .. } => {
 				let mouse_pos = io.get_mouse_pos_as_gui_pos();
 				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, io);
 				let button_screen_size = gui_size_to_screen_size(*size);
@@ -51,8 +67,8 @@ impl GUIElement {
 	/// Render the element
 	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
 		match self {
-			Self::Rect{pos, size, alignment, color} =>
-				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, io)),
+			Self::Rect{pos, size, alignment, color, border_color} =>
+				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, *border_color, io)),
 			Self::Button { pos, size, alignment, text, enabled, .. } => {
 				let mut color = BUTTON_GRAY_COLOR;
 				if self.is_mouse_over(io) {
@@ -61,7 +77,23 @@ impl GUIElement {
 				if !enabled {
 					color = BUTTON_DISABLED_COLOR;
 				}
-				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, io));
+				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, BUTTON_BORDER, io));
+
+				let text_pos = [pos[0] + size[0] / 2, pos[1] + size[1] / 2 - 8];
+				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+			}
+			Self::ToggleButton { pos, size, alignment, text, enabled, state, .. } => {
+				let mut color = BUTTON_GRAY_COLOR;
+				color = match (*state, self.is_mouse_over(io)) {
+					(false, false) => BUTTON_OFF_COLOR,
+					(false, true) => BUTTON_OFF_HOVER_COLOR,
+					(true, false) => BUTTON_ON_COLOR,
+					(true, true) => BUTTON_ON_HOVER_COLOR,
+				};
+				if !enabled {
+					color = BUTTON_DISABLED_COLOR;
+				}
+				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, BUTTON_BORDER, io));
 
 				let text_pos = [pos[0] + size[0] / 2, pos[1] + size[1] / 2 - 8];
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
@@ -76,7 +108,7 @@ impl GUIElement {
 				if *is_selected {
 					color = TEXT_ENTRY_SELECT_COLOR;
 				}
-				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, io));
+				vertices.extend(render_gui_rect(*pos, *size, *alignment, color, BUTTON_BORDER, io));
 
 				let text_pos = [pos[0] + 1, pos[1] + size[1] / 2 - 8];
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Left, io, vertices);
@@ -95,6 +127,9 @@ impl GUIElement {
 			match self {
 				GUIElement::TextEntry { is_selected, .. } => {
 					*is_selected = is_mouse_over;
+				},
+				GUIElement::ToggleButton { state, .. } => {
+					*state = !*state;
 				},
 				_ => {}
 			}

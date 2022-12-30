@@ -25,19 +25,27 @@ pub fn gui_size_to_screen_size(size: [u16; 2]) -> [f32; 2] {
 }
 
 /// Render a rectangle at the GUI pos and alignment.
-pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], input: &IO) -> [Vertex; 6] {
+pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4], input: &IO) -> [Vertex; 12] {
 	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
 	let gui_size = gui_size_to_screen_size(size);
 	let end_x = start_x + gui_size[0];
 	let end_y = start_y + gui_size[1];
-	let render_color = [color[0] as f32 / 255., color[1] as f32 / 255., color[2] as f32 / 255., color[3] as f32 / 255.];
+	let color = [color[0] as f32 / 255., color[1] as f32 / 255., color[2] as f32 / 255., color[3] as f32 / 255.];
+	let border_color = [border_color[0] as f32 / 255., border_color[1] as f32 / 255., border_color[2] as f32 / 255., border_color[3] as f32 / 255.];
 	[
-		Vertex { position: [start_x, start_y], texture_position: [0., 0.], color: render_color },
-		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: render_color },
-		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: render_color },
-		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: render_color },
-		Vertex { position: [end_x, end_y],     texture_position: [0., 0.], color: render_color },
-		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: render_color },
+		Vertex { position: [start_x, start_y], texture_position: [0., 0.], color: border_color },
+		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: border_color },
+		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: border_color },
+		Vertex { position: [end_x, start_y],   texture_position: [0., 0.], color: border_color },
+		Vertex { position: [end_x, end_y],     texture_position: [0., 0.], color: border_color },
+		Vertex { position: [start_x, end_y],   texture_position: [0., 0.], color: border_color },
+
+		Vertex { position: [start_x + 1., start_y + 1.], texture_position: [0., 0.], color: color },
+		Vertex { position: [end_x - 1., start_y + 1.],   texture_position: [0., 0.], color: color },
+		Vertex { position: [start_x + 1., end_y - 1.],   texture_position: [0., 0.], color: color },
+		Vertex { position: [end_x - 1., start_y + 1.],   texture_position: [0., 0.], color: color },
+		Vertex { position: [end_x - 1., end_y - 1.],     texture_position: [0., 0.], color: color },
+		Vertex { position: [start_x + 1., end_y - 1.],   texture_position: [0., 0.], color: color },
 	]
 }
 
