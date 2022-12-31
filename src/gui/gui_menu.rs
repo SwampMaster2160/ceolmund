@@ -324,6 +324,11 @@ impl GUIMenu {
 				],
 				GUIMenuVariant::Test => vec![
 					GUIElement::ToggleButton { text: "Hi".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, enabled: true, state: true },
+					GUIElement::MutuallyExclusiveButtonGroup { alignment: GUIAlignment::Center, selected_button: 0, buttons: vec![
+						("Button 0".to_string(), [0, 100], [100, 16]),
+						("Button 1".to_string(), [104, 100], [100, 16]),
+						("Button 2".to_string(), [208, 100], [100, 16]),
+					] },
 				],
 				_ => Vec::new(),
 			},

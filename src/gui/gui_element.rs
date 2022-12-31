@@ -26,40 +26,31 @@ pub enum GUIElement {
 	ToggleButton {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool, state: bool,
 	},
+	MutuallyExclusiveButtonGroup {
+		buttons: Vec<(String, [u16; 2], [u16; 2])>, alignment: GUIAlignment, selected_button: usize
+	},
 	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
 	Grayout { color: [u8; 4] },
 	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
 }
 
+pub fn is_mouse_over_area(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, io: &IO) -> bool {
+	let mouse_pos = io.get_mouse_pos_as_gui_pos();
+	let button_screen_pos = gui_pos_to_screen_pos(pos, alignment, io);
+	let button_screen_size = gui_size_to_screen_size(size);
+	let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
+	mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
+	mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
+}
+
 impl GUIElement {
 	/// Get weather the mouse is over an element.
 	pub fn is_mouse_over(&self, io: &IO) -> bool {
 		match self {
-			Self::Button { pos, size, alignment, .. } => {
-				let mouse_pos = io.get_mouse_pos_as_gui_pos();
-				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, io);
-				let button_screen_size = gui_size_to_screen_size(*size);
-				let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
-				mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
-				mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
-			}
-			Self::ToggleButton { pos, size, alignment, .. } => {
-				let mouse_pos = io.get_mouse_pos_as_gui_pos();
-				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, io);
-				let button_screen_size = gui_size_to_screen_size(*size);
-				let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
-				mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
-				mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
-			}
-			Self::TextEntry { pos, size, alignment, .. } => {
-				let mouse_pos = io.get_mouse_pos_as_gui_pos();
-				let button_screen_pos = gui_pos_to_screen_pos(*pos, *alignment, io);
-				let button_screen_size = gui_size_to_screen_size(*size);
-				let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
-				mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
-				mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
-			}
+			Self::Button { pos, size, alignment, .. } => is_mouse_over_area(*pos, *size, *alignment, io),
+			Self::ToggleButton { pos, size, alignment, .. } => is_mouse_over_area(*pos, *size, *alignment, io),
+			Self::TextEntry { pos, size, alignment, .. } => is_mouse_over_area(*pos, *size, *alignment, io),
 			_ => false,
 		}
 	}
@@ -97,6 +88,24 @@ impl GUIElement {
 				let text_pos = [pos[0] + size[0] / 2, pos[1] + size[1] / 2 - 8];
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
 			}
+			Self::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
+				for (button_index, button) in buttons.iter().enumerate() {
+					let is_selected = button_index == *selected_button;
+					let is_mouse_over = is_mouse_over_area(button.1, button.2, *alignment, io);
+					let pos = button.1;
+					let size = button.2;
+					let text = button.0.as_str();
+					let color = match (is_selected, is_mouse_over) {
+						(false, false) => BUTTON_OFF_COLOR,
+						(false, true) => BUTTON_OFF_HOVER_COLOR,
+						(true, false) => BUTTON_ON_COLOR,
+						(true, true) => BUTTON_ON_HOVER_COLOR,
+					};
+					vertices.extend(render_gui_rect(pos, size, *alignment, color, BUTTON_BORDER, io));
+					let text_pos = [pos[0] + size[0] / 2, pos[1] + size[1] / 2 - 8];
+					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+				}
+			}
 			Self::Text { text: string, pos, alignment, text_alignment } =>
 				render_gui_string(string, *pos, *alignment, *text_alignment, io, vertices),
 			Self::TextEntry { text, pos, size, alignment, is_selected, .. } => {
@@ -132,6 +141,16 @@ impl GUIElement {
 						*state = !*state;
 					}
 				},
+				GUIElement::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
+					for (button_index, button) in buttons.iter().enumerate() {
+						let pos = button.1;
+						let size = button.2;
+						let is_mouse_over = is_mouse_over_area(pos, size, *alignment, io);
+						if is_mouse_over {
+							*selected_button = button_index;
+						}
+					}
+				}
 				_ => {}
 			}
 		}
