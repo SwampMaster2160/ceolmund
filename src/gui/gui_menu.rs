@@ -92,7 +92,6 @@ impl GUIMenu {
 				let player = world.player.as_ref().unwrap();
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
-					//_ => return Vec::new(),
 				};
 				for (item_index, item_stack) in inventory.iter().enumerate() {
 					let x = item_index as u16 % 10;
@@ -114,6 +113,7 @@ impl GUIMenu {
 				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 				GUIElement::Text { text: "Name:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+				GUIElement::Text { text: "Difficulty:".to_string(), pos: [53, 110], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
 				GUIElement::Button {
 					pos: [53, 190], size: [150, 16], alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
 					tick_mut_gui: (|_, gui, world, io| {
@@ -321,13 +321,19 @@ impl GUIMenu {
 				GUIMenuVariant::CreateWorld => vec![
 					GUIElement::TextEntry { text: "".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 20 },
 					GUIElement::TextEntry { text: "".to_string(), pos: [53, 90], size: [150, 16], alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
+					GUIElement::MutuallyExclusiveButtonGroup { alignment: GUIAlignment::Center, selected_button: 1, buttons: vec![
+						("Sandbox".to_string(), [53, 130], [37, 16], true),
+						("Easy".to_string(), [53 + 34 + 4, 130], [37, 16], true),
+						("Medium".to_string(), [53 + 34 + 4 + 34 + 4, 130], [37, 16], true),
+						("Hard".to_string(), [53 + 34 + 4 + 34 + 4 + 34 + 4, 130], [36, 16], true),
+					] },
 				],
 				GUIMenuVariant::Test => vec![
 					GUIElement::ToggleButton { text: "Hi".to_string(), pos: [53, 50], size: [150, 16], alignment: GUIAlignment::Center, enabled: true, state: true },
 					GUIElement::MutuallyExclusiveButtonGroup { alignment: GUIAlignment::Center, selected_button: 0, buttons: vec![
-						("Button 0".to_string(), [0, 100], [100, 16]),
-						("Button 1".to_string(), [104, 100], [100, 16]),
-						("Button 2".to_string(), [208, 100], [100, 16]),
+						("Button 0".to_string(), [0, 100], [100, 16], true),
+						("Button 1".to_string(), [104, 100], [100, 16], false),
+						("Button 2".to_string(), [208, 100], [100, 16], true),
 					] },
 				],
 				_ => Vec::new(),

@@ -6,7 +6,7 @@ use super::{gui_alignment::GUIAlignment, gui::GUI};
 
 const BUTTON_GRAY_COLOR: [u8; 4] = [95, 95, 95, 255];
 const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
-const BUTTON_DISABLED_COLOR: [u8; 4] = [15, 15, 15, 255];
+const BUTTON_DISABLED_COLOR: [u8; 4] = [7, 7, 7, 255];
 const BUTTON_BORDER: [u8; 4] = [15, 15, 15, 255];
 const BUTTON_ON_COLOR: [u8; 4] = [0, 95, 0, 255];
 const BUTTON_OFF_COLOR: [u8; 4] = [95, 0, 0, 255];
@@ -27,7 +27,8 @@ pub enum GUIElement {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool, state: bool,
 	},
 	MutuallyExclusiveButtonGroup {
-		buttons: Vec<(String, [u16; 2], [u16; 2])>, alignment: GUIAlignment, selected_button: usize
+		buttons: Vec<(String, [u16; 2], [u16; 2], bool)>, // text, pos, size, enabled
+		alignment: GUIAlignment, selected_button: usize,
 	},
 	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
@@ -91,16 +92,20 @@ impl GUIElement {
 			Self::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
 				for (button_index, button) in buttons.iter().enumerate() {
 					let is_selected = button_index == *selected_button;
-					let is_mouse_over = is_mouse_over_area(button.1, button.2, *alignment, io);
 					let pos = button.1;
 					let size = button.2;
+					let is_mouse_over = is_mouse_over_area(pos, size, *alignment, io);
 					let text = button.0.as_str();
-					let color = match (is_selected, is_mouse_over) {
+					let is_enabled = button.3;
+					let mut color = match (is_selected, is_mouse_over) {
 						(false, false) => BUTTON_OFF_COLOR,
 						(false, true) => BUTTON_OFF_HOVER_COLOR,
 						(true, false) => BUTTON_ON_COLOR,
 						(true, true) => BUTTON_ON_HOVER_COLOR,
 					};
+					if !is_enabled {
+						color = BUTTON_DISABLED_COLOR;
+					}
 					vertices.extend(render_gui_rect(pos, size, *alignment, color, BUTTON_BORDER, io));
 					let text_pos = [pos[0] + size[0] / 2, pos[1] + size[1] / 2 - 8];
 					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
@@ -145,8 +150,9 @@ impl GUIElement {
 					for (button_index, button) in buttons.iter().enumerate() {
 						let pos = button.1;
 						let size = button.2;
+						let is_enabled = button.3;
 						let is_mouse_over = is_mouse_over_area(pos, size, *alignment, io);
-						if is_mouse_over {
+						if is_mouse_over && is_enabled {
 							*selected_button = button_index;
 						}
 					}

@@ -106,6 +106,7 @@ pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, t
 			None => 8,
 		} + 1) as u32;
 	}
+	width = width.saturating_sub(1);
 	let offset = match text_alignment {
 		GUIAlignment::Left => 0,
 		GUIAlignment::Center => width / 2,
