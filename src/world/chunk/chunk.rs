@@ -121,7 +121,7 @@ impl Chunk {
 	/// Save chunk
 	pub async fn save(self, pos: [i64; 2], chunks_filepath: PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
+		let mut file = FormattedFileWriter::new(/*SERIALIZATION_VERSION*/);
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Create file arrays

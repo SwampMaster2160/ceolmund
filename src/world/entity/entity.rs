@@ -146,7 +146,7 @@ impl Entity {
 	/// Save player to file
 	pub fn save_player(&self, player_filepath: &PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
+		let mut file = FormattedFileWriter::new(/*SERIALIZATION_VERSION*/);
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Get entity data

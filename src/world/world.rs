@@ -44,7 +44,7 @@ impl World {
 			namespaces_filepath: filepath.clone(),
 			player_filepath: filepath.clone(),
 		};
-		dummy_world.save_overview();
+		dummy_world.save_overview(io.saving_namespace_hash);
 		Self::load(filepath, io)
 	}
 
@@ -94,7 +94,7 @@ impl World {
 			None => Entity::new_player(),
 		};
 		// Create world object
-		Some(Self { 
+		let world = Self { 
 			player: Some(player),
 			chunk_pool: ChunkPool::new(),
 			seed,
@@ -106,7 +106,9 @@ impl World {
 			overview_filepath,
 			namespaces_filepath,
 			player_filepath,
-		})
+		};
+		world.save_overview(io.saving_namespace_hash);
+		Some(world)
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.
@@ -140,9 +142,11 @@ impl World {
 		}
 	}
 
-	pub fn save_overview(&self) {
+	pub fn save_overview(&self, namespace_hash: u64) {
 		// Create file
-		let mut file = FormattedFileWriter::new(SERIALIZATION_VERSION);
+		let mut file = FormattedFileWriter::new(/*SERIALIZATION_VERSION*/);
+		// Push namespace hash
+		file.body.extend(namespace_hash.to_le_bytes());
 		// Push world name
 		let name_pos = file.push_string(&self.name).unwrap().to_le_bytes();
 		file.body.extend(name_pos);
