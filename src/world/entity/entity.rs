@@ -160,9 +160,6 @@ impl Entity {
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf) -> Option<Self> {
 		// Open file
 		let (file, _is_version_0) = FormattedFileReader::read_from_file(player_filepath)?;
-		/*if file.version > SERIALIZATION_VERSION {
-			return None;
-		}*/
 		// Get namespace
 		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);

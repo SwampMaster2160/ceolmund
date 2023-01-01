@@ -2,7 +2,7 @@ use noise::{Perlin, NoiseFn, Fbm};
 
 use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::namespace::Namespace};
 
-use super::tile::Tile;
+use super::tile::{Tile, TileVariant};
 
 #[derive(Clone)]
 pub struct TileStack {
@@ -98,23 +98,24 @@ impl TileStack {
 		}
 	}
 
-	pub fn serialize(&self, lengths: &mut Vec<u8>, tile_datas: &mut Vec<u8>) {
-		for tile in &self.tiles {
+	pub fn serialize(&self, data: &mut Vec<u8>) {
+		/*for tile in &self.tiles {
 			let start_len = tile_datas.len();
-			//let tile_data = tile.serialize();
 			tile.serialize(tile_datas);
-			//let length: u8 = tile_data.len().try_into().unwrap();
 			let length: u8 = (tile_datas.len() - start_len).try_into().unwrap();
 			if length > 0x7F {
 				panic!();
 			}
 			lengths.extend(length.to_le_bytes());
-			//tile_datas.extend(tile_data);
 		}
-		lengths.extend(0u8.to_le_bytes());
+		lengths.extend(0u8.to_le_bytes());*/
+		for tile in &self.tiles {
+			tile.serialize(data);
+		}
+		data.push(Tile::None as u8);
 	}
 
-	pub fn load(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace, version: u32) -> Option<()> {
+	pub fn load_v0(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace, version: u32) -> Option<()> {
 		loop {
 			let length = *tile_lengths.get(*tile_lengths_index)? as usize;
 			*tile_lengths_index += 1;
@@ -126,5 +127,32 @@ impl TileStack {
 			*tile_datas_index += length;
 		}
 		Some(())
+	}
+
+	pub fn deserialize(&mut self, data: &[u8], namespace: &Namespace, version: u32) -> Option<usize> {
+		/*loop {
+			let length = *tile_lengths.get(*tile_lengths_index)? as usize;
+			*tile_lengths_index += 1;
+			if length == 0 {
+				break;
+			}
+			let tile_data = tile_datas.get(*tile_datas_index..*tile_datas_index + length)?;
+			self.tiles.push(Tile::deserialize(tile_data, namespace, version)?.0);
+			*tile_datas_index += length;
+		}
+		Some(())*/
+		let mut data_read_size_out = 0;
+		loop {
+			let tile_id = *data.get(data_read_size_out)?;
+			let tile_variant = *namespace.tiles.get(tile_id as usize)?;
+			if tile_variant == TileVariant::None {
+				data_read_size_out += 1;
+				break;
+			}
+			let (tile, data_read_size) = Tile::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
+			data_read_size_out += data_read_size;
+			self.tiles.push(tile);
+		}
+		Some(data_read_size_out)
 	}
 }

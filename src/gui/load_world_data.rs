@@ -20,20 +20,10 @@ impl LoadWorldData {
 				let mut namespaces_filepath = path.clone();
 				namespaces_filepath.push("namespaces");
 				if let Some((overview, is_version_0)) = FormattedFileReader::read_from_file(&overview_path) {
-					/*if overview.version <= 0 {
-						if let Some(name_pos) = overview.body.get(0..4) {
-							let name_pos: [u8; 4] = name_pos.try_into().unwrap();
-							let name_pos = u32::from_le_bytes(name_pos);
-							if let Some(name) = overview.get_string(name_pos) {
-								worlds.push((name, path));
-							}
-						}
-					}*/
-					let (body_index, version) = if is_version_0 {
+					let (body_index, _version) = if is_version_0 {
 						(0, 0)
 					}
 					else {
-						//let namespace_hash = overview.body.get(0..8)?.try_into().ok()?;
 						let namespace_hash = if let Some(namespace_hash) = overview.body.get(0..8) {
 							let namespace_hash = if let Some(namespace_hash) = namespace_hash.try_into().ok() {
 								namespace_hash

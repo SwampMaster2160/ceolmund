@@ -92,16 +92,13 @@ impl Chunk {
 			Some(file) => file,
 			None => return Some(false),
 		};
-		/*if file.version > SERIALIZATION_VERSION {
-			return None;
-		}*/
 		// Get chunk namespace hash
 		let namespace_hash: [u8; 8] = file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		// Get namespace
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Get pointer to tile datas
-		let tile_datas_ptr: [u8; 4] = file.body.get(8..12)?.try_into().ok()?;
+		/*let tile_datas_ptr: [u8; 4] = file.body.get(8..12)?.try_into().ok()?;
 		let tile_datas_ptr = u32::from_le_bytes(tile_datas_ptr) as usize;
 		// Get datas
 		let tile_lengths = file.body.get(12..tile_datas_ptr)?;
@@ -113,32 +110,64 @@ impl Chunk {
 			for tile_stack in tile_stack_row.iter_mut() {
 				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, namespace.version)?;
 			}
+		}*/
+		if namespace.version == 0 {
+			self.load_v0(&file.body, namespace)?;
+			return Some(true);
+		}
+
+		let mut data = file.body.get(8..)?;
+		for tile_stack_row in &mut self.tile_stacks {
+			for tile_stack in tile_stack_row.iter_mut() {
+				let data_read_size = tile_stack.deserialize(data, &namespace, namespace.version)?;
+				data = data.get(data_read_size..)?;
+			}
 		}
 		//
 		Some(true)
 	}
 
+	pub fn load_v0(&mut self, data: &[u8], namespace: Namespace) -> Option<()> {
+		// Get pointer to tile datas
+		let tile_datas_ptr: [u8; 4] = data.get(8..12)?.try_into().ok()?;
+		let tile_datas_ptr = u32::from_le_bytes(tile_datas_ptr) as usize;
+		// Get datas
+		let tile_lengths = data.get(12..tile_datas_ptr)?;
+		let tile_datas = data.get(tile_datas_ptr..)?;
+		// Go over each chunk
+		let mut tile_lengths_index = 0usize;
+		let mut tile_datas_index = 0usize;
+		for tile_stack_row in &mut self.tile_stacks {
+			for tile_stack in tile_stack_row.iter_mut() {
+				tile_stack.load_v0(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, namespace.version)?;
+			}
+		}
+		//
+		Some(())
+	}
+
 	/// Save chunk
 	pub async fn save(self, pos: [i64; 2], chunks_filepath: PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new(/*SERIALIZATION_VERSION*/);
+		let mut file = FormattedFileWriter::new();
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Create file arrays
-		let mut tile_lengths: Vec<u8> = Vec::new();
-		let mut tile_datas: Vec<u8> = Vec::new();
+		//let mut tile_lengths: Vec<u8> = Vec::new();
+		//let mut tile_datas: Vec<u8> = Vec::new();
 		// Get tile datas
 		for tile_stack_row in &self.tile_stacks {
 			for tile_stack in tile_stack_row.iter() {
-				tile_stack.serialize(&mut tile_lengths, &mut tile_datas);
+				//tile_stack.serialize(&mut tile_lengths, &mut tile_datas);
+				tile_stack.serialize(&mut file.body);
 			}
 		}
 		// Push tile datas pointer
-		let tile_datas_ptr: u32 = (12 + tile_lengths.len()).try_into().unwrap();
-		file.body.extend(tile_datas_ptr.to_le_bytes());
+		//let tile_datas_ptr: u32 = (12 + tile_lengths.len()).try_into().unwrap();
+		//file.body.extend(tile_datas_ptr.to_le_bytes());
 		// Push tile lengths and datas
-		file.body.extend(tile_lengths);
-		file.body.extend(tile_datas);
+		//file.body.extend(tile_lengths);
+		//file.body.extend(tile_datas);
 		// Get filepath for chunk and save
 		let mut chunk_filepath = chunks_filepath.clone();
 		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));

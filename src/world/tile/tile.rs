@@ -11,6 +11,7 @@ use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 #[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum Tile {
+	None,
 	Grass,
 	Water,
 	Path,
@@ -29,6 +30,7 @@ impl Tile {
 	/// The texture that is used to draw the tile
 	pub const fn get_texture(&self) -> Texture {
 		match self {
+			Self::None => Texture::NoTexture,
 			Self::Grass => Texture::Grass,
 			Self::Water => Texture::Water,
 			Self::Sand => Texture::Sand,
@@ -53,6 +55,7 @@ impl Tile {
 	/// Get when an entity can move.
 	pub const fn get_tile_movement_type(&self) -> TileMovementType {
 		match self {
+			Self::None => TileMovementType::Wall,
 			Self::Grass => TileMovementType::Clear,
 			Self::Water => TileMovementType::Wall,
 			Self::Sand => TileMovementType::Clear,
@@ -86,6 +89,7 @@ impl Tile {
 		let tile_id = *data.get(0)? as usize;
 		let tile_variant = *namespace.tiles.get(tile_id)?;
 		Some((match tile_variant {
+			TileVariant::None => panic!("None tile should not exist."),//Self::None,
 			TileVariant::Grass => Self::Grass,
 			TileVariant::Water => Self::Water,
 			TileVariant::Sand => Self::Sand,
@@ -135,6 +139,7 @@ impl Tile {
 	/// Can the tile be placed on a tile stack?
 	pub fn can_place_on(&self, tile_stack: &TileStack) -> bool {
 		match self {
+			Self::None => panic!("None tile should not exist."),
 			Self::Grass | Self::Gravel | Self::Sand | Self::BlackSand => tile_stack.tiles.is_empty(),
 			Self::Water => match tile_stack.tiles.last() {
 				Some(top_tile) => top_tile.is_floodable(),
@@ -165,6 +170,7 @@ impl Tile {
 impl TileVariant {
 	pub const fn get_name_id(self) -> &'static str {
 		match self {
+			Self::None => "none",
 			Self::Grass => "grass",
 			Self::Water => "water",
 			Self::Sand => "sand",
