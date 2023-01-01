@@ -1,16 +1,14 @@
 use std::{path::PathBuf, fs::{File, remove_file}, io::Write};
 
 pub struct FormattedFileWriter {
-	//pub version: u32,
-	pub body: Vec<u8>,
-	strings: Vec<u8>,
+	pub body: Vec<u8>, // The main vec for storing data
+	strings: Vec<u8>, // Where we store strings, usually we will have some pointer to a string in the body vec.
 }
 
 /// For writing a file structure that allows for a file version, a body consisting of an array of u8 values and an array of strings.
 impl FormattedFileWriter {
-	pub fn new(/*version: u32*/) -> Self {
+	pub fn new() -> Self {
 		Self {
-			//version,
 			body: Vec::new(),
 			strings: Vec::new(),
 		}
@@ -30,9 +28,6 @@ impl FormattedFileWriter {
 		}
 		// Create file
 		let mut file = File::create(path).ok()?;
-		// Write version
-		//let version = self.version.to_le_bytes();
-		//file.write(&version).ok()?;
 		// Write string area pointer
 		let string_area_ptr: u32 = (4 + self.body.len()).try_into().ok()?;
 		let string_area_ptr = string_area_ptr.to_le_bytes();
@@ -50,16 +45,14 @@ impl FormattedFileWriter {
 	/// Write the data in the file writer to a u8 vector, allowing it to be written to a file later.
 	pub fn write_to_vec(&self) -> Option<Vec<u8>> {
 		let mut out = Vec::new();
-		// Write version
-		//let version = self.version.to_le_bytes();
-		//out.extend(&version);
-		// Write string area pointer
+		// Write a pointer that will point to where the string area is.
 		let string_area_ptr: u32 = (4 + self.body.len()).try_into().ok()?;
 		let string_area_ptr = string_area_ptr.to_le_bytes();
 		out.extend(&string_area_ptr);
 		// Write body and strings
 		out.extend(self.body.as_slice());
 		out.extend(self.strings.as_slice());
+
 		Some(out)
 	}
 

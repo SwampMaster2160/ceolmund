@@ -24,12 +24,7 @@ impl FormattedFileReader {
 		}
 		// Read from file
 		let data = read(&path).ok()?;
-		/*// get version
-		let version: [u8; 4] = data.get(0..4)?.try_into().ok()?;
-		let version = u32::from_le_bytes(version);
-		// get string area ptr
-		let string_area_ptr: [u8; 4] = data.get(4..8)?.try_into().ok()?;
-		let string_area_ptr = u32::from_le_bytes(string_area_ptr);*/
+		// Special for files encoded in file version 0
 		let val_0: [u8; 4] = data.get(0..4)?.try_into().ok()?;
 		let val_0 = u32::from_le_bytes(val_0);
 		let (string_area_ptr, is_version_0, body_start_ptr) = if val_0 == 0 {
@@ -53,9 +48,13 @@ impl FormattedFileReader {
 
 	/// Get a string at a index in the string area.
 	pub fn get_string(&self, start_index: u32) -> Option<String> {
+		// Get slice starting at index
 		let slice = self.strings.get(start_index as usize..)?;
+		// Find null char
 		let end = slice.iter().position(|item| *item == 0)?;
+		// Get C string from slice untill null char
 		let cstr = CStr::from_bytes_with_nul(&slice[..=end]).ok()?;
+		// Convert to String
 		Some(cstr.to_str().ok()?.to_string())
 	}
 }

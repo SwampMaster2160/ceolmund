@@ -75,9 +75,6 @@ impl World {
 		}
 		// Read overview
 		let (overview, is_version_0) = FormattedFileReader::read_from_file(&overview_filepath)?;
-		/*if overview.version > SERIALIZATION_VERSION {
-			return None;
-		}*/
 		let (mut body_index, _version) = if is_version_0 {
 			(0, 0)
 		}

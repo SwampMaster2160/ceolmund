@@ -1,3 +1,4 @@
+use crate::world::difficulty::Difficulty;
 use crate::{world::entity::entity_action_state::EntityActionStateVariant, io::io::SERIALIZATION_VERSION};
 use crate::world::entity::entity_type::EntityVariant;
 use crate::world::item::item::ItemVariant;
@@ -15,6 +16,7 @@ pub struct Namespace {
 	pub entities: Vec<EntityVariant>,
 	pub direction_4s: Vec<Direction4>,
 	pub entity_action_states: Vec<EntityActionStateVariant>,
+	pub difficulties: Vec<Difficulty>,
 }
 
 impl Namespace {
@@ -24,10 +26,6 @@ impl Namespace {
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:16x}.nsp", hash));
 		let (file, is_version_0) = FormattedFileReader::read_from_file(&namespace_filepath)?;
-		// Error if the namespace is a future version.
-		/*if file.version > SERIALIZATION_VERSION {
-			return None;
-		}*/
 		// Get version
 		let (version, mut body_index) = if is_version_0 {
 			(0, 0)
@@ -46,11 +44,13 @@ impl Namespace {
 		let entity_name_map = EntityVariant::get_name_map();
 		let direction_4_name_map = Direction4::get_name_map();
 		let entity_action_state_name_map = EntityActionStateVariant::get_name_map();
+		let difficulty_name_map = Difficulty::get_name_map();
 		let mut tiles = Vec::new();
 		let mut items = Vec::new();
 		let mut entities = Vec::new();
 		let mut direction_4s = Vec::new();
 		let mut entity_action_states = Vec::new();
+		let mut difficulties = Vec::new();
 		// For each namespace
 		loop {
 			// Get the name of the namespace and break the loop if we are at the end of the namespaces.
@@ -82,10 +82,10 @@ impl Namespace {
 					NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
 					NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
 					NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
+					NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
 				}
 			}
 		}
-		println!("{:?}", tiles);
 
 		Some(Self {
 			version,
@@ -94,6 +94,7 @@ impl Namespace {
 			direction_4s,
 			items,
 			entity_action_states,
+			difficulties,
 		})
 	}
 }
