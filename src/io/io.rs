@@ -93,6 +93,8 @@ impl IO {
 		// End namespaces
 		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
+		// Get namespace hash
+		let namespace_hash = crc64(0, saving_namespace.as_slice());
 
 		Self {
 			game_keys_keyboard: [false; GameKey::COUNT],
@@ -107,7 +109,7 @@ impl IO {
 			char_widths,
 			async_runtime: Runtime::new().unwrap(),
 			saving_namespace: saving_namespace.clone(),
-			saving_namespace_hash: crc64(0, saving_namespace.as_slice()),
+			saving_namespace_hash: namespace_hash,
 		}
 	}
 

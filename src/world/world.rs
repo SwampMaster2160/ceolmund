@@ -1,6 +1,6 @@
 use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
-use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::{IO, SERIALIZATION_VERSION}, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader}, gui::gui::GUI, validate_filename};
+use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
 
 use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity};
 
@@ -74,17 +74,27 @@ impl World {
 			file.write(&io.saving_namespace).ok()?;
 		}
 		// Read overview
-		let overview = FormattedFileReader::read_from_file(&overview_filepath)?;
-		if overview.version > SERIALIZATION_VERSION {
+		let (overview, is_version_0) = FormattedFileReader::read_from_file(&overview_filepath)?;
+		/*if overview.version > SERIALIZATION_VERSION {
 			return None;
+		}*/
+		let (mut body_index, _version) = if is_version_0 {
+			(0, 0)
 		}
+		else {
+			let namespace_hash = overview.body.get(0..8)?.try_into().ok()?;
+			let namespace_hash = u64::from_le_bytes(namespace_hash);
+			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
+			(8, namespace.version)
+		};
 		// Get world name
-		let name_pos = overview.body.get(0..4)?;
+		let name_pos = overview.body.get(body_index..body_index + 4)?;
 		let name_pos: [u8; 4] = name_pos.try_into().ok()?;
 		let name_pos = u32::from_le_bytes(name_pos);
 		let name = overview.get_string(name_pos)?;
+		body_index += 4;
 		// Get world seed
-		let seed = overview.body.get(4..8)?;
+		let seed = overview.body.get(body_index..body_index + 4)?;
 		let seed: [u8; 4] = seed.try_into().ok()?;
 		let seed = u32::from_le_bytes(seed);
 		// Get player

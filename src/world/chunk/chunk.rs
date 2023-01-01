@@ -1,6 +1,6 @@
 use std::{ops::Range, path::PathBuf};
 
-use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace, io::SERIALIZATION_VERSION}};
+use crate::{render::vertex::Vertex, world::tile::tile_stack::TileStack, io::{formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}};
 
 /// A 64x64 grid of tile stacks
 pub struct Chunk {
@@ -88,13 +88,13 @@ impl Chunk {
 		// Get filepath for chunk and load
 		let mut chunk_filepath = chunks_filepath.clone();
 		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
-		let file = match FormattedFileReader::read_from_file(&chunk_filepath) {
+		let (file, _is_version_0) = match FormattedFileReader::read_from_file(&chunk_filepath) {
 			Some(file) => file,
 			None => return Some(false),
 		};
-		if file.version > SERIALIZATION_VERSION {
+		/*if file.version > SERIALIZATION_VERSION {
 			return None;
-		}
+		}*/
 		// Get chunk namespace hash
 		let namespace_hash: [u8; 8] = file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
@@ -111,7 +111,7 @@ impl Chunk {
 		let mut tile_datas_index = 0usize;
 		for tile_stack_row in &mut self.tile_stacks {
 			for tile_stack in tile_stack_row.iter_mut() {
-				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, file.version)?;
+				tile_stack.load(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, namespace.version)?;
 			}
 		}
 		//

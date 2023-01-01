@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::{IO, SERIALIZATION_VERSION}, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::EntityType};
 
 /// A world object that is can move from tile to tile.
@@ -159,16 +159,16 @@ impl Entity {
 	// Load player from file
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf) -> Option<Self> {
 		// Open file
-		let file = FormattedFileReader::read_from_file(player_filepath)?;
-		if file.version > SERIALIZATION_VERSION {
+		let (file, _is_version_0) = FormattedFileReader::read_from_file(player_filepath)?;
+		/*if file.version > SERIALIZATION_VERSION {
 			return None;
-		}
+		}*/
 		// Get namespace
 		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::deserialize(file.body.get(8..)?, &namespace, file.version)?.0)
+		Some(Self::deserialize(file.body.get(8..)?, &namespace, namespace.version)?.0)
 	}
 
 	/// Save an entity

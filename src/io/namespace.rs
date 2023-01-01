@@ -9,6 +9,7 @@ use super::{formatted_file_reader::FormattedFileReader, namespace_name::Namespac
 
 /// A namespace loaded from disk
 pub struct Namespace {
+	pub version: u32,
 	pub tiles: Vec<TileVariant>,
 	pub items: Vec<ItemVariant>,
 	pub entities: Vec<EntityVariant>,
@@ -22,9 +23,21 @@ impl Namespace {
 		// Get the path of the namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:16x}.nsp", hash));
-		let file = FormattedFileReader::read_from_file(&namespace_filepath)?;
+		let (file, is_version_0) = FormattedFileReader::read_from_file(&namespace_filepath)?;
 		// Error if the namespace is a future version.
-		if file.version > SERIALIZATION_VERSION {
+		/*if file.version > SERIALIZATION_VERSION {
+			return None;
+		}*/
+		// Get version
+		let (version, mut body_index) = if is_version_0 {
+			(0, 0)
+		}
+		else {
+			let version: [u8; 4] = file.body.get(0..4)?.try_into().ok()?;
+			let version = u32::from_le_bytes(version);
+			(version, 4)
+		};
+		if version > SERIALIZATION_VERSION {
 			return None;
 		}
 		// Data to extract
@@ -38,8 +51,6 @@ impl Namespace {
 		let mut entities = Vec::new();
 		let mut direction_4s = Vec::new();
 		let mut entity_action_states = Vec::new();
-		// The index to where we are indexing to in the body vec.
-		let mut body_index = 0;
 		// For each namespace
 		loop {
 			// Get the name of the namespace and break the loop if we are at the end of the namespaces.
@@ -77,6 +88,7 @@ impl Namespace {
 		println!("{:?}", tiles);
 
 		Some(Self {
+			version,
 			tiles,
 			entities,
 			direction_4s,
