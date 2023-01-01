@@ -24,7 +24,7 @@ impl Namespace {
 	pub fn load(hash: u64, namespaces_filepath: PathBuf) -> Option<Self> {
 		// Get the path of the namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
-		namespace_filepath.push(format!("{:16x}.nsp", hash));
+		namespace_filepath.push(format!("{:0>16x}.nsp", hash));
 		let (file, is_version_0) = FormattedFileReader::read_from_file(&namespace_filepath)?;
 		// Get version
 		let (version, mut body_index) = if is_version_0 {

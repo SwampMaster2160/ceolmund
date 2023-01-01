@@ -68,7 +68,7 @@ impl World {
 		player_filepath.push("player.ent".to_string());
 		// Save namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
-		namespace_filepath.push(format!("{:16x}.nsp", io.saving_namespace_hash));
+		namespace_filepath.push(format!("{:0>16x}.nsp", io.saving_namespace_hash));
 		if !namespace_filepath.exists() {
 			let mut file = File::create(namespace_filepath).ok()?;
 			file.write(&io.saving_namespace).ok()?;

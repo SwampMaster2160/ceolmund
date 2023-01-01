@@ -59,7 +59,8 @@ impl FormattedFileWriter {
 	/// Adds a string into the string area of the file writer, returning a pointer to the location in the string area.
 	pub fn push_string(&mut self, string: &String) -> Option<u32> {
 		// Convert string to bytes
-		let string_bytes = string.as_bytes();
+		let mut string_bytes = string.as_bytes().to_vec();
+		string_bytes.push(0);
 		// If the string is already in the string area then return the already existing one.
 		match self.strings.windows(string_bytes.len())
 			.enumerate().find(|window| window.1 == string_bytes)
@@ -71,7 +72,6 @@ impl FormattedFileWriter {
 		// If not then add the string
 		let pos = self.strings.len().try_into().ok()?;
 		self.strings.extend(string_bytes);
-		self.strings.push(0);
 		Some(pos)
 	}
 }
