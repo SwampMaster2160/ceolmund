@@ -2,7 +2,7 @@ use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
 use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
 
-use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity};
+use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity, difficulty::Difficulty};
 
 /// Contains everthing visable that isn't the GUI.
 pub struct World {
@@ -17,11 +17,12 @@ pub struct World {
 	pub namespaces_filepath: PathBuf,
 	pub overview_filepath: PathBuf,
 	pub player_filepath: PathBuf,
+	pub difficulty: Difficulty,
 }
 
 impl World {
 	/// Create a world from a name and seed.
-	pub fn new(seed: u32, name: String, io: &IO) -> Option<Self> {
+	pub fn new(seed: u32, name: String, io: &IO, difficulty: Difficulty) -> Option<Self> {
 		// Convert the world name to a world folder filepath, converting character that are not filename safe to underscores. Then create the folder.
 		let dirname: String = validate_filename(name.clone());
 		let mut filepath = io.worlds_path.clone();
@@ -43,6 +44,7 @@ impl World {
 			overview_filepath,
 			namespaces_filepath: filepath.clone(),
 			player_filepath: filepath.clone(),
+			difficulty,
 		};
 		dummy_world.save_overview(io.saving_namespace_hash);
 		Self::load(filepath, io)
@@ -75,14 +77,14 @@ impl World {
 		}
 		// Read overview
 		let (overview, is_version_0) = FormattedFileReader::read_from_file(&overview_filepath)?;
-		let (mut body_index, _version) = if is_version_0 {
-			(0, 0)
+		let (mut body_index, version, namespace) = if is_version_0 {
+			(0, 0, None)
 		}
 		else {
 			let namespace_hash = overview.body.get(0..8)?.try_into().ok()?;
 			let namespace_hash = u64::from_le_bytes(namespace_hash);
 			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
-			(8, namespace.version)
+			(8, namespace.version, Some(namespace))
 		};
 		// Get world name
 		let name_pos = overview.body.get(body_index..body_index + 4)?;
@@ -94,6 +96,16 @@ impl World {
 		let seed = overview.body.get(body_index..body_index + 4)?;
 		let seed: [u8; 4] = seed.try_into().ok()?;
 		let seed = u32::from_le_bytes(seed);
+		body_index += 4;
+		// Get difficulty
+		let difficulty = if version > 0 {
+			let difficulty = *overview.body.get(body_index)?;
+			//body_index += 1;
+			namespace?.difficulties[difficulty as usize]
+		}
+		else {
+			Difficulty::Sandbox
+		};
 		// Get player
 		let player = Entity::load_player(&player_filepath, &namespaces_filepath);
 		let player = match player {
@@ -113,6 +125,7 @@ impl World {
 			overview_filepath,
 			namespaces_filepath,
 			player_filepath,
+			difficulty,
 		};
 		world.save_overview(io.saving_namespace_hash);
 		Some(world)
@@ -151,7 +164,7 @@ impl World {
 
 	pub fn save_overview(&self, namespace_hash: u64) {
 		// Create file
-		let mut file = FormattedFileWriter::new(/*SERIALIZATION_VERSION*/);
+		let mut file = FormattedFileWriter::new();
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Push world name
@@ -160,6 +173,8 @@ impl World {
 		// Push seed
 		let seed = self.seed.to_le_bytes();
 		file.body.extend(seed);
+		// Push difficulty
+		file.body.push(self.difficulty as u8);
 		// Write file
 		file.write(&self.overview_filepath);
 	}

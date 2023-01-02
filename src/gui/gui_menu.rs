@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::EntityType}};
+use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::EntityType, difficulty::Difficulty}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
@@ -128,7 +128,20 @@ impl GUIMenu {
 										return
 									},
 								};
-								match World::new(seed, name_text.clone(), io) {
+								let difficulty_buttons = &gui.menus.last().unwrap().extra_elements[2];
+								let difficulty = if let GUIElement::MutuallyExclusiveButtonGroup { selected_button, .. } = difficulty_buttons {
+									match selected_button {
+										0 => Difficulty::Sandbox,
+										1 => Difficulty::Easy,
+										2 => Difficulty::Medium,
+										3 => Difficulty::Hard,
+										_ => panic!(),
+									}
+								}
+								else {
+									panic!();
+								};
+								match World::new(seed, name_text.clone(), io, difficulty) {
 									Some(valid_world) => *world = Some(valid_world),
 									None => {
 										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
