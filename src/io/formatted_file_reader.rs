@@ -27,18 +27,19 @@ impl FormattedFileReader {
 		// Special for files encoded in file version 0
 		let val_0: [u8; 4] = data.get(0..4)?.try_into().ok()?;
 		let val_0 = u32::from_le_bytes(val_0);
-		let (string_area_ptr, is_version_0, body_start_ptr) = if val_0 == 0 {
+		let (strings, is_version_0, body_start_ptr) = if val_0 == 0 {
 			let string_area_ptr: [u8; 4] = data.get(4..8)?.try_into().ok()?;
 			let string_area_ptr = u32::from_le_bytes(string_area_ptr);
-			(string_area_ptr, true, 8)
+			let strings: Vec<u8> = (*data.get(string_area_ptr as usize..)?).try_into().ok()?;
+			(strings, true, 8)
 		}
 		else {
-			(val_0, false, 4)
+			(Vec::new(), false, 0)
 		};
 		// Read body
-		let body: Vec<u8> = (*data.get(body_start_ptr..string_area_ptr as usize)?).try_into().ok()?;
+		let body: Vec<u8> = (*data.get(body_start_ptr..)?).try_into().ok()?;
 		// Read strings
-		let strings: Vec<u8> = (*data.get(string_area_ptr as usize..)?).try_into().ok()?;
+		//let strings: Vec<u8> = (*data.get(string_area_ptr as usize..)?).try_into().ok()?;
 		// Return
 		Some((Self {
 			body,
@@ -47,7 +48,7 @@ impl FormattedFileReader {
 	}
 
 	/// Get a string at a index in the string area.
-	pub fn get_string(&self, start_index: u32) -> Option<String> {
+	pub fn get_string_v0(&self, start_index: u32) -> Option<String> {
 		// Get slice starting at index
 		let slice = self.strings.get(start_index as usize..)?;
 		// Find null char
@@ -56,5 +57,16 @@ impl FormattedFileReader {
 		let cstr = CStr::from_bytes_with_nul(&slice[..=end]).ok()?;
 		// Convert to String
 		Some(cstr.to_str().ok()?.to_string())
+	}
+
+	pub fn get_string(&self, start_index: usize) -> Option<(String, usize)> {
+		// Get slice starting at index
+		let slice = self.body.get(start_index as usize..)?;
+		// Find null char
+		let end = slice.iter().position(|item| *item == 0)?;
+		// Get C string from slice untill null char
+		let cstr = CStr::from_bytes_with_nul(&slice[..=end]).ok()?;
+		// Convert to String
+		Some((cstr.to_str().ok()?.to_string(), end + 1))
 	}
 }

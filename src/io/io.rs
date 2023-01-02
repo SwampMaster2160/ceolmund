@@ -52,7 +52,7 @@ impl IO {
 		let version = SERIALIZATION_VERSION.to_le_bytes();
 		saving_namespace.body.extend(&version);
 		// Add tile namespace
-		let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
+		/*let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
 		for tile_variant in TileVariant::iter() {
 			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
@@ -100,10 +100,51 @@ impl IO {
 		}
 		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
 		// End namespaces
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
+		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());*/
+		saving_namespace.push_string(&"tile".to_string());
+		for variant in TileVariant::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// Add item namespace
+		saving_namespace.push_string(&"item".to_string());
+		for variant in ItemVariant::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// Add entity namespace
+		saving_namespace.push_string(&"entity".to_string());
+		for variant in EntityVariant::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// Add direction 4 namespace
+		saving_namespace.push_string(&"direction_4".to_string());
+		for variant in Direction4::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// Add entity action state namespace
+		saving_namespace.push_string(&"entity_action_state".to_string());
+		for variant in EntityActionStateVariant::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// Add difficulties
+		saving_namespace.push_string(&"difficulty".to_string());
+		for variant in Difficulty::iter() {
+			saving_namespace.push_string(&variant.get_name_id().to_string());
+		}
+		saving_namespace.body.push(0);
+		// End namespaces
+		saving_namespace.body.push(0);
+
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
 		// Get namespace hash
 		let namespace_hash = crc64(0, saving_namespace.as_slice());
+		if namespace_hash & 0x00000000FFFFFFFF == 0 {
+			panic!();
+		}
 
 		Self {
 			game_keys_keyboard: [false; GameKey::COUNT],

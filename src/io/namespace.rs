@@ -1,3 +1,5 @@
+use unicode_segmentation::UnicodeSegmentation;
+
 use crate::world::difficulty::Difficulty;
 use crate::{world::entity::entity_action_state::EntityActionStateVariant, io::io::SERIALIZATION_VERSION};
 use crate::world::entity::entity_type::EntityVariant;
@@ -52,37 +54,71 @@ impl Namespace {
 		let mut entity_action_states = Vec::new();
 		let mut difficulties = Vec::new();
 		// For each namespace
-		loop {
-			// Get the name of the namespace and break the loop if we are at the end of the namespaces.
-			let string_ptr: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
-			let string_ptr = u32::from_le_bytes(string_ptr);
-			if string_ptr == 0xFFFFFFFF {
-				break;
-			}
-			let namespace_name = file.get_string(string_ptr)?;
-			let namespace_name = NamespaceName::from_name(&namespace_name)?;
-			// Point to the next string pointer
-			body_index += 4;
-			// For each name
+		if version == 0 {
 			loop {
-				// Get the name and break if we are at the end of the namespace.
-				let name: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
-				let string_ptr = u32::from_le_bytes(name);
+				// Get the name of the namespace and break the loop if we are at the end of the namespaces.
+				let string_ptr: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
+				let string_ptr = u32::from_le_bytes(string_ptr);
 				if string_ptr == 0xFFFFFFFF {
-					body_index += 4;
 					break;
 				}
-				let name = file.get_string(string_ptr)?;
+				let namespace_name = file.get_string_v0(string_ptr)?;
+				let namespace_name = NamespaceName::from_name(&namespace_name)?;
 				// Point to the next string pointer
 				body_index += 4;
-				// Convert
-				match namespace_name {
-					NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
-					NamespaceName::Item => items.push(*item_name_map.get(&name)?),
-					NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
-					NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
-					NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
-					NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
+				// For each name
+				loop {
+					// Get the name and break if we are at the end of the namespace.
+					let name: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
+					let string_ptr = u32::from_le_bytes(name);
+					if string_ptr == 0xFFFFFFFF {
+						body_index += 4;
+						break;
+					}
+					let name = file.get_string_v0(string_ptr)?;
+					// Point to the next string pointer
+					body_index += 4;
+					// Convert
+					match namespace_name {
+						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
+						NamespaceName::Item => items.push(*item_name_map.get(&name)?),
+						NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
+						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
+						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
+						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
+					}
+				}
+			}
+		}
+		else {
+			//println!("K");
+			loop {
+				// Get the name of the namespace and break the loop if we are at the end of the namespaces.
+				let (namespace_name, data_read_size) = file.get_string(body_index)?;
+				body_index += data_read_size;
+				//println!("n: {}", namespace_name);
+				if namespace_name.graphemes(true).count() == 0 {
+					break;
+				}
+				let namespace_name = NamespaceName::from_name(&namespace_name)?;
+				// For each name
+				loop {
+					// Get the name and break if we are at the end of the namespace.
+					let (name, data_read_size) = file.get_string(body_index)?;
+					body_index += data_read_size;
+					if name.graphemes(true).count() == 0 {
+						break;
+					}
+					//println!("n: {}", name);
+					// Convert
+					match namespace_name {
+						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
+						NamespaceName::Item => items.push(*item_name_map.get(&name)?),
+						NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
+						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
+						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
+						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
+					}
 				}
 			}
 		}

@@ -87,11 +87,24 @@ impl World {
 			(8, namespace.version, Some(namespace))
 		};
 		// Get world name
-		let name_pos = overview.body.get(body_index..body_index + 4)?;
+		/*let name_pos = overview.body.get(body_index..body_index + 4)?;
 		let name_pos: [u8; 4] = name_pos.try_into().ok()?;
 		let name_pos = u32::from_le_bytes(name_pos);
-		let name = overview.get_string(name_pos)?;
-		body_index += 4;
+		let name = overview.get_string_v0(name_pos)?;
+		body_index += 4;*/
+		let name = if is_version_0 {
+			let name_pos = overview.body.get(body_index..body_index + 4)?;
+			let name_pos: [u8; 4] = name_pos.try_into().ok()?;
+			let name_pos = u32::from_le_bytes(name_pos);
+			let name = overview.get_string_v0(name_pos)?;
+			body_index += 4;
+			name
+		}
+		else {
+			let (string, data_read_size) = overview.get_string(body_index)?;
+			body_index += data_read_size;
+			string
+		};
 		// Get world seed
 		let seed = overview.body.get(body_index..body_index + 4)?;
 		let seed: [u8; 4] = seed.try_into().ok()?;
@@ -168,8 +181,9 @@ impl World {
 		// Push namespace hash
 		file.body.extend(namespace_hash.to_le_bytes());
 		// Push world name
-		let name_pos = file.push_string(&self.name).unwrap().to_le_bytes();
-		file.body.extend(name_pos);
+		/*let name_pos = file.push_string(&self.name).unwrap().to_le_bytes();
+		file.body.extend(name_pos);*/
+		file.push_string(&self.name);
 		// Push seed
 		let seed = self.seed.to_le_bytes();
 		file.body.extend(seed);
