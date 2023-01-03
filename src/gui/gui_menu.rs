@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::EntityType, difficulty::Difficulty}};
+use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData};
 
@@ -106,6 +106,12 @@ impl GUIMenu {
 					}
 				}
 				out.push(GUIElement::Rect { pos: [*selected_item as u16 % 10 * 16, *selected_item as u16 / 10 * 16], size: [16, 16], alignment: GUIAlignment::Left, color: NO_COLOR, border_color: [63, 63, 63, 127] });
+				if world.difficulty != Difficulty::Sandbox {
+					out.push(GUIElement::ProgressBar {
+						pos: [256 - 202 - 2, 2], size: [202, 8], alignment: GUIAlignment::Right, color: [255, 0, 0, 255], border_color: [0, 0, 0, 255],
+						progress: player.health, max_progress: EntityVariant::Player.max_health(),
+					});
+				}
 				out
 			}
 			GUIMenuVariant::CreateWorld => vec![

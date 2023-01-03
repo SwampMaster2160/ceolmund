@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
-use super::{entity_action_state::EntityActionState, entity_type::EntityType};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use super::{entity_action_state::EntityActionState, entity_type::{EntityType, EntityVariant}};
 
 /// A world object that is can move from tile to tile.
 pub struct Entity {
@@ -120,22 +120,24 @@ impl Entity {
 	}
 
 	/// Create a neew player at 0, 0
-	pub fn new_player() -> Self {
+	pub fn new_player(difficulty: Difficulty) -> Self {
 		let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
-		inventory[0] = (Item::SandboxDestroyWand, 1);
-		inventory[1] = (Item::Tile(Tile::Grass), 1);
-		inventory[2] = (Item::Tile(Tile::Gravel), 1);
-		inventory[3] = (Item::Tile(Tile::Sand), 1);
-		inventory[4] = (Item::Tile(Tile::BlackSand), 1);
-		inventory[5] = (Item::Tile(Tile::Rocks), 1);
-		inventory[6] = (Item::Tile(Tile::OakTree), 1);
-		inventory[7] = (Item::Tile(Tile::PineTree), 1);
-		inventory[8] = (Item::Tile(Tile::Flowers), 1);
-		inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
-		inventory[10] = (Item::Tile(Tile::Water), 1);
-		inventory[11] = (Item::Tile(Tile::Path), 1);
-		inventory[12] = (Item::Axe, 1);
-		inventory[13] = (Item::Shovel, 1);
+		if difficulty == Difficulty::Sandbox {
+			inventory[0] = (Item::SandboxDestroyWand, 1);
+			inventory[1] = (Item::Tile(Tile::Grass), 1);
+			inventory[2] = (Item::Tile(Tile::Gravel), 1);
+			inventory[3] = (Item::Tile(Tile::Sand), 1);
+			inventory[4] = (Item::Tile(Tile::BlackSand), 1);
+			inventory[5] = (Item::Tile(Tile::Rocks), 1);
+			inventory[6] = (Item::Tile(Tile::OakTree), 1);
+			inventory[7] = (Item::Tile(Tile::PineTree), 1);
+			inventory[8] = (Item::Tile(Tile::Flowers), 1);
+			inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
+			inventory[10] = (Item::Tile(Tile::Water), 1);
+			inventory[11] = (Item::Tile(Tile::Path), 1);
+			inventory[12] = (Item::Axe, 1);
+			inventory[13] = (Item::Shovel, 1);
+		}
 		Entity {
 			pos: [0, 0],
 			action_state: EntityActionState::Idle,
@@ -159,7 +161,7 @@ impl Entity {
 	}
 
 	// Load player from file
-	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf) -> Option<Self> {
+	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Option<Self> {
 		// Open file
 		let (file, _is_version_0) = FormattedFileReader::read_from_file(player_filepath)?;
 		// Get namespace
@@ -167,7 +169,7 @@ impl Entity {
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::deserialize(file.body.get(8..)?, &namespace, namespace.version)?.0)
+		Some(Self::deserialize(file.body.get(8..)?, &namespace, namespace.version, difficulty)?.0)
 	}
 
 	/// Save an entity
@@ -181,14 +183,13 @@ impl Entity {
 		self.action_state.serialize(data);
 		// Push type
 		self.entity_type.serialize(data);
-		//println!("{}", data.len());
 		// Push health
 		let health = self.health.to_le_bytes();
 		data.extend(health);
 	}
 
 	/// Load an entity
-	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
 		// Get pos
 		let pos_x = data.get(0..8)?.try_into().ok()?;
 		let pos_y = data.get(8..16)?.try_into().ok()?;
@@ -202,20 +203,18 @@ impl Entity {
 		data_read_size_out += data_read_size;
 		let data = data.get(data_read_size_out..)?;
 		// Get entity type
-		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version)?;
+		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version, difficulty)?;
 		//data_read_size_out += data_read_size;
 		let data = data.get(data_read_size..)?;
 		// Get health
 		let health = if version > 0 {
-			//println!("{}", data_read_size_out);
 			let health = data.get(0..4)?.try_into().ok()?;
 			let health = u32::from_le_bytes(health);
 			data_read_size_out += 4;
-			//println!("{}", health);
 			health
 		}
 		else {
-			100
+			EntityVariant::Player.max_health()
 		};
 
 		Some((Self {

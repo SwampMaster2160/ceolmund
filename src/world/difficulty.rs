@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use strum_macros::{EnumIter, EnumCount};
 
-#[derive(EnumCount, EnumIter, Copy, Clone)]
+#[derive(EnumCount, EnumIter, Copy, Clone, Eq, PartialEq)]
 pub enum Difficulty {
 	Sandbox,
 	Easy,

@@ -14,11 +14,13 @@ const BUTTON_ON_HOVER_COLOR: [u8; 4] = [0, 255, 0, 255];
 const BUTTON_OFF_HOVER_COLOR: [u8; 4] = [255, 0, 0, 255];
 const TEXT_ENTRY_GRAY_COLOR: [u8; 4] = [50, 50, 50, 255];
 const TEXT_ENTRY_SELECT_COLOR: [u8; 4] = [0, 255, 255, 255];
+const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 
 /// A GUI element.
 #[derive(Clone)]
 pub enum GUIElement {
 	Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4] },
+	ProgressBar { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4], progress: u32, max_progress: u32 },
 	Button {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool,
 		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
@@ -61,6 +63,11 @@ impl GUIElement {
 		match self {
 			Self::Rect{pos, size, alignment, color, border_color} =>
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, *border_color, io)),
+			Self::ProgressBar{pos, size, alignment, color, border_color, progress, max_progress} => {
+				let progress_width = (((size[0] - 2) as u64) * *progress as u64 / *max_progress as u64) as u16;
+				vertices.extend(render_gui_rect(*pos, *size, *alignment, NO_COLOR, *border_color, io));
+				vertices.extend(render_gui_rect([pos[0] + 1, pos[1] + 1], [progress_width, size[1] - 2], *alignment, NO_COLOR, *color, io));
+			}
 			Self::Button { pos, size, alignment, text, enabled, .. } => {
 				let mut color = BUTTON_GRAY_COLOR;
 				if self.is_mouse_over(io) {

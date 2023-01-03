@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{render::texture::Texture, world::{item::item::Item, tile::tile::Tile}, io::namespace::Namespace};
+use crate::{render::texture::Texture, world::{item::item::Item, tile::tile::Tile, difficulty::Difficulty}, io::namespace::Namespace};
 
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -41,7 +41,7 @@ impl EntityType {
 	}
 
 	/// Load an entity
-	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
+	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
 		// Get variant
 		let variant = *namespace.entities.get(*data.get(0)? as usize)?;
 		let mut data_read_size_out = 1;
@@ -60,20 +60,22 @@ impl EntityType {
 				let selected_item = *data.get(data_read_size_out)?;
 				data_read_size_out += 1;
 				// Temp
-				inventory[0] = (Item::SandboxDestroyWand, 1);
-				inventory[1] = (Item::Tile(Tile::Grass), 1);
-				inventory[2] = (Item::Tile(Tile::Gravel), 1);
-				inventory[3] = (Item::Tile(Tile::Sand), 1);
-				inventory[4] = (Item::Tile(Tile::BlackSand), 1);
-				inventory[5] = (Item::Tile(Tile::Rocks), 1);
-				inventory[6] = (Item::Tile(Tile::OakTree), 1);
-				inventory[7] = (Item::Tile(Tile::PineTree), 1);
-				inventory[8] = (Item::Tile(Tile::Flowers), 1);
-				inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
-				inventory[10] = (Item::Tile(Tile::Water), 1);
-				inventory[11] = (Item::Tile(Tile::Path), 1);
-				inventory[12] = (Item::Axe, 1);
-				inventory[13] = (Item::Shovel, 1);
+				if difficulty == Difficulty::Sandbox {
+					inventory[0] = (Item::SandboxDestroyWand, 1);
+					inventory[1] = (Item::Tile(Tile::Grass), 1);
+					inventory[2] = (Item::Tile(Tile::Gravel), 1);
+					inventory[3] = (Item::Tile(Tile::Sand), 1);
+					inventory[4] = (Item::Tile(Tile::BlackSand), 1);
+					inventory[5] = (Item::Tile(Tile::Rocks), 1);
+					inventory[6] = (Item::Tile(Tile::OakTree), 1);
+					inventory[7] = (Item::Tile(Tile::PineTree), 1);
+					inventory[8] = (Item::Tile(Tile::Flowers), 1);
+					inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
+					inventory[10] = (Item::Tile(Tile::Water), 1);
+					inventory[11] = (Item::Tile(Tile::Path), 1);
+					inventory[12] = (Item::Axe, 1);
+					inventory[13] = (Item::Shovel, 1);
+				}
 				// Respawn pos
 				let respawn_pos = if version > 0 {
 				let pos_x = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
@@ -105,5 +107,11 @@ impl EntityVariant {
 			out.insert(tile.get_name_id().to_string(), tile);
 		}
 		out
+	}
+
+	pub fn max_health(self) -> u32 {
+		match self {
+			Self::Player { .. } => 100,
+		}
 	}
 }
