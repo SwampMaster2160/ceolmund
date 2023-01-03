@@ -11,7 +11,7 @@ use home::home_dir;
 use strum::{EnumCount, IntoEnumIterator};
 use tokio::runtime::Runtime;
 
-use super::{game_key::GameKey, formatted_file_writer::FormattedFileWriter};
+use super::{game_key::GameKey, file_writer::FileWriter};
 
 pub const SERIALIZATION_VERSION: u32 = 1;
 
@@ -47,10 +47,10 @@ impl IO {
 		char_widths.extend(include_bytes!("../asset/render_width/1.cwt"));
 		char_widths.extend(include_bytes!("../asset/render_width/2.cwt"));
 		// Create namespace for saving worlds
-		let mut saving_namespace = FormattedFileWriter::new();
+		let mut saving_namespace = FileWriter::new();
 		// Add version to namespace
 		let version = SERIALIZATION_VERSION.to_le_bytes();
-		saving_namespace.body.extend(&version);
+		saving_namespace.data.extend(&version);
 		// Add tile namespace
 		/*let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
 		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
@@ -105,39 +105,39 @@ impl IO {
 		for variant in TileVariant::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// Add item namespace
 		saving_namespace.push_string(&"item".to_string());
 		for variant in ItemVariant::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// Add entity namespace
 		saving_namespace.push_string(&"entity".to_string());
 		for variant in EntityVariant::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// Add direction 4 namespace
 		saving_namespace.push_string(&"direction_4".to_string());
 		for variant in Direction4::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// Add entity action state namespace
 		saving_namespace.push_string(&"entity_action_state".to_string());
 		for variant in EntityActionStateVariant::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// Add difficulties
 		saving_namespace.push_string(&"difficulty".to_string());
 		for variant in Difficulty::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());
 		}
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 		// End namespaces
-		saving_namespace.body.push(0);
+		saving_namespace.data.push(0);
 
 		let saving_namespace = saving_namespace.write_to_vec().unwrap();
 		// Get namespace hash

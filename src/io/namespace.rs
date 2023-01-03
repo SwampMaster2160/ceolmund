@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 use crate::world::{tile::tile::TileVariant, direction::Direction4};
 
-use super::{formatted_file_reader::FormattedFileReader, namespace_name::NamespaceName};
+use super::{file_reader::FileReader, namespace_name::NamespaceName};
 
 /// A namespace loaded from disk
 pub struct Namespace {
@@ -27,7 +27,7 @@ impl Namespace {
 		// Get the path of the namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:0>16x}.nsp", hash));
-		let (file, is_version_0) = FormattedFileReader::read_from_file(&namespace_filepath)?;
+		let (file, is_version_0) = FileReader::read_from_file(&namespace_filepath)?;
 		// Get version
 		let (version, mut body_index) = if is_version_0 {
 			(0, 0)

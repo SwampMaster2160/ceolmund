@@ -4,14 +4,13 @@ use std::path::PathBuf;
 use std::fs::{read, remove_file, rename};
 
 /// For reading a file structure that allows for a file version, a body consisting of an array of u8 values and an array of strings.
-pub struct FormattedFileReader {
-	//pub version: u32,
+pub struct FileReader {
 	pub body: Vec<u8>,
 	strings: Vec<u8>,
 }
 
 /// Load a file reader from disk.
-impl FormattedFileReader {
+impl FileReader {
 	pub fn read_from_file(path: &PathBuf) -> Option<(Self, bool)> { // Object and if it is a version 0 file.
 		// Restore backup in case of file save error
 		let mut backup_path = path.clone();
@@ -38,8 +37,6 @@ impl FormattedFileReader {
 		};
 		// Read body
 		let body: Vec<u8> = (*data.get(body_start_ptr..)?).try_into().ok()?;
-		// Read strings
-		//let strings: Vec<u8> = (*data.get(string_area_ptr as usize..)?).try_into().ok()?;
 		// Return
 		Some((Self {
 			body,

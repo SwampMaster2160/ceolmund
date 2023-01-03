@@ -1,6 +1,6 @@
 use std::{path::PathBuf};
 
-use crate::io::{io::IO, formatted_file_reader::FormattedFileReader, namespace::Namespace};
+use crate::io::{io::IO, file_reader::FileReader, namespace::Namespace};
 
 /// A struct containing the name and path of all the worlds in the users world folder.
 #[derive(Clone)]
@@ -19,7 +19,7 @@ impl LoadWorldData {
 				overview_path.push("overview.wld");
 				let mut namespaces_filepath = path.clone();
 				namespaces_filepath.push("namespaces");
-				if let Some((overview, is_version_0)) = FormattedFileReader::read_from_file(&overview_path) {
+				if let Some((overview, is_version_0)) = FileReader::read_from_file(&overview_path) {
 					//println!("{:?}", overview_path);
 					//println!("C: {:?}", overview_path);
 					let (body_index, _version) = if is_version_0 {

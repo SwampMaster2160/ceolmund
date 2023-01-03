@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::{EntityType, EntityVariant}};
 
 /// A world object that is can move from tile to tile.
@@ -150,11 +150,11 @@ impl Entity {
 	/// Save player to file
 	pub fn save_player(&self, player_filepath: &PathBuf, namespace_hash: u64) -> Option<()> {
 		// Open file
-		let mut file = FormattedFileWriter::new();
+		let mut file = FileWriter::new();
 		// Push namespace hash
-		file.body.extend(namespace_hash.to_le_bytes());
+		file.data.extend(namespace_hash.to_le_bytes());
 		// Get entity data
-		self.serialize(&mut file.body);
+		self.serialize(&mut file.data);
 		// Write
 		file.write(player_filepath)?;
 		Some(())
@@ -163,7 +163,7 @@ impl Entity {
 	// Load player from file
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Option<Self> {
 		// Open file
-		let (file, _is_version_0) = FormattedFileReader::read_from_file(player_filepath)?;
+		let (file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
 		// Get namespace
 		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);

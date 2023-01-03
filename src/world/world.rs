@@ -1,6 +1,6 @@
 use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
 
-use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, formatted_file_writer::FormattedFileWriter, formatted_file_reader::FormattedFileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
+use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
 
 use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity, difficulty::Difficulty};
 
@@ -76,7 +76,7 @@ impl World {
 			file.write(&io.saving_namespace).ok()?;
 		}
 		// Read overview
-		let (overview, is_version_0) = FormattedFileReader::read_from_file(&overview_filepath)?;
+		let (overview, is_version_0) = FileReader::read_from_file(&overview_filepath)?;
 		let (mut body_index, version, namespace) = if is_version_0 {
 			(0, 0, None)
 		}
@@ -171,16 +171,16 @@ impl World {
 
 	pub fn save_overview(&self, namespace_hash: u64) {
 		// Create file
-		let mut file = FormattedFileWriter::new();
+		let mut file = FileWriter::new();
 		// Push namespace hash
-		file.body.extend(namespace_hash.to_le_bytes());
+		file.data.extend(namespace_hash.to_le_bytes());
 		// Push world name
 		file.push_string(&self.name);
 		// Push seed
 		let seed = self.seed.to_le_bytes();
-		file.body.extend(seed);
+		file.data.extend(seed);
 		// Push difficulty
-		file.body.push(self.difficulty as u8);
+		file.data.push(self.difficulty as u8);
 		// Write file
 		file.write(&self.overview_filepath);
 	}
