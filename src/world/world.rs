@@ -81,14 +81,14 @@ impl World {
 			(0, 0, None)
 		}
 		else {
-			let namespace_hash = overview.body.get(0..8)?.try_into().ok()?;
+			let namespace_hash = overview.data.get(0..8)?.try_into().ok()?;
 			let namespace_hash = u64::from_le_bytes(namespace_hash);
 			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 			(8, namespace.version, Some(namespace))
 		};
 		// Get world name
 		let name = if is_version_0 {
-			let name_pos = overview.body.get(body_index..body_index + 4)?;
+			let name_pos = overview.data.get(body_index..body_index + 4)?;
 			let name_pos: [u8; 4] = name_pos.try_into().ok()?;
 			let name_pos = u32::from_le_bytes(name_pos);
 			let name = overview.get_string_v0(name_pos)?;
@@ -101,13 +101,13 @@ impl World {
 			string
 		};
 		// Get world seed
-		let seed = overview.body.get(body_index..body_index + 4)?;
+		let seed = overview.data.get(body_index..body_index + 4)?;
 		let seed: [u8; 4] = seed.try_into().ok()?;
 		let seed = u32::from_le_bytes(seed);
 		body_index += 4;
 		// Get difficulty
 		let difficulty = if version > 0 {
-			let difficulty = *overview.body.get(body_index)?;
+			let difficulty = *overview.data.get(body_index)?;
 			namespace?.difficulties[difficulty as usize]
 		}
 		else {

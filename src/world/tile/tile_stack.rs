@@ -99,16 +99,6 @@ impl TileStack {
 	}
 
 	pub fn serialize(&self, data: &mut Vec<u8>) {
-		/*for tile in &self.tiles {
-			let start_len = tile_datas.len();
-			tile.serialize(tile_datas);
-			let length: u8 = (tile_datas.len() - start_len).try_into().unwrap();
-			if length > 0x7F {
-				panic!();
-			}
-			lengths.extend(length.to_le_bytes());
-		}
-		lengths.extend(0u8.to_le_bytes());*/
 		for tile in &self.tiles {
 			tile.serialize(data);
 		}
@@ -130,17 +120,6 @@ impl TileStack {
 	}
 
 	pub fn deserialize(&mut self, data: &[u8], namespace: &Namespace, version: u32) -> Option<usize> {
-		/*loop {
-			let length = *tile_lengths.get(*tile_lengths_index)? as usize;
-			*tile_lengths_index += 1;
-			if length == 0 {
-				break;
-			}
-			let tile_data = tile_datas.get(*tile_datas_index..*tile_datas_index + length)?;
-			self.tiles.push(Tile::deserialize(tile_data, namespace, version)?.0);
-			*tile_datas_index += length;
-		}
-		Some(())*/
 		let mut data_read_size_out = 0;
 		loop {
 			let tile_id = *data.get(data_read_size_out)?;

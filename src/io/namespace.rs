@@ -33,7 +33,7 @@ impl Namespace {
 			(0, 0)
 		}
 		else {
-			let version: [u8; 4] = file.body.get(0..4)?.try_into().ok()?;
+			let version: [u8; 4] = file.data.get(0..4)?.try_into().ok()?;
 			let version = u32::from_le_bytes(version);
 			(version, 4)
 		};
@@ -57,7 +57,7 @@ impl Namespace {
 		if version == 0 {
 			loop {
 				// Get the name of the namespace and break the loop if we are at the end of the namespaces.
-				let string_ptr: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
+				let string_ptr: [u8; 4] = file.data.get(body_index..body_index + 4)?.try_into().ok()?;
 				let string_ptr = u32::from_le_bytes(string_ptr);
 				if string_ptr == 0xFFFFFFFF {
 					break;
@@ -69,7 +69,7 @@ impl Namespace {
 				// For each name
 				loop {
 					// Get the name and break if we are at the end of the namespace.
-					let name: [u8; 4] = file.body.get(body_index..body_index + 4)?.try_into().ok()?;
+					let name: [u8; 4] = file.data.get(body_index..body_index + 4)?.try_into().ok()?;
 					let string_ptr = u32::from_le_bytes(name);
 					if string_ptr == 0xFFFFFFFF {
 						body_index += 4;
@@ -91,12 +91,10 @@ impl Namespace {
 			}
 		}
 		else {
-			//println!("K");
 			loop {
 				// Get the name of the namespace and break the loop if we are at the end of the namespaces.
 				let (namespace_name, data_read_size) = file.get_string(body_index)?;
 				body_index += data_read_size;
-				//println!("n: {}", namespace_name);
 				if namespace_name.graphemes(true).count() == 0 {
 					break;
 				}
@@ -109,7 +107,6 @@ impl Namespace {
 					if name.graphemes(true).count() == 0 {
 						break;
 					}
-					//println!("n: {}", name);
 					// Convert
 					match namespace_name {
 						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),

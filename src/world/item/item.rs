@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::namespace::Namespace};
-use strum::{IntoEnumIterator};
+use strum::IntoEnumIterator;
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 

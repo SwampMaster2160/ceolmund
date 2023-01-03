@@ -5,7 +5,7 @@ use std::fs::{read, remove_file, rename};
 
 /// For reading a file structure that allows for a file version, a body consisting of an array of u8 values and an array of strings.
 pub struct FileReader {
-	pub body: Vec<u8>,
+	pub data: Vec<u8>,
 	strings: Vec<u8>,
 }
 
@@ -39,7 +39,7 @@ impl FileReader {
 		let body: Vec<u8> = (*data.get(body_start_ptr..)?).try_into().ok()?;
 		// Return
 		Some((Self {
-			body,
+			data: body,
 			strings,
 		}, is_version_0))
 	}
@@ -58,7 +58,7 @@ impl FileReader {
 
 	pub fn get_string(&self, start_index: usize) -> Option<(String, usize)> {
 		// Get slice starting at index
-		let slice = self.body.get(start_index as usize..)?;
+		let slice = self.data.get(start_index as usize..)?;
 		// Find null char
 		let end = slice.iter().position(|item| *item == 0)?;
 		// Get C string from slice untill null char

@@ -26,7 +26,7 @@ impl LoadWorldData {
 						(0, 0)
 					}
 					else {
-						let namespace_hash = if let Some(namespace_hash) = overview.body.get(0..8) {
+						let namespace_hash = if let Some(namespace_hash) = overview.data.get(0..8) {
 							let namespace_hash = if let Some(namespace_hash) = namespace_hash.try_into().ok() {
 								namespace_hash
 							}
@@ -52,7 +52,7 @@ impl LoadWorldData {
 					//println!("C: {:?}", overview_path);
 					if is_version_0 {
 						//println!("A: {:?}", overview_path);
-						if let Some(name_pos) = overview.body.get(body_index..body_index + 4) {
+						if let Some(name_pos) = overview.data.get(body_index..body_index + 4) {
 							let name_pos: [u8; 4] = name_pos.try_into().unwrap();
 							let name_pos = u32::from_le_bytes(name_pos);
 							if let Some(name) = overview.get_string_v0(name_pos) {

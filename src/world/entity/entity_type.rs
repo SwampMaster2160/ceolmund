@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{render::texture::Texture, world::{item::item::Item, tile::tile::Tile, difficulty::Difficulty}, io::namespace::Namespace};
 
-use strum::{IntoEnumIterator};
+use strum::IntoEnumIterator;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
 #[derive(Clone, EnumDiscriminants)]
@@ -55,7 +55,6 @@ impl EntityType {
 					let amount = *data.get(data_read_size_out)?;
 					data_read_size_out += 1;
 					inventory[x] = (item, amount);
-					//println!("{}", data_read_size_out)
 				}
 				let selected_item = *data.get(data_read_size_out)?;
 				data_read_size_out += 1;

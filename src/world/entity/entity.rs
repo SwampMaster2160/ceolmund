@@ -165,11 +165,11 @@ impl Entity {
 		// Open file
 		let (file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
 		// Get namespace
-		let namespace_hash =  file.body.get(0..8)?.try_into().ok()?;
+		let namespace_hash =  file.data.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::deserialize(file.body.get(8..)?, &namespace, namespace.version, difficulty)?.0)
+		Some(Self::deserialize(file.data.get(8..)?, &namespace, namespace.version, difficulty)?.0)
 	}
 
 	/// Save an entity

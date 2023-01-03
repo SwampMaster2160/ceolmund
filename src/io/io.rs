@@ -52,55 +52,6 @@ impl IO {
 		let version = SERIALIZATION_VERSION.to_le_bytes();
 		saving_namespace.data.extend(&version);
 		// Add tile namespace
-		/*let tile_name_ptr =  saving_namespace.push_string(&"tile".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in TileVariant::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// Add item namespace
-		let tile_name_ptr =  saving_namespace.push_string(&"item".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in ItemVariant::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// Add entity namespace
-		let tile_name_ptr =  saving_namespace.push_string(&"entity".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in EntityVariant::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// Add direction 4 namespace
-		let tile_name_ptr =  saving_namespace.push_string(&"direction_4".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in Direction4::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// Add entity action state namespace
-		let tile_name_ptr =  saving_namespace.push_string(&"entity_action_state".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in EntityActionStateVariant::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// Add difficulties
-		let tile_name_ptr =  saving_namespace.push_string(&"difficulty".to_string()).unwrap();
-		saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		for tile_variant in Difficulty::iter() {
-			let tile_name_ptr =  saving_namespace.push_string(&tile_variant.get_name_id().to_string()).unwrap();
-			saving_namespace.body.extend(tile_name_ptr.to_le_bytes());
-		}
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());
-		// End namespaces
-		saving_namespace.body.extend(0xFFFFFFFFu32.to_le_bytes());*/
 		saving_namespace.push_string(&"tile".to_string());
 		for variant in TileVariant::iter() {
 			saving_namespace.push_string(&variant.get_name_id().to_string());

@@ -93,17 +93,17 @@ impl Chunk {
 			None => return Some(false),
 		};
 		// Get chunk namespace hash
-		let namespace_hash: [u8; 8] = file.body.get(0..8)?.try_into().ok()?;
+		let namespace_hash: [u8; 8] = file.data.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		// Get namespace
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		
 		if namespace.version == 0 {
-			self.load_v0(&file.body, namespace)?;
+			self.load_v0(&file.data, namespace)?;
 			return Some(true);
 		}
 
-		let mut data = file.body.get(8..)?;
+		let mut data = file.data.get(8..)?;
 		for tile_stack_row in &mut self.tile_stacks {
 			for tile_stack in tile_stack_row.iter_mut() {
 				let data_read_size = tile_stack.deserialize(data, &namespace, namespace.version)?;
