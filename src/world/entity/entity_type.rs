@@ -9,7 +9,7 @@ use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 #[strum_discriminants(name(EntityVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum EntityType {
-	Player { inventory: Box<[(Item, u8); 50]>, selected_item: u8 },
+	Player { inventory: Box<[(Item, u8); 50]>, selected_item: u8, respawn_pos: [i64; 2] },
 }
 
 impl EntityType {
@@ -25,12 +25,17 @@ impl EntityType {
 		data.push(EntityVariant::from(self) as u8);
 		
 		match self {
-			Self::Player { inventory, selected_item } => {
+			Self::Player { inventory, selected_item, respawn_pos } => {
+				// Push inventory
 				for (item, stack_amount) in inventory.iter() {
 					item.serialize(data);
 					data.push(*stack_amount);
 				}
+				// Push selected item
 				data.push(*selected_item);
+				// Push respawn pos
+				data.extend(respawn_pos[0].to_le_bytes());
+				data.extend(respawn_pos[1].to_le_bytes());
 			},
 		}
 	}
@@ -50,6 +55,7 @@ impl EntityType {
 					let amount = *data.get(data_read_size_out)?;
 					data_read_size_out += 1;
 					inventory[x] = (item, amount);
+					//println!("{}", data_read_size_out)
 				}
 				let selected_item = *data.get(data_read_size_out)?;
 				data_read_size_out += 1;
@@ -68,8 +74,19 @@ impl EntityType {
 				inventory[11] = (Item::Tile(Tile::Path), 1);
 				inventory[12] = (Item::Axe, 1);
 				inventory[13] = (Item::Shovel, 1);
+				// Respawn pos
+				let respawn_pos = if version > 0 {
+				let pos_x = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
+				data_read_size_out += 8;
+				let pos_y = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
+				data_read_size_out += 8;
+				[i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)]
+				}
+				else {
+					[0, 0]
+				};
 				
-				Self::Player { inventory, selected_item }
+				Self::Player { inventory, selected_item, respawn_pos }
 			}
 		}, data_read_size_out))
 	}

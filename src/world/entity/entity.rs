@@ -9,6 +9,7 @@ pub struct Entity {
 	pub facing: Direction4,
 	pub action_state: EntityActionState,
 	pub entity_type: EntityType,
+	pub health: u32,
 }
 
 impl Entity {
@@ -57,7 +58,7 @@ impl Entity {
 			}
 			// Change item
 			let (inventory, selected_item) = match &mut self.entity_type {
-				EntityType::Player { inventory, selected_item } => (inventory, selected_item),
+				EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
 			};
 			let mut selected_item_x = (*selected_item % 10) as i8;
 			let mut selected_item_y = (*selected_item / 10) as i8;
@@ -139,7 +140,8 @@ impl Entity {
 			pos: [0, 0],
 			action_state: EntityActionState::Idle,
 			facing: Direction4::South,
-			entity_type: EntityType::Player { inventory, selected_item: 0 },
+			entity_type: EntityType::Player { inventory, selected_item: 0, respawn_pos: [0, 0] },
+			health: 100,
 		}
 	}
 
@@ -179,6 +181,10 @@ impl Entity {
 		self.action_state.serialize(data);
 		// Push type
 		self.entity_type.serialize(data);
+		//println!("{}", data.len());
+		// Push health
+		let health = self.health.to_le_bytes();
+		data.extend(health);
 	}
 
 	/// Load an entity
@@ -197,13 +203,27 @@ impl Entity {
 		let data = data.get(data_read_size_out..)?;
 		// Get entity type
 		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version)?;
-		data_read_size_out += data_read_size;
+		//data_read_size_out += data_read_size;
+		let data = data.get(data_read_size..)?;
+		// Get health
+		let health = if version > 0 {
+			//println!("{}", data_read_size_out);
+			let health = data.get(0..4)?.try_into().ok()?;
+			let health = u32::from_le_bytes(health);
+			data_read_size_out += 4;
+			//println!("{}", health);
+			health
+		}
+		else {
+			100
+		};
 
 		Some((Self {
 			pos,
 			facing,
 			action_state,
 			entity_type,
+			health,
 		}, data_read_size_out))
 	}
 }
