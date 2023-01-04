@@ -243,26 +243,19 @@ impl Entity {
 		// Get action state
 		let action_state = EntityActionState::deserialize(file, namespace, version)?;
 		// Get entity type
-		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version, difficulty)?;
-		//data_read_size_out += data_read_size;
-		let data = data.get(data_read_size..)?;
+		let entity_type = EntityType::deserialize(file, namespace, version, difficulty)?;
 		// Get health
-		let health = if version > 0 {
-			let health = data.get(0..4)?.try_into().ok()?;
-			let health = u32::from_le_bytes(health);
-			data_read_size_out += 4;
-			health
-		}
-		else {
-			EntityVariant::Player.max_health()
+		let health = match version {
+			0 => file.read_u32()?,
+			_ => EntityVariant::Player.max_health(),
 		};
 
-		Some((Self {
+		Some(Self {
 			pos,
 			facing,
 			action_state,
 			entity_type,
 			health,
-		}, data_read_size_out))
+		})
 	}
 }

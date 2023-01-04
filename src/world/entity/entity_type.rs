@@ -98,17 +98,17 @@ impl EntityType {
 		let variant = *namespace.entities.get(file.read_u8()? as usize)?;
 		//let mut data_read_size_out = 1;
 
-		Some((match variant {
+		Some(match variant {
 			EntityVariant::Player => {
 				let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
 				for x in 0..50 {
-					let (item, data_read_size) = Item::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
+					let item = Item::deserialize(file, namespace, version)?;
 					//data_read_size_out += data_read_size;
-					let amount = *data.get(data_read_size_out)?;
+					let amount = file.read_u8()?;
 					//data_read_size_out += 1;
 					inventory[x] = (item, amount);
 				}
-				let selected_item = *data.get(data_read_size_out)?;
+				let selected_item = file.read_u8()?;
 				//data_read_size_out += 1;
 				// Temp
 				if difficulty == Difficulty::Sandbox {
@@ -129,11 +129,9 @@ impl EntityType {
 				}
 				// Respawn pos
 				let respawn_pos = if version > 0 {
-				let pos_x = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
-				data_read_size_out += 8;
-				let pos_y = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
-				data_read_size_out += 8;
-				[i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)]
+					let pos_x = file.read_i64()?;
+					let pos_y = file.read_i64()?;
+					[pos_x, pos_y]
 				}
 				else {
 					[0, 0]
@@ -141,7 +139,7 @@ impl EntityType {
 				
 				Self::Player { inventory, selected_item, respawn_pos }
 			}
-		}, data_read_size_out))
+		})
 	}
 }
 

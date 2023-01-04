@@ -6,7 +6,7 @@ use std::fs::{read, remove_file, rename};
 /// For reading a file structure that allows for a file version, a body consisting of an array of u8 values and an array of strings.
 pub struct FileReader {
 	pub data: Vec<u8>, // The content of the file.
-	read_index: usize, // Where we have read to, advances each time we read data.
+	pub read_index: usize, // Where we have read to, advances each time we read data.
 	strings_v0: Vec<u8>, // Legacy for reading version 0 files
 }
 

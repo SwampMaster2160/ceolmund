@@ -83,7 +83,7 @@ impl Chunk {
 		Some(out)
 	}
 
-	/// Load chunk, returning weather it exists or not wrapped in an option that is none when there is an error loading the chunk.
+	/*/// Load chunk, returning weather it exists or not wrapped in an option that is none when there is an error loading the chunk.
 	pub fn load(&mut self, pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf) -> Option<bool> {
 		// Get filepath for chunk and load
 		let mut chunk_filepath = chunks_filepath.clone();
@@ -112,15 +112,65 @@ impl Chunk {
 		}
 		//
 		Some(true)
+	}*/
+
+	/// Load chunk, returning weather it exists or not wrapped in an option that is none when there is an error loading the chunk.
+	pub fn load(&mut self, pos: [i64; 2], chunks_filepath: PathBuf, namespaces_filepath: PathBuf) -> Option<bool> {
+		// Get filepath for chunk and load
+		let mut chunk_filepath = chunks_filepath.clone();
+		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
+		let (file, _is_version_0) = match FileReader::read_from_file(&chunk_filepath) {
+			Some(file) => file,
+			None => return Some(false),
+		};
+		// Get chunk namespace hash
+		let namespace_hash = file.read_u64()?;
+		// Get namespace
+		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
+		
+		if namespace.version == 0 {
+			self.load_v0(&mut file, namespace)?;
+			return Some(true);
+		}
+
+		//let mut data = file.data.get(8..)?;
+		for tile_stack_row in &mut self.tile_stacks {
+			for tile_stack in tile_stack_row.iter_mut() {
+				tile_stack.deserialize(&mut file, &namespace, namespace.version)?;
+				//data = data.get(data_read_size..)?;
+			}
+		}
+		//
+		Some(true)
 	}
 
-	pub fn load_v0(&mut self, data: &[u8], namespace: Namespace) -> Option<()> {
+	/*pub fn load_v0(&mut self, data: &[u8], namespace: Namespace) -> Option<()> {
 		// Get pointer to tile datas
 		let tile_datas_ptr: [u8; 4] = data.get(8..12)?.try_into().ok()?;
 		let tile_datas_ptr = u32::from_le_bytes(tile_datas_ptr) as usize;
 		// Get datas
 		let tile_lengths = data.get(12..tile_datas_ptr)?;
 		let tile_datas = data.get(tile_datas_ptr..)?;
+		// Go over each chunk
+		let mut tile_lengths_index = 0usize;
+		let mut tile_datas_index = 0usize;
+		for tile_stack_row in &mut self.tile_stacks {
+			for tile_stack in tile_stack_row.iter_mut() {
+				tile_stack.load_v0(tile_lengths, tile_datas, &mut tile_lengths_index, &mut tile_datas_index, &namespace, namespace.version)?;
+			}
+		}
+		//
+		Some(())
+	}*/
+
+	pub fn load_v0(&mut self, file: &mut FileReader, namespace: Namespace) -> Option<()> {
+		// Get pointer to tile datas
+		//let tile_datas_ptr: [u8; 4] = data.get(8..12)?.try_into().ok()?;
+		//let tile_datas_ptr = u32::from_le_bytes(tile_datas_ptr) as usize;
+		let tile_datas_ptr = file.read_u32()? as usize;
+		// Get datas
+		let tile_lengths = file.data.get(12..tile_datas_ptr)?;
+		let tile_datas = file.data.get(tile_datas_ptr..)?;
 		// Go over each chunk
 		let mut tile_lengths_index = 0usize;
 		let mut tile_datas_index = 0usize;

@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::namespace::Namespace};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::{namespace::Namespace, file_reader::FileReader}};
 
 use super::tile::{Tile, TileVariant};
 
@@ -119,7 +119,7 @@ impl TileStack {
 		Some(())
 	}
 
-	pub fn deserialize(&mut self, data: &[u8], namespace: &Namespace, version: u32) -> Option<usize> {
+	/*pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<usize> {
 		let mut data_read_size_out = 0;
 		loop {
 			let tile_id = *data.get(data_read_size_out)?;
@@ -133,5 +133,20 @@ impl TileStack {
 			self.tiles.push(tile);
 		}
 		Some(data_read_size_out)
+	}*/
+
+	pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<()> {
+		loop {
+			let tile_id = *file.data.get(file.read_index)?;
+			let variant = *namespace.tiles.get(tile_id as usize)?;
+			if variant == TileVariant::None {
+				file.read_index += 1;
+				break;
+			}
+			let tile = Tile::deserialize(file, namespace, version)?;
+			//data_read_size_out += data_read_size;
+			self.tiles.push(tile);
+		}
+		Some(())
 	}
 }
