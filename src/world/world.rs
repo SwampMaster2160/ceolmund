@@ -1,4 +1,4 @@
-use std::{fs::{create_dir, File}, path::PathBuf, io::Write};
+use std::{fs::create_dir, path::PathBuf};
 
 use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
 
@@ -46,7 +46,7 @@ impl World {
 			player_filepath: filepath.clone(),
 			difficulty,
 		};
-		dummy_world.save_overview(io.saving_namespace_hash);
+		dummy_world.save_overview(io.namespace_hash);
 		Self::load(filepath, io)
 	}
 
@@ -70,10 +70,9 @@ impl World {
 		player_filepath.push("player.ent".to_string());
 		// Save namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
-		namespace_filepath.push(format!("{:0>16x}.nsp", io.saving_namespace_hash));
+		namespace_filepath.push(format!("{:0>16x}.nsp", io.namespace_hash));
 		if !namespace_filepath.exists() {
-			let mut file = File::create(namespace_filepath).ok()?;
-			file.write(&io.saving_namespace).ok()?;
+			io.namespace.write(&namespace_filepath)?;
 		}
 		// Read overview
 		let (overview, is_version_0) = FileReader::read_from_file(&overview_filepath)?;
@@ -134,7 +133,7 @@ impl World {
 			player_filepath,
 			difficulty,
 		};
-		world.save_overview(io.saving_namespace_hash);
+		world.save_overview(io.namespace_hash);
 		Some(world)
 	}
 
@@ -161,10 +160,10 @@ impl World {
 
 	/// Tick always called.
 	pub fn tick_always(&mut self, io: &IO, player_visable_width: u64, _gui: &mut GUI) {
-		self.chunk_pool.tick_always(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, &self.namespaces_filepath, io.saving_namespace_hash);
+		self.chunk_pool.tick_always(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed, self.is_freeing, &mut self.is_freed, &self.chunks_filepath, &self.namespaces_filepath, io.namespace_hash);
 		if self.is_freeing {
 			if let Some(player) = &self.player {
-				player.save_player(&self.player_filepath, io.saving_namespace_hash).unwrap();
+				player.save_player(&self.player_filepath, io.namespace_hash).unwrap();
 			}
 		}
 	}
@@ -173,14 +172,13 @@ impl World {
 		// Create file
 		let mut file = FileWriter::new();
 		// Push namespace hash
-		file.data.extend(namespace_hash.to_le_bytes());
+		file.push_u64(namespace_hash);
 		// Push world name
 		file.push_string(&self.name);
 		// Push seed
-		let seed = self.seed.to_le_bytes();
-		file.data.extend(seed);
+		file.push_u32(self.seed);
 		// Push difficulty
-		file.data.push(self.difficulty as u8);
+		file.push_u8(self.difficulty as u8);
 		// Write file
 		file.write(&self.overview_filepath);
 	}

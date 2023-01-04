@@ -50,4 +50,27 @@ impl FileWriter {
 		string_bytes.push(0);
 		self.data.extend(string_bytes);
 	}
+
+	pub fn push_str(&mut self, string: &str) {
+		// Convert string to bytes
+		let mut string_bytes = string.as_bytes().to_vec();
+		string_bytes.push(0);
+		self.data.extend(string_bytes);
+	}
+
+	pub fn push_u8(&mut self, to_push: u8) {
+		self.data.push(to_push);
+	}
+
+	pub fn push_u32(&mut self, to_push: u32) {
+		self.data.extend(to_push.to_le_bytes());
+	}
+
+	pub fn push_u64(&mut self, to_push: u64) {
+		self.data.extend(to_push.to_le_bytes());
+	}
+
+	pub fn push_i64(&mut self, to_push: i64) {
+		self.data.extend(to_push.to_le_bytes());
+	}
 }

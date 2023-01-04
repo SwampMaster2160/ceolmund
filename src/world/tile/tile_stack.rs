@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::{namespace::Namespace, file_reader::FileReader}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
 
 use super::tile::{Tile, TileVariant};
 
@@ -98,11 +98,11 @@ impl TileStack {
 		}
 	}
 
-	pub fn serialize(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, file: &mut FileWriter) {
 		for tile in &self.tiles {
-			tile.serialize(data);
+			tile.serialize(file);
 		}
-		data.push(Tile::None as u8);
+		file.push_u8(Tile::None as u8);
 	}
 
 	pub fn load_v0(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace, version: u32) -> Option<()> {
@@ -120,22 +120,6 @@ impl TileStack {
 		Some(())
 	}
 
-	/*pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<usize> {
-		let mut data_read_size_out = 0;
-		loop {
-			let tile_id = *data.get(data_read_size_out)?;
-			let tile_variant = *namespace.tiles.get(tile_id as usize)?;
-			if tile_variant == TileVariant::None {
-				data_read_size_out += 1;
-				break;
-			}
-			let (tile, data_read_size) = Tile::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
-			data_read_size_out += data_read_size;
-			self.tiles.push(tile);
-		}
-		Some(data_read_size_out)
-	}*/
-
 	pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<()> {
 		loop {
 			let tile_id = *file.data.get(file.read_index)?;
@@ -144,9 +128,7 @@ impl TileStack {
 				file.read_index += 1;
 				break;
 			}
-			let tile = Tile::deserialize(file, namespace, version)?;
-			//data_read_size_out += data_read_size;
-			self.tiles.push(tile);
+			self.tiles.push(Tile::deserialize(file, namespace, version)?);
 		}
 		Some(())
 	}

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
-use crate::io::{namespace::Namespace, file_reader::FileReader};
+use crate::io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter};
 
 #[derive(Eq, PartialEq, Clone)]
 #[derive(EnumDiscriminants)]
@@ -16,26 +16,15 @@ pub enum EntityActionState {
 
 impl EntityActionState {
 	/// Save
-	pub fn serialize(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, file: &mut FileWriter) {
 		// Push id
-		data.push(EntityActionStateVariant::from(self) as u8);
+		file.push_u8(EntityActionStateVariant::from(self) as u8);
 		
 		match self {
 			Self::Idle => {}
-			Self::Walking(amount) => data.push(*amount),
+			Self::Walking(amount) => file.push_u8(*amount),
 		}
 	}
-
-	/*/// Load
-	pub fn deserialize(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
-		// Get id
-		let id = *data.get(0)?;
-		let variant = *namespace.entity_action_states.get(id as usize)?;
-		Some(match variant {
-			EntityActionStateVariant::Idle => (Self::Idle, 1),
-			EntityActionStateVariant::Walking => (Self::Walking(*data.get(1)?), 2),
-		})
-	}*/
 
 	/// Load
 	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, _version: u32) -> Option<Self> {

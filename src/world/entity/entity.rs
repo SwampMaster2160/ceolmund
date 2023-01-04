@@ -154,7 +154,7 @@ impl Entity {
 		// Push namespace hash
 		file.data.extend(namespace_hash.to_le_bytes());
 		// Get entity data
-		self.serialize(&mut file.data);
+		self.serialize(&mut file);
 		// Write
 		file.write(player_filepath)?;
 		Some(())
@@ -162,14 +162,6 @@ impl Entity {
 
 	// Load player from file
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Option<Self> {
-		/*// Open file
-		let (file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
-		// Get namespace
-		let namespace_hash = file.data.get(0..8)?.try_into().ok()?;
-		let namespace_hash = u64::from_le_bytes(namespace_hash);
-		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
-		// Load entity
-		Some(Self::deserialize(file.data.get(8..)?, &namespace, namespace.version, difficulty)?.0)*/
 		// Open file
 		let (mut file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
 		// Get namespace
@@ -180,58 +172,19 @@ impl Entity {
 	}
 
 	/// Save an entity
-	pub fn serialize(&self, data: &mut Vec<u8>) {
+	pub fn serialize(&self, file: &mut FileWriter) {
 		// Push pos
-		data.extend(self.pos[0].to_le_bytes());
-		data.extend(self.pos[1].to_le_bytes());
+		file.push_i64(self.pos[0]);
+		file.push_i64(self.pos[1]);
 		// Push facing
-		data.push(self.facing as u8);
+		file.push_u8(self.facing as u8);
 		// Push action state
-		self.action_state.serialize(data);
+		self.action_state.serialize(file);
 		// Push type
-		self.entity_type.serialize(data);
+		self.entity_type.serialize(file);
 		// Push health
-		let health = self.health.to_le_bytes();
-		data.extend(health);
+		file.push_u32(self.health);
 	}
-
-	/// Load an entity
-	/*pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
-		// Get pos
-		let pos_x = data.get(0..8)?.try_into().ok()?;
-		let pos_y = data.get(8..16)?.try_into().ok()?;
-		let pos = [i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)];
-		let mut data_read_size_out = 16;
-		// Get facing
-		let facing = *namespace.direction_4s.get(*data.get(16)? as usize)?;
-		data_read_size_out += 1;
-		// Get action state
-		let (action_state, data_read_size) = EntityActionState::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
-		data_read_size_out += data_read_size;
-		let data = data.get(data_read_size_out..)?;
-		// Get entity type
-		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version, difficulty)?;
-		//data_read_size_out += data_read_size;
-		let data = data.get(data_read_size..)?;
-		// Get health
-		let health = if version > 0 {
-			let health = data.get(0..4)?.try_into().ok()?;
-			let health = u32::from_le_bytes(health);
-			data_read_size_out += 4;
-			health
-		}
-		else {
-			EntityVariant::Player.max_health()
-		};
-
-		Some((Self {
-			pos,
-			facing,
-			action_state,
-			entity_type,
-			health,
-		}, data_read_size_out))
-	}*/
 
 	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<Self> {
 		// Get pos
