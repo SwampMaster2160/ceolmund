@@ -162,14 +162,21 @@ impl Entity {
 
 	// Load player from file
 	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Option<Self> {
-		// Open file
+		/*// Open file
 		let (file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
 		// Get namespace
-		let namespace_hash =  file.data.get(0..8)?.try_into().ok()?;
+		let namespace_hash = file.data.get(0..8)?.try_into().ok()?;
 		let namespace_hash = u64::from_le_bytes(namespace_hash);
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::deserialize(file.data.get(8..)?, &namespace, namespace.version, difficulty)?.0)
+		Some(Self::deserialize(file.data.get(8..)?, &namespace, namespace.version, difficulty)?.0)*/
+		// Open file
+		let (mut file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
+		// Get namespace
+		let namespace_hash = file.read_u64()?;
+		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
+		// Load entity
+		Some(Self::deserialize(&mut file, &namespace, namespace.version, difficulty)?)
 	}
 
 	/// Save an entity
@@ -189,7 +196,7 @@ impl Entity {
 	}
 
 	/// Load an entity
-	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
+	/*pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
 		// Get pos
 		let pos_x = data.get(0..8)?.try_into().ok()?;
 		let pos_y = data.get(8..16)?.try_into().ok()?;
@@ -202,6 +209,39 @@ impl Entity {
 		let (action_state, data_read_size) = EntityActionState::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
 		data_read_size_out += data_read_size;
 		let data = data.get(data_read_size_out..)?;
+		// Get entity type
+		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version, difficulty)?;
+		//data_read_size_out += data_read_size;
+		let data = data.get(data_read_size..)?;
+		// Get health
+		let health = if version > 0 {
+			let health = data.get(0..4)?.try_into().ok()?;
+			let health = u32::from_le_bytes(health);
+			data_read_size_out += 4;
+			health
+		}
+		else {
+			EntityVariant::Player.max_health()
+		};
+
+		Some((Self {
+			pos,
+			facing,
+			action_state,
+			entity_type,
+			health,
+		}, data_read_size_out))
+	}*/
+
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<Self> {
+		// Get pos
+		let pos_x = file.read_i64()?;
+		let pos_y = file.read_i64()?;
+		let pos = [pos_x, pos_y];
+		// Get facing
+		let facing = *namespace.direction_4s.get(file.read_u8()? as usize)?;
+		// Get action state
+		let action_state = EntityActionState::deserialize(file, namespace, version)?;
 		// Get entity type
 		let (entity_type, data_read_size) = EntityType::deserialize(data, namespace, version, difficulty)?;
 		//data_read_size_out += data_read_size;

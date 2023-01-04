@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::namespace::Namespace};
+use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::{namespace::Namespace, file_reader::FileReader}};
 use strum::IntoEnumIterator;
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -90,7 +90,7 @@ impl Item {
 		}
 	}
 
-	/// Create a item from disk data.
+	/*/// Create a item from disk data.
 	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32) -> Option<(Self, usize)> {
 		let item_id = *data.get(0)? as usize;
 		let item_variant = *namespace.items.get(item_id)?;
@@ -104,6 +104,21 @@ impl Item {
 				let (tile, data_read_size) = Tile::deserialize(data.get(1..)?, namespace, version)?;
 				(Self::Tile(tile), 1 + data_read_size)
 			},
+		})
+	}*/
+
+	/// Create a item from disk data.
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
+		//let item_id = *data.get(0)? as usize;
+		let variant = *namespace.items.get(file.read_u8()? as usize)?;
+
+		Some(match variant {
+			ItemVariant::Axe => Self::Axe,
+			ItemVariant::Hammer => Self::Hammer,
+			ItemVariant::None => Self::None,
+			ItemVariant::SandboxDestroyWand => Self::SandboxDestroyWand,
+			ItemVariant::Shovel => Self::Shovel,
+			ItemVariant::Tile => Self::Tile(Tile::deserialize(file, namespace, version)?),
 		})
 	}
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{render::texture::Texture, world::{item::item::Item, tile::tile::Tile, difficulty::Difficulty}, io::namespace::Namespace};
+use crate::{render::texture::Texture, world::{item::item::Item, tile::tile::Tile, difficulty::Difficulty}, io::{namespace::Namespace, file_reader::FileReader}};
 
 use strum::IntoEnumIterator;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -40,7 +40,7 @@ impl EntityType {
 		}
 	}
 
-	/// Load an entity
+	/*/// Load an entity
 	pub fn deserialize(data: &[u8], namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<(Self, usize)> {
 		// Get variant
 		let variant = *namespace.entities.get(*data.get(0)? as usize)?;
@@ -58,6 +58,58 @@ impl EntityType {
 				}
 				let selected_item = *data.get(data_read_size_out)?;
 				data_read_size_out += 1;
+				// Temp
+				if difficulty == Difficulty::Sandbox {
+					inventory[0] = (Item::SandboxDestroyWand, 1);
+					inventory[1] = (Item::Tile(Tile::Grass), 1);
+					inventory[2] = (Item::Tile(Tile::Gravel), 1);
+					inventory[3] = (Item::Tile(Tile::Sand), 1);
+					inventory[4] = (Item::Tile(Tile::BlackSand), 1);
+					inventory[5] = (Item::Tile(Tile::Rocks), 1);
+					inventory[6] = (Item::Tile(Tile::OakTree), 1);
+					inventory[7] = (Item::Tile(Tile::PineTree), 1);
+					inventory[8] = (Item::Tile(Tile::Flowers), 1);
+					inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
+					inventory[10] = (Item::Tile(Tile::Water), 1);
+					inventory[11] = (Item::Tile(Tile::Path), 1);
+					inventory[12] = (Item::Axe, 1);
+					inventory[13] = (Item::Shovel, 1);
+				}
+				// Respawn pos
+				let respawn_pos = if version > 0 {
+				let pos_x = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
+				data_read_size_out += 8;
+				let pos_y = data.get(data_read_size_out..data_read_size_out + 8)?.try_into().ok()?;
+				data_read_size_out += 8;
+				[i64::from_le_bytes(pos_x), i64::from_le_bytes(pos_y)]
+				}
+				else {
+					[0, 0]
+				};
+				
+				Self::Player { inventory, selected_item, respawn_pos }
+			}
+		}, data_read_size_out))
+	}*/
+
+	/// Load an entity
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<Self> {
+		// Get variant
+		let variant = *namespace.entities.get(file.read_u8()? as usize)?;
+		//let mut data_read_size_out = 1;
+
+		Some((match variant {
+			EntityVariant::Player => {
+				let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
+				for x in 0..50 {
+					let (item, data_read_size) = Item::deserialize(data.get(data_read_size_out..)?, namespace, version)?;
+					//data_read_size_out += data_read_size;
+					let amount = *data.get(data_read_size_out)?;
+					//data_read_size_out += 1;
+					inventory[x] = (item, amount);
+				}
+				let selected_item = *data.get(data_read_size_out)?;
+				//data_read_size_out += 1;
 				// Temp
 				if difficulty == Difficulty::Sandbox {
 					inventory[0] = (Item::SandboxDestroyWand, 1);

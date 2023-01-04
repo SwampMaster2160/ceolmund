@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{IntoEnumIterator};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::namespace::Namespace};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::{namespace::Namespace, file_reader::FileReader}};
 
 use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 
@@ -84,7 +84,7 @@ impl Tile {
 		data.push(TileVariant::from(self) as u8);
 	}
 
-	/// Create a tile form disk data.
+	/*/// Create a tile form disk data.
 	pub fn deserialize(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		let tile_id = *data.get(0)? as usize;
 		let tile_variant = *namespace.tiles.get(tile_id)?;
@@ -102,6 +102,26 @@ impl Tile {
 			TileVariant::BlackSand => Self::BlackSand,
 			TileVariant::Path => Self::Path,
 		}, 1))
+	}*/
+
+	/// Create a tile form disk data.
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, _version: u32) -> Option<Self> {
+		//let tile_id = *data.get(0)? as usize;
+		let variant = *namespace.tiles.get(file.read_u8()? as usize)?;
+		Some(match variant {
+			TileVariant::None => panic!("None tile should not exist."),//Self::None,
+			TileVariant::Grass => Self::Grass,
+			TileVariant::Water => Self::Water,
+			TileVariant::Sand => Self::Sand,
+			TileVariant::PineTree => Self::PineTree,
+			TileVariant::OakTree => Self::OakTree,
+			TileVariant::Flowers => Self::Flowers,
+			TileVariant::FlowersRedYellow => Self::FlowersRedYellow,
+			TileVariant::Rocks => Self::Rocks,
+			TileVariant::Gravel => Self::Gravel,
+			TileVariant::BlackSand => Self::BlackSand,
+			TileVariant::Path => Self::Path,
+		})
 	}
 
 	/// Can an axe be used on the tile?

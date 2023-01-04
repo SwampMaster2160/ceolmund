@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
-use crate::io::namespace::Namespace;
+use crate::io::{namespace::Namespace, file_reader::FileReader};
 
 #[derive(Eq, PartialEq, Clone)]
 #[derive(EnumDiscriminants)]
@@ -26,7 +26,7 @@ impl EntityActionState {
 		}
 	}
 
-	/// Load
+	/*/// Load
 	pub fn deserialize(data: &[u8], namespace: &Namespace, _version: u32) -> Option<(Self, usize)> {
 		// Get id
 		let id = *data.get(0)?;
@@ -34,6 +34,15 @@ impl EntityActionState {
 		Some(match variant {
 			EntityActionStateVariant::Idle => (Self::Idle, 1),
 			EntityActionStateVariant::Walking => (Self::Walking(*data.get(1)?), 2),
+		})
+	}*/
+
+	/// Load
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, _version: u32) -> Option<Self> {
+		let variant = *namespace.entity_action_states.get(file.read_u8()? as usize)?;
+		Some(match variant {
+			EntityActionStateVariant::Idle => Self::Idle,
+			EntityActionStateVariant::Walking => Self::Walking(file.read_u8()?),
 		})
 	}
 }
