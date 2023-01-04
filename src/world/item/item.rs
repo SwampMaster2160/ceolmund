@@ -109,7 +109,6 @@ impl Item {
 
 	/// Create a item from disk data.
 	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
-		//let item_id = *data.get(0)? as usize;
 		let variant = *namespace.items.get(file.read_u8()? as usize)?;
 
 		Some(match variant {

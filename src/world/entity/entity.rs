@@ -246,8 +246,8 @@ impl Entity {
 		let entity_type = EntityType::deserialize(file, namespace, version, difficulty)?;
 		// Get health
 		let health = match version {
-			0 => file.read_u32()?,
-			_ => EntityVariant::Player.max_health(),
+			0 => EntityVariant::Player.max_health(),
+			_ => file.read_u32()?,
 		};
 
 		Some(Self {

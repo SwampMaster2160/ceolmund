@@ -119,7 +119,7 @@ impl Chunk {
 		// Get filepath for chunk and load
 		let mut chunk_filepath = chunks_filepath.clone();
 		chunk_filepath.push(format!("{} {}.cnk", pos[0], pos[1]));
-		let (file, _is_version_0) = match FileReader::read_from_file(&chunk_filepath) {
+		let (mut file, _is_version_0) = match FileReader::read_from_file(&chunk_filepath) {
 			Some(file) => file,
 			None => return Some(false),
 		};
