@@ -5,7 +5,17 @@ use super::{vertex::Vertex, texture::TEXTURE_SHEET_SIZE};
 const TEXTURE_SHEET_TEXT_START: [u32; 2] = [256, 0];
 
 /// Converts a GUI pos and alignment to a y 0-256 screen pos.
-pub fn gui_pos_to_screen_pos(pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [f32; 2] {
+pub fn gui_pos_to_screen_pos_unsigned(pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [f32; 2] {
+	let offset = match alignment {
+		GUIAlignment::Left => 0.,
+		GUIAlignment::Center => (input.aspect_ratio - 1.) / 2.,
+		GUIAlignment::Right => input.aspect_ratio - 1.,
+	};
+	[pos[0] as f32 + offset * 256., pos[1] as f32]
+}
+
+/// Converts a GUI pos and alignment to a y 0-256 screen pos.
+pub fn gui_pos_to_screen_pos(pos: [i16; 2], alignment: GUIAlignment, input: &IO) -> [f32; 2] {
 	let offset = match alignment {
 		GUIAlignment::Left => 0.,
 		GUIAlignment::Center => (input.aspect_ratio - 1.) / 2.,
@@ -26,7 +36,7 @@ pub fn gui_size_to_screen_size(size: [u16; 2]) -> [f32; 2] {
 
 /// Render a rectangle at the GUI pos and alignment.
 pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4], input: &IO) -> [Vertex; 12] {
-	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
+	let [start_x, start_y] = gui_pos_to_screen_pos_unsigned(pos, alignment, input);
 	let gui_size = gui_size_to_screen_size(size);
 	let end_x = start_x + gui_size[0];
 	let end_y = start_y + gui_size[1];
@@ -51,8 +61,8 @@ pub fn render_gui_rect(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, c
 
 /// Tint the entire screen a color.
 pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
-	let [start_x, start_y] = gui_pos_to_screen_pos([0, 0], GUIAlignment::Left, io);
-	let [end_x, end_y] = gui_pos_to_screen_pos([256, 256], GUIAlignment::Right, io);
+	let [start_x, start_y] = gui_pos_to_screen_pos_unsigned([0, 0], GUIAlignment::Left, io);
+	let [end_x, end_y] = gui_pos_to_screen_pos_unsigned([256, 256], GUIAlignment::Right, io);
 	let render_color = [color[0] as f32 / 255., color[1] as f32 / 255., color[2] as f32 / 255., color[3] as f32 / 255.];
 	[
 		Vertex { position: [start_x, start_y], texture_position: [0., 0.], color: render_color },
@@ -66,7 +76,7 @@ pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
 
 /// Render a char at pos and alignment getting the tris and the GUI pixel width of the char
 pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
-	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, io);
+	let [start_x, start_y] = gui_pos_to_screen_pos_unsigned(pos, alignment, io);
 	let gui_size = gui_size_to_screen_size([8, 16]);
 	let end_x = start_x + gui_size[0];
 	let end_y = start_y + gui_size[1];

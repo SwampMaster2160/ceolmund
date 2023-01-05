@@ -1,6 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos, gui_size_to_screen_size, render_gui_string, render_screen_grayout}, texture::Texture}, world::world::World};
+use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos_unsigned, gui_size_to_screen_size, render_gui_string, render_screen_grayout}, texture::Texture}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI};
 
@@ -40,7 +40,7 @@ pub enum GUIElement {
 
 pub fn is_mouse_over_area(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, io: &IO) -> bool {
 	let mouse_pos = io.get_mouse_pos_as_gui_pos();
-	let button_screen_pos = gui_pos_to_screen_pos(pos, alignment, io);
+	let button_screen_pos = gui_pos_to_screen_pos_unsigned(pos, alignment, io);
 	let button_screen_size = gui_size_to_screen_size(size);
 	let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
 	mouse_pos[0] >= button_screen_pos[0] && mouse_pos[1] >= button_screen_pos[1] &&
