@@ -47,11 +47,11 @@ impl World {
 			difficulty,
 		};
 		dummy_world.save_overview(io.namespace_hash);
-		Self::load(filepath, io)
+		Self::load(filepath, io, false)
 	}
 
 	/// Load a world given the path to it's world folder.
-	pub fn load(filepath: PathBuf, io: &IO) -> Option<Self> {
+	pub fn load(filepath: PathBuf, io: &IO, basic: bool) -> Option<Self> {
 		// Get the path of the overview file for the world
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
@@ -75,52 +75,44 @@ impl World {
 			io.namespace.write(&namespace_filepath)?;
 		}
 		// Read overview
-		let (overview, is_version_0) = FileReader::read_from_file(&overview_filepath)?;
-		let (mut body_index, version, namespace) = if is_version_0 {
-			(0, 0, None)
+		let (mut overview_file, is_version_0) = FileReader::read_from_file(&overview_filepath)?;
+		let (_version, namespace) = if is_version_0 {
+			(0, None)
 		}
 		else {
-			let namespace_hash = overview.data.get(0..8)?.try_into().ok()?;
-			let namespace_hash = u64::from_le_bytes(namespace_hash);
+			let namespace_hash = overview_file.read_u64()?;
 			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
-			(8, namespace.version, Some(namespace))
+			(namespace.version, Some(namespace))
 		};
 		// Get world name
-		let name = if is_version_0 {
-			let name_pos = overview.data.get(body_index..body_index + 4)?;
-			let name_pos: [u8; 4] = name_pos.try_into().ok()?;
-			let name_pos = u32::from_le_bytes(name_pos);
-			let name = overview.get_string_v0(name_pos)?;
-			body_index += 4;
-			name
-		}
-		else {
-			let (string, data_read_size) = overview.get_string(body_index)?;
-			body_index += data_read_size;
-			string
+		let name = match is_version_0 {
+			true => {
+				let index = overview_file.read_u32()?;
+				overview_file.get_string_v0(index)?
+			},
+			false => overview_file.read_string()?,
 		};
 		// Get world seed
-		let seed = overview.data.get(body_index..body_index + 4)?;
-		let seed: [u8; 4] = seed.try_into().ok()?;
-		let seed = u32::from_le_bytes(seed);
-		body_index += 4;
+		let seed = overview_file.read_u32()?;
 		// Get difficulty
-		let difficulty = if version > 0 {
-			let difficulty = *overview.data.get(body_index)?;
-			namespace?.difficulties[difficulty as usize]
-		}
-		else {
-			Difficulty::Sandbox
+		let difficulty = match is_version_0 {
+			true => Difficulty::Sandbox,
+			false => namespace?.difficulties[overview_file.read_u8()? as usize],
 		};
 		// Get player
-		let player = Entity::load_player(&player_filepath, &namespaces_filepath, difficulty);
-		let player = match player {
-			Some(player) => player,
-			None => Entity::new_player(difficulty),
+		let player = if !basic {
+			let player = Entity::load_player(&player_filepath, &namespaces_filepath, difficulty);
+			Some(match player {
+				Some(player) => player,
+				None => Entity::new_player(difficulty),
+			})
+		}
+		else {
+			None
 		};
 		// Create world object
 		let world = Self { 
-			player: Some(player),
+			player,
 			chunk_pool: ChunkPool::new(),
 			seed,
 			is_freeing: false,

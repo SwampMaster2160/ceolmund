@@ -224,7 +224,7 @@ impl GUIMenu {
 								if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
 									let world_index = button_y + page * 8;
 									let world_path = &load_world_data.worlds[world_index].1;
-									if let Some(new_world) = World::load(world_path.clone(), io) {
+									if let Some(new_world) = World::load(world_path.clone(), io, false) {
 										*world = Some(new_world);
 										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
 									}
