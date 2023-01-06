@@ -2,7 +2,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{render_gui_rect, gui_pos_to_screen_pos_unsigned, gui_size_to_screen_size, render_gui_string, render_screen_grayout}, texture::Texture}, world::world::World};
 
-use super::{gui_alignment::GUIAlignment, gui::GUI};
+use super::{gui_alignment::GUIAlignment, gui::GUI, gui_rect::GUIRect};
 
 const BUTTON_GRAY_COLOR: [u8; 4] = [95, 95, 95, 255];
 const BUTTON_HOVER_COLOR: [u8; 4] = [95, 195, 195, 255];
@@ -19,7 +19,8 @@ const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 /// A GUI element.
 #[derive(Clone)]
 pub enum GUIElement {
-	Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4] },
+	//Rect { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4] },
+	Rect { rect: GUIRect, alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4] },
 	ProgressBar { pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, color: [u8; 4], border_color: [u8; 4], progress: u32, max_progress: u32 },
 	Button {
 		text: String, pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, enabled: bool,
@@ -59,10 +60,10 @@ impl GUIElement {
 	}
 
 	/// Render the element
-	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO) {
+	pub fn render(&self, render_area: GUIRect, vertices: &mut Vec<Vertex>, io: &IO) {
 		match self {
-			Self::Rect{pos, size, alignment, color, border_color} =>
-				vertices.extend(render_gui_rect(*pos, *size, *alignment, *color, *border_color, io)),
+			Self::Rect{rect, alignment, color, border_color} =>
+				rect.render_shade_and_outline(render_area, *alignment, *border_color, *color, io, vertices),
 			Self::ProgressBar{pos, size, alignment, color, border_color, progress, max_progress} => {
 				let progress_width = (((size[0] - 2) as u64) * *progress as u64 / *max_progress as u64) as u16;
 				vertices.extend(render_gui_rect(*pos, *size, *alignment, NO_COLOR, *border_color, io));

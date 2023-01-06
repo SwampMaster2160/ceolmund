@@ -9,14 +9,12 @@ pub struct GUIRect {
 }
 
 impl GUIRect {
-	pub fn new_everything() -> Self {
-		Self {
-			pos: [i16::MIN, i16::MIN],
-			size: [u16::MAX, u16::MAX],
-		}
-	}
+	pub const EVERYTHING: Self = Self {
+		pos: [i16::MIN, i16::MIN],
+		size: [u16::MAX, u16::MAX],
+	};
 
-	pub fn new(x: i16, y: i16, width: u16, height: u16) -> Self {
+	pub const fn new(x: i16, y: i16, width: u16, height: u16) -> Self {
 		Self {
 			pos: [x, y],
 			size: [width, height],
@@ -33,14 +31,14 @@ impl GUIRect {
 		}
 	}
 
-	pub fn get_end(self) -> [i16; 2] {
+	pub const fn get_end(self) -> [i16; 2] {
 		[
 			self.pos[0].saturating_add_unsigned(self.size[0]),
 			self.pos[1].saturating_add_unsigned(self.size[1]),
 		]
 	}
 
-	pub fn scrolled_y(self, shift: i16) -> Self {
+	pub const fn scrolled_y(self, shift: i16) -> Self {
 		GUIRect {
 			pos: [
 				self.pos[0],
@@ -59,21 +57,21 @@ impl GUIRect {
 		)
 	}
 
-	pub fn without_outline(self) -> Self {
+	pub const fn without_outline(self) -> Self {
 		Self {
 			pos: [
 				self.pos[0].saturating_add(1),
 				self.pos[1].saturating_add(1),
 			],
 			size: [
-				self.size[0].saturating_sub(1),
-				self.size[1].saturating_sub(1),
+				self.size[0].saturating_sub(2),
+				self.size[1].saturating_sub(2),
 			],
 		}
 	}
 
-	pub fn render_shade(self, alignment: GUIAlignment, color: [u8; 4], input: &IO, vertices: &mut Vec<Vertex>) {
-		let [start_x, start_y] = gui_pos_to_screen_pos(self.pos, alignment, input);
+	pub fn render_shade(self, alignment: GUIAlignment, color: [u8; 4], io: &IO, vertices: &mut Vec<Vertex>) {
+		let [start_x, start_y] = gui_pos_to_screen_pos(self.pos, alignment, io);
 		let gui_size = gui_size_to_screen_size(self.size);
 		let end_x = start_x + gui_size[0];
 		let end_y = start_y + gui_size[1];
@@ -88,11 +86,11 @@ impl GUIRect {
 		]);
 	}
 
-	pub fn render_shade_and_outline(self, render_area: Self, alignment: GUIAlignment, color: [u8; 4], inside_color: [u8; 4], input: &IO, vertices: &mut Vec<Vertex>) {
+	pub fn render_shade_and_outline(self, render_area: Self, alignment: GUIAlignment, color: [u8; 4], inside_color: [u8; 4], io: &IO, vertices: &mut Vec<Vertex>) {
 		let main_render_area = self.overlap(render_area);
-		main_render_area.render_shade(alignment, color, input, vertices);
+		main_render_area.render_shade(alignment, color, io, vertices);
 
 		let inside_render_area = self.without_outline().overlap(render_area);
-		inside_render_area.render_shade(alignment, inside_color, input, vertices);
+		inside_render_area.render_shade(alignment, inside_color, io, vertices);
 	}
 }
