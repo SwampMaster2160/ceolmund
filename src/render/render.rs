@@ -75,7 +75,7 @@ pub fn render_screen_grayout(color: [u8; 4], io: &IO) -> [Vertex; 6] {
 }
 
 /// Render a char at pos and alignment getting the tris and the GUI pixel width of the char
-pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
+pub fn render_gui_char_u16(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
 	let [start_x, start_y] = gui_pos_to_screen_pos_unsigned(pos, alignment, io);
 	let gui_size = gui_size_to_screen_size([8, 16]);
 	let end_x = start_x + gui_size[0];
@@ -106,8 +106,40 @@ pub fn render_gui_char(chr: char, pos: [u16; 2], alignment: GUIAlignment, io: &I
 	})
 }
 
+/// Render a char at pos and alignment getting the tris and the GUI pixel width of the char
+pub fn render_gui_char(chr: char, pos: [i16; 2], alignment: GUIAlignment, io: &IO) -> ([Vertex; 6], u8) {
+	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, io);
+	let gui_size = gui_size_to_screen_size([8, 16]);
+	let end_x = start_x + gui_size[0];
+	let end_y = start_y + gui_size[1];
+
+	let char_id: u32 = chr.into();
+	let char_texture_x = TEXTURE_SHEET_TEXT_START[0] + char_id % 16 * 8 + char_id / 256 * 128;
+	let char_texture_y = TEXTURE_SHEET_TEXT_START[0] + char_id / 16 * 16 % 256;
+
+	let width = 8 as f32 / TEXTURE_SHEET_SIZE[0] as f32;
+	let height = 16 as f32 / TEXTURE_SHEET_SIZE[1] as f32;
+
+	let texture_x_start = char_texture_x as f32 / TEXTURE_SHEET_SIZE[0] as f32 + 0.0001;
+	let texture_y_start = (char_texture_y as f32 / TEXTURE_SHEET_SIZE[1] as f32) - 0.0001;
+	let texture_x_end = texture_x_start + width - 0.0002;
+	let texture_y_end = texture_y_start + height + 0.0001;
+
+	([
+		Vertex { position: [start_x, start_y], texture_position: [texture_x_start, texture_y_start], color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, start_y],   texture_position: [texture_x_end, texture_y_start],   color: [0., 0., 0., 0.] },
+		Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, start_y],   texture_position: [texture_x_end, texture_y_start],   color: [0., 0., 0., 0.] },
+		Vertex { position: [end_x, end_y],     texture_position: [texture_x_end, texture_y_end],     color: [0., 0., 0., 0.] },
+		Vertex { position: [start_x, end_y],   texture_position: [texture_x_start, texture_y_end],   color: [0., 0., 0., 0.] },
+	], match io.char_widths.get(char_id as usize) {
+		Some(width) => *width,
+		None => 8,
+	})
+}
+
 /// Render a string at a GUI pos and alignment.
-pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, io: &IO, vertices: &mut Vec<Vertex>) {
+pub fn render_gui_string_u16(string: &str, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, io: &IO, vertices: &mut Vec<Vertex>) {
 	let mut width = 0u32;
 	for chr in string.chars() {
 		let char_id: u32 = chr.into();
@@ -124,8 +156,32 @@ pub fn render_gui_string(string: &str, pos: [u16; 2], alignment: GUIAlignment, t
 	};
 	let mut x = pos[0].saturating_sub(offset as u16);
 	for chr in string.chars() {
-		let (char_vertices, char_width) = render_gui_char(chr, [x, pos[1]], alignment, io);
+		let (char_vertices, char_width) = render_gui_char_u16(chr, [x, pos[1]], alignment, io);
 		vertices.extend(char_vertices);
 		x += char_width as u16 + 1;
+	}
+}
+
+/// Render a string at a GUI pos and alignment.
+pub fn render_gui_string(string: &str, pos: [i16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment, io: &IO, vertices: &mut Vec<Vertex>) {
+	let mut width = 0u32;
+	for chr in string.chars() {
+		let char_id: u32 = chr.into();
+		width += (match io.char_widths.get(char_id as usize) {
+			Some(width) => *width,
+			None => 8,
+		} + 1) as u32;
+	}
+	width = width.saturating_sub(1);
+	let offset = match text_alignment {
+		GUIAlignment::Left => 0,
+		GUIAlignment::Center => width / 2,
+		GUIAlignment::Right => width,
+	};
+	let mut x = pos[0].saturating_sub_unsigned(offset as u16);
+	for chr in string.chars() {
+		let (char_vertices, char_width) = render_gui_char(chr, [x, pos[1]], alignment, io);
+		vertices.extend(char_vertices);
+		x += char_width as i16 + 1;
 	}
 }
