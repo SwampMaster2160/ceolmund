@@ -22,7 +22,7 @@ pub enum GUIElement {
 	ProgressBar { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], progress: u32, max_progress: u32 },
 	Button {
 		text: String, rect: GUIRect, alignment: GUIAlignment, enabled: bool,
-		tick_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
+		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO) -> (),
 	},
 	ToggleButton {
 		text: String, rect: GUIRect, alignment: GUIAlignment, enabled: bool, state: bool,
@@ -30,6 +30,11 @@ pub enum GUIElement {
 	MutuallyExclusiveButtonGroup {
 		buttons: Vec<(String, GUIRect, bool)>, // text, rect, enabled
 		alignment: GUIAlignment, selected_button: usize,
+	},
+	SingleFunctionButtonGroup {
+		buttons: Vec<(String, GUIRect, bool)>, // text, rect, enabled
+		alignment: GUIAlignment,
+		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, button_clicked_index: usize) -> (),
 	},
 	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, rect: GUIRect, alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
@@ -129,6 +134,24 @@ impl GUIElement {
 					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
 				}
 			}
+			Self::SingleFunctionButtonGroup { buttons, alignment, .. } => {
+				for button in buttons {
+					let rect = button.1;
+					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
+					let text = button.0.as_str();
+					let is_enabled = button.2;
+					let mut inside_color = BUTTON_GRAY_COLOR;
+					if is_mouse_over {
+						inside_color = BUTTON_HOVER_COLOR;
+					}
+					if !is_enabled {
+						inside_color = BUTTON_DISABLED_COLOR;
+					}
+					rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
+					let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
+					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+				}
+			}
 			Self::Text { text: string, pos, alignment, text_alignment } =>
 				render_gui_string_u16(string, *pos, *alignment, *text_alignment, io, vertices),
 			Self::TextEntry { text, rect, alignment, is_selected, .. } => {
@@ -196,9 +219,22 @@ impl GUIElement {
 
 	/// Tick a copy of the element with a mutable refrence to the gui.
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO) {
-		if io.get_game_key_starting_now(GameKey::GUIInteract) && self.is_mouse_over(io) {
+		if io.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
-				GUIElement::Button { tick_mut_gui, enabled, .. } if enabled => tick_mut_gui(self, gui, world, io),
+				GUIElement::Button { click_mut_gui, enabled, .. } => {
+					if enabled && self.is_mouse_over(io) {
+						click_mut_gui(self, gui, world, io);
+					}
+				}
+				GUIElement::SingleFunctionButtonGroup { ref buttons, alignment, click_mut_gui, .. } => {
+					for (button_index, button) in buttons.iter().enumerate() {
+						let is_enabled = button.2;
+						let rect = button.1;
+						if is_enabled && is_mouse_over_rect(rect, alignment, io) {
+							click_mut_gui(self.clone(), gui, world, io, button_index);
+						}
+					}
+				}
 				_ => {}
 			}
 		}
