@@ -145,7 +145,7 @@ impl GUIElement {
 			Self::SingleFunctionButtonGroup { buttons, alignment, .. } => {
 				for button in buttons {
 					let rect = button.1;
-					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
+					let is_mouse_over = is_mouse_over_rect(rect.scrolled(scroll), *alignment, io);
 					let text = button.0.as_str();
 					let is_enabled = button.2;
 					let mut inside_color = BUTTON_GRAY_COLOR;
@@ -155,6 +155,8 @@ impl GUIElement {
 					if !is_enabled {
 						inside_color = BUTTON_DISABLED_COLOR;
 					}
+
+					let rect = rect.scrolled(scroll);
 					rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 					let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
 					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
@@ -251,7 +253,7 @@ impl GUIElement {
 					for (button_index, button) in buttons.iter().enumerate() {
 						let is_enabled = button.2;
 						let rect = button.1;
-						if is_enabled && is_mouse_over_rect(rect, alignment, io) {
+						if is_enabled && is_mouse_over_rect(rect.scrolled(scroll), alignment, io) {
 							click_mut_gui(self.clone(), gui, world, io, button_index);
 						}
 					}

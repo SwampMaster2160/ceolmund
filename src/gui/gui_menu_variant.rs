@@ -10,5 +10,5 @@ pub enum GUIMenuVariant {
 	IngameHUD,
 	CreateWorld,
 	Error,
-	LoadWorld { load_world_data: LoadWorldData, page: usize },
+	LoadWorld { load_world_data: LoadWorldData/*, page: usize*/ },
 }

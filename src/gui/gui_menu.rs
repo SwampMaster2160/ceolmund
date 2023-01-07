@@ -90,7 +90,7 @@ impl GUIMenu {
 					rect: GUIRect::new(53, 50, 150, 16), alignment: GUIAlignment::Center, text: "Load World".to_string(), enabled: true,
 					click_mut_gui: (|_, gui, _, io| {
 						gui.menus.pop();
-						gui.menus.push(Self::new_load_world(0, LoadWorldData::new(io)));
+						gui.menus.push(Self::new_load_world(/*0, */LoadWorldData::new(io)));
 					}),
 				},
 			],
@@ -185,7 +185,7 @@ impl GUIMenu {
 					}),
 				},
 			],
-			GUIMenuVariant::LoadWorld { page, load_world_data } => {
+			GUIMenuVariant::LoadWorld { /*page, */load_world_data } => {
 					let mut out = vec![
 					GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 					GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
@@ -195,7 +195,7 @@ impl GUIMenu {
 							gui.menus = vec![Self::new(GUIMenuVariant::Title)];
 						}),
 					},
-					GUIElement::Button {
+					/*GUIElement::Button {
 						rect: GUIRect::new(53, 190, 73, 16), alignment: GUIAlignment::Center, text: "<-".to_string(), enabled: *page > 0,
 						click_mut_gui: (|_, gui, _, _| {
 							let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
@@ -212,10 +212,10 @@ impl GUIMenu {
 								gui.menus.push(GUIMenu::new_load_world(page + 1, load_world_data));
 							}
 						}),
-					},
+					},*/
 				];
 
-				let world_count = load_world_data.worlds.len();
+				/*let world_count = load_world_data.worlds.len();
 				let start = page * 8;
 				let end = (start + 8).min(world_count);
 				let button_count = end - start;
@@ -242,7 +242,7 @@ impl GUIMenu {
 							}
 						}
 					}),
-				});
+				});*/
 				out
 			}
 		}
@@ -368,6 +368,14 @@ impl GUIMenu {
 								rect: GUIRect::new(0, 0, 76, 16), alignment: GUIAlignment::Center, text: "S".to_string(), enabled: true,
 								click_mut_gui: (|_, _, _, _| println!("S")),
 							},
+							GUIElement::SingleFunctionButtonGroup {
+								alignment: GUIAlignment::Center, buttons: vec![
+									("Button 0".to_string(), GUIRect::new(0, 40, 76, 16), true),
+									("Button 1".to_string(), GUIRect::new(0, 60, 76, 16), false),
+									("Button 2".to_string(), GUIRect::new(0, 80, 76, 16), true),
+								],
+								click_mut_gui: (|_, _, _, _, button_clicked_index| println!("Hi {button_clicked_index}.")),
+							},
 							GUIElement::Button {
 								rect: GUIRect::new(0, 134, 76, 16), alignment: GUIAlignment::Center, text: "K".to_string(), enabled: true,
 								click_mut_gui: (|_, _, _, _| println!("K")),
@@ -375,6 +383,41 @@ impl GUIMenu {
 						],
 					},
 				],
+				GUIMenuVariant::LoadWorld { load_world_data } => {
+					let world_count = load_world_data.worlds.len();
+				
+					let mut buttons = Vec::new();
+					for world_index in 0..world_count {
+						//let world_index = x + start;
+						let world = load_world_data.worlds[world_index].clone();
+						buttons.push((world.0, GUIRect::new(0, world_index as i16 * 20, 146, 16), true));
+					}
+
+					let buttons = GUIElement::SingleFunctionButtonGroup {
+						alignment: GUIAlignment::Center, buttons,
+						click_mut_gui: (|_, gui, world, io, button_clicked_index| {
+							let top_menu = &gui.menus.last().unwrap().variant;
+							if let GUIMenuVariant::LoadWorld { load_world_data, /*page*/ } = top_menu {
+								//let world_index = page * 8 + button_clicked_index;
+								let world_path = &load_world_data.worlds[button_clicked_index].1;
+								if let Some(new_world) = World::load(world_path.clone(), io, false) {
+									*world = Some(new_world);
+									gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
+								}
+								else {
+									gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
+								}
+							}
+						}),
+					};
+					
+					vec![GUIElement::ScrollArea {
+						rect: GUIRect::new(53, 30, 150, 9 * 20 - 4), alignment: GUIAlignment::Center, border_color: RECT_BORDER_COLOR, inside_color: RECT_COLOR,
+						inside_height: 150, scroll: 0, inside_elements: vec![
+							buttons,
+						],
+					}]
+				}
 				_ => Vec::new(),
 			},
 		}
@@ -391,9 +434,9 @@ impl GUIMenu {
 	}
 
 	/// Create a load world menu.
-	pub fn new_load_world(page: usize, load_world_data: LoadWorldData) -> Self {
+	pub fn new_load_world(/*page: usize, */load_world_data: LoadWorldData) -> Self {
 		Self {
-			variant: GUIMenuVariant::LoadWorld { page, load_world_data },
+			variant: GUIMenuVariant::LoadWorld { /*page, */load_world_data },
 			extra_elements: vec![],
 		}
 	}
