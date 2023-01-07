@@ -38,11 +38,11 @@ impl GUIRect {
 		]
 	}
 
-	pub const fn scrolled_y(self, shift: i16) -> Self {
+	pub const fn scrolled(self, scroll: [i16; 2]) -> Self {
 		GUIRect {
 			pos: [
-				self.pos[0],
-				self.pos[1].saturating_sub(shift),
+				self.pos[0].saturating_add(scroll[0]),
+				self.pos[1].saturating_add(scroll[1]),
 			],
 			size: self.size,
 		}

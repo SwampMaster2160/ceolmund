@@ -361,6 +361,15 @@ impl GUIMenu {
 						("Button 1".to_string(), GUIRect::new(104, 100, 100, 16), false),
 						("Button 2".to_string(), GUIRect::new(208, 100, 100, 16), true),
 					] },
+					GUIElement::ScrollArea {
+						rect: GUIRect::new(100, 120, 80, 130), alignment: GUIAlignment::Center, border_color: RECT_BORDER_COLOR, inside_color: RECT_COLOR,
+						inside_height: 300, scroll: 0, inside_elements: vec![
+							GUIElement::Button {
+								rect: GUIRect::new(0, 0, 76, 16), alignment: GUIAlignment::Center, text: "S".to_string(), enabled: true,
+								click_mut_gui: (|_, _, _, _| println!("S")),
+							},
+						],
+					},
 				],
 				_ => Vec::new(),
 			},

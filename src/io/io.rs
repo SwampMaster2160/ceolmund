@@ -158,9 +158,9 @@ impl IO {
 		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
 	}
 
-	pub fn get_mouse_pos_as_gui_pos(&self, scroll: [i16; 2]) -> [f32; 2] {
-		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio + scroll[0] as f32,
-		self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32 + scroll[1] as f32]
+	pub fn get_mouse_pos_as_gui_pos(&self) -> [f32; 2] {
+		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio,
+		self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
 	}
 
 	/// All keys pressed will be set as pressed last.
