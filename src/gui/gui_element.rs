@@ -42,8 +42,8 @@ pub enum GUIElement {
 	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
 }
 
-pub fn is_mouse_over_area_pos_size(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, io: &IO) -> bool {
-	let mouse_pos = io.get_mouse_pos_as_gui_pos();
+pub fn is_mouse_over_area_pos_size(pos: [u16; 2], size: [u16; 2], alignment: GUIAlignment, io: &IO, scroll: [i16; 2]) -> bool {
+	let mouse_pos = io.get_mouse_pos_as_gui_pos(scroll);
 	let button_screen_pos = gui_pos_to_screen_pos_unsigned(pos, alignment, io);
 	let button_screen_size = gui_size_to_screen_size(size);
 	let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
@@ -51,8 +51,8 @@ pub fn is_mouse_over_area_pos_size(pos: [u16; 2], size: [u16; 2], alignment: GUI
 	mouse_pos[0] <= button_screen_end[0] && mouse_pos[1] <= button_screen_end[1]
 }
 
-pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO) -> bool {
-	let mouse_pos = io.get_mouse_pos_as_gui_pos();
+pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO, scroll: [i16; 2]) -> bool {
+	let mouse_pos = io.get_mouse_pos_as_gui_pos(scroll);
 	let button_screen_pos = gui_pos_to_screen_pos(rect.pos, alignment, io);
 	let button_screen_size = gui_size_to_screen_size(rect.size);
 	let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
@@ -62,17 +62,17 @@ pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO) -> bo
 
 impl GUIElement {
 	/// Get weather the mouse is over an element.
-	pub fn is_mouse_over(&self, io: &IO) -> bool {
+	pub fn is_mouse_over(&self, io: &IO, scroll: [i16; 2]) -> bool {
 		match self {
-			Self::Button { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
-			Self::ToggleButton { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
-			Self::TextEntry { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
+			Self::Button { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io, scroll),
+			Self::ToggleButton { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io, scroll),
+			Self::TextEntry { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io, scroll),
 			_ => false,
 		}
 	}
 
 	/// Render the element
-	pub fn render(&self, visable_area: GUIRect, vertices: &mut Vec<Vertex>, io: &IO) {
+	pub fn render(&self, visable_area: GUIRect, vertices: &mut Vec<Vertex>, io: &IO, scroll: [i16; 2]) {
 		match self {
 			Self::Rect{rect, alignment, inside_color: color, border_color} =>
 				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *color, io, vertices),
@@ -87,7 +87,7 @@ impl GUIElement {
 			}
 			Self::Button { rect, alignment, text, enabled, .. } => {
 				let mut inside_color = BUTTON_GRAY_COLOR;
-				if self.is_mouse_over(io) {
+				if self.is_mouse_over(io, scroll) {
 					inside_color = BUTTON_HOVER_COLOR;
 				}
 				if !enabled {
@@ -99,7 +99,7 @@ impl GUIElement {
 				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
 			}
 			Self::ToggleButton { rect, alignment, text, enabled, state, .. } => {
-				let mut inside_color = match (*state, self.is_mouse_over(io)) {
+				let mut inside_color = match (*state, self.is_mouse_over(io, scroll)) {
 					(false, false) => BUTTON_OFF_COLOR,
 					(false, true) => BUTTON_OFF_HOVER_COLOR,
 					(true, false) => BUTTON_ON_COLOR,
@@ -117,7 +117,7 @@ impl GUIElement {
 				for (button_index, button) in buttons.iter().enumerate() {
 					let is_selected = button_index == *selected_button;
 					let rect = button.1;
-					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
+					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io, scroll);
 					let text = button.0.as_str();
 					let is_enabled = button.2;
 					let mut inside_color = match (is_selected, is_mouse_over) {
@@ -137,7 +137,7 @@ impl GUIElement {
 			Self::SingleFunctionButtonGroup { buttons, alignment, .. } => {
 				for button in buttons {
 					let rect = button.1;
-					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
+					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io, scroll);
 					let text = button.0.as_str();
 					let is_enabled = button.2;
 					let mut inside_color = BUTTON_GRAY_COLOR;
@@ -156,7 +156,7 @@ impl GUIElement {
 				render_gui_string_u16(string, *pos, *alignment, *text_alignment, io, vertices),
 			Self::TextEntry { text, rect, alignment, is_selected, .. } => {
 				let mut inside_color = TEXT_ENTRY_GRAY_COLOR;
-				if self.is_mouse_over(io) {
+				if self.is_mouse_over(io, scroll) {
 					inside_color = BUTTON_HOVER_COLOR;
 				}
 				if *is_selected {
@@ -175,8 +175,8 @@ impl GUIElement {
 	}
 
 	/// Tick the element with a mutable refrence to self.
-	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, io: &IO) {
-		let is_mouse_over = self.is_mouse_over(io);
+	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, io: &IO, scroll: [i16; 2]) {
+		let is_mouse_over = self.is_mouse_over(io, scroll);
 		if io.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
 				GUIElement::TextEntry { is_selected, .. } => {
@@ -191,7 +191,7 @@ impl GUIElement {
 					for (button_index, button) in buttons.iter().enumerate() {
 						let rect = button.1;
 						let is_enabled = button.2;
-						let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
+						let is_mouse_over = is_mouse_over_rect(rect, *alignment, io, scroll);
 						if is_mouse_over && is_enabled {
 							*selected_button = button_index;
 						}
@@ -220,9 +220,16 @@ impl GUIElement {
 	/// Tick a copy of the element with a mutable refrence to the gui.
 	pub fn tick_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO) {
 		if io.get_game_key_starting_now(GameKey::GUIInteract) {
+			self.click_mut_gui(gui, world, io, [0, 0]);
+		}
+	}
+
+	/// Tick a copy of the element with a mutable refrence to the gui.
+	pub fn click_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO, scroll: [i16; 2]) {
+		if io.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
 				GUIElement::Button { click_mut_gui, enabled, .. } => {
-					if enabled && self.is_mouse_over(io) {
+					if enabled && self.is_mouse_over(io, scroll) {
 						click_mut_gui(self, gui, world, io);
 					}
 				}
@@ -230,7 +237,7 @@ impl GUIElement {
 					for (button_index, button) in buttons.iter().enumerate() {
 						let is_enabled = button.2;
 						let rect = button.1;
-						if is_enabled && is_mouse_over_rect(rect, alignment, io) {
+						if is_enabled && is_mouse_over_rect(rect, alignment, io, scroll) {
 							click_mut_gui(self.clone(), gui, world, io, button_index);
 						}
 					}

@@ -219,31 +219,30 @@ impl GUIMenu {
 				let start = page * 8;
 				let end = (start + 8).min(world_count);
 				let button_count = end - start;
-
+				
+				let mut buttons = Vec::new();
 				for x in 0..button_count {
 					let world_index = x + start;
 					let world = load_world_data.worlds[world_index].clone();
-					out.push(GUIElement::Button {
-						rect: GUIRect::new(53, 30 + x as i16 * 20, 150, 16), alignment: GUIAlignment::Center, text: world.0, enabled: true,
-						click_mut_gui: (|element, gui, world, io| {
-							if let GUIElement::Button { rect, .. } = element {
-								let button_y = ((rect.pos[1] - 30) / 20) as usize;
-								let top_menu = &gui.menus.last().unwrap().variant;
-								if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
-									let world_index = button_y + page * 8;
-									let world_path = &load_world_data.worlds[world_index].1;
-									if let Some(new_world) = World::load(world_path.clone(), io, false) {
-										*world = Some(new_world);
-										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
-									}
-									else {
-										gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
-									}
-								}
-							}
-						}),
-					},)
+					buttons.push((world.0, GUIRect::new(53, 30 + x as i16 * 20, 150, 16), true));
 				}
+				out.push(GUIElement::SingleFunctionButtonGroup {
+					alignment: GUIAlignment::Center, buttons,
+					click_mut_gui: (|_, gui, world, io, button_clicked_index| {
+						let top_menu = &gui.menus.last().unwrap().variant;
+						if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
+							let world_index = page * 8 + button_clicked_index;
+							let world_path = &load_world_data.worlds[world_index].1;
+							if let Some(new_world) = World::load(world_path.clone(), io, false) {
+								*world = Some(new_world);
+								gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
+							}
+							else {
+								gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
+							}
+						}
+					}),
+				});
 				out
 			}
 		}
@@ -259,7 +258,7 @@ impl GUIMenu {
 	/// Render all elements.
 	pub fn render(&self, vertices: &mut Vec<Vertex>, io: &IO, world: &Option<World>) {
 		for element in self.get_elements(world) {
-			element.render(GUIRect::EVERYTHING, vertices, io);
+			element.render(GUIRect::EVERYTHING, vertices, io, [0, 0]);
 		}
 	}
 
