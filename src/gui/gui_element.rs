@@ -61,6 +61,7 @@ impl GUIElement {
 			},
 			Self::ToggleButton { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
 			Self::TextEntry { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
+			Self::ScrollArea { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
 			_ => false,
 		}
 	}
@@ -75,7 +76,7 @@ impl GUIElement {
 				for element in inside_elements {
 					let scroll = [
 						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
-						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_add_unsigned(*scroll_area_scroll),
+						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(*scroll_area_scroll),
 					];
 					element.render(visable_area, vertices, io, scroll);
 				}
@@ -218,6 +219,12 @@ impl GUIElement {
 					}
 				}
 			},
+			GUIElement::ScrollArea { scroll, rect, inside_height, .. } => {
+				if is_mouse_over {
+					let max_scroll = inside_height.saturating_sub(rect.size[1]).saturating_add(4);
+					*scroll = scroll.saturating_add_signed(io.mouse_scroll.saturating_neg().saturating_mul(8)).min(max_scroll);
+				}
+			}
 			_ => {}
 		}
 	}
@@ -252,7 +259,7 @@ impl GUIElement {
 						for element in inside_elements {
 							let scroll = [
 								scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
-								scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_add_unsigned(scroll_area_scroll),
+								scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(scroll_area_scroll),
 							];
 							element.click_mut_gui(gui, world, io, scroll);
 						}

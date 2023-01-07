@@ -30,6 +30,7 @@ pub struct IO {
 	pub async_runtime: Runtime,
 	pub namespace: FileWriter,
 	pub namespace_hash: u64,
+	pub mouse_scroll: i16,
 }
 
 impl IO {
@@ -109,6 +110,7 @@ impl IO {
 			async_runtime: Runtime::new().unwrap(),
 			namespace,
 			namespace_hash,
+			mouse_scroll: 0,
 		}
 	}
 
@@ -168,6 +170,7 @@ impl IO {
 		for x in 0..GameKey::COUNT {
 			self.keys_pressed_last[x] = self.get_game_key_via_id(x);
 		}
+		self.mouse_scroll = 0;
 	}
 
 	/// Updates window_size and aspect_ratio. Should be called when the game's window size changes.

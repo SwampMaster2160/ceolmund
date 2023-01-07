@@ -10,7 +10,7 @@ use std::{io::Cursor, time::Instant};
 
 use gui::gui::GUI;
 use io::{io::IO, game_key::GameKey};
-use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
+use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState, MouseScrollDelta}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 
 #[macro_export]
@@ -101,6 +101,12 @@ fn main() {
 				WindowEvent::CursorMoved { device_id: _, position, .. } =>
 					io.mouse_pos = [position.x as u32, position.y as u32],
 				WindowEvent::MouseInput { device_id: _, state, button, .. } => io.mouse_press(*state, *button),
+				WindowEvent::MouseWheel { delta, .. } => {
+					match delta {
+						MouseScrollDelta::LineDelta(_, y) => io.mouse_scroll = *y as i16,
+						MouseScrollDelta::PixelDelta(amount) => io.mouse_scroll = amount.y as i16,
+					}
+				}
 				_  => {}
 			}
 			// Draw
