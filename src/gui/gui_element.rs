@@ -247,6 +247,17 @@ impl GUIElement {
 						}
 					}
 				}
+				GUIElement::ScrollArea { rect, alignment, inside_elements, scroll: scroll_area_scroll, .. } => {
+					if is_mouse_over_rect(rect, alignment, io) {
+						for element in inside_elements {
+							let scroll = [
+								scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+								scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_add_unsigned(scroll_area_scroll),
+							];
+							element.click_mut_gui(gui, world, io, scroll);
+						}
+					}
+				}
 				_ => {}
 			}
 		}
