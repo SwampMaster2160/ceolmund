@@ -72,7 +72,9 @@ impl GUIElement {
 			Self::Rect{rect, alignment, inside_color, border_color} =>
 				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices),
 			Self::ScrollArea { rect, alignment, inside_color, border_color, inside_elements, scroll: scroll_area_scroll, .. } => {
+				let rect = rect.scrolled(scroll);
 				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
+				let visable_area = visable_area.scrolled(scroll).overlap(rect.without_outline().without_outline());
 				for element in inside_elements {
 					let scroll = [
 						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
@@ -102,7 +104,7 @@ impl GUIElement {
 				rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 
 				let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
-				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
 			}
 			Self::ToggleButton { rect, alignment, text, enabled, state, .. } => {
 				let mut inside_color = match (*state, self.is_mouse_over(io, scroll)) {
@@ -117,7 +119,7 @@ impl GUIElement {
 				rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 
 				let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
-				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+				render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
 			}
 			Self::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
 				for (button_index, button) in buttons.iter().enumerate() {
@@ -137,7 +139,7 @@ impl GUIElement {
 					}
 					rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 					let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
-					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
 				}
 			}
 			Self::SingleFunctionButtonGroup { buttons, alignment, .. } => {
@@ -155,7 +157,7 @@ impl GUIElement {
 					}
 					rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 					let text_pos = [rect.pos[0].saturating_add_unsigned(rect.size[0] / 2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
-					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices);
+					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
 				}
 			}
 			Self::Text { text: string, pos, alignment, text_alignment } =>
@@ -171,7 +173,7 @@ impl GUIElement {
 				rect.render_shade_and_outline(visable_area, *alignment, BUTTON_BORDER, inside_color, io, vertices);
 
 				let text_pos = [rect.pos[0].saturating_add(2), rect.pos[1].saturating_add_unsigned(rect.size[1] / 2).saturating_sub(8)];
-				render_gui_string(text, text_pos, *alignment, GUIAlignment::Left, io, vertices);
+				render_gui_string(text, text_pos, *alignment, GUIAlignment::Left, io, vertices, visable_area);
 			}
 			Self::Grayout { color } => vertices.extend(render_screen_grayout(*color, io)),
 			Self::Texture { pos, alignment, texture } => {
