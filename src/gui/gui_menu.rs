@@ -90,7 +90,7 @@ impl GUIMenu {
 					rect: GUIRect::new(53, 50, 150, 16), alignment: GUIAlignment::Center, text: "Load World".to_string(), enabled: true,
 					click_mut_gui: (|_, gui, _, io| {
 						gui.menus.pop();
-						gui.menus.push(Self::new_load_world(/*0, */LoadWorldData::new(io)));
+						gui.menus.push(Self::new(GUIMenuVariant::LoadWorld{ load_world_data: LoadWorldData::new(io) })/*Self::new_load_world(/*0, */LoadWorldData::new(io))*/);
 					}),
 				},
 			],
@@ -413,7 +413,7 @@ impl GUIMenu {
 					
 					vec![GUIElement::ScrollArea {
 						rect: GUIRect::new(53, 30, 150, 9 * 20 - 4), alignment: GUIAlignment::Center, border_color: RECT_BORDER_COLOR, inside_color: RECT_COLOR,
-						inside_height: 150, scroll: 0, inside_elements: vec![
+						inside_height: (world_count as u16).saturating_mul(20).saturating_sub(4), scroll: 0, inside_elements: vec![
 							buttons,
 						],
 					}]
@@ -433,11 +433,11 @@ impl GUIMenu {
 		}
 	}
 
-	/// Create a load world menu.
+	/*/// Create a load world menu.
 	pub fn new_load_world(/*page: usize, */load_world_data: LoadWorldData) -> Self {
 		Self {
 			variant: GUIMenuVariant::LoadWorld { /*page, */load_world_data },
 			extra_elements: vec![],
 		}
-	}
+	}*/
 }
