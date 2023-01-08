@@ -185,8 +185,8 @@ impl GUIMenu {
 					}),
 				},
 			],
-			GUIMenuVariant::LoadWorld { /*page, */load_world_data } => {
-					let mut out = vec![
+			GUIMenuVariant::LoadWorld { .. } => {
+				vec![
 					GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 					GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 					GUIElement::Button {
@@ -195,55 +195,7 @@ impl GUIMenu {
 							gui.menus = vec![Self::new(GUIMenuVariant::Title)];
 						}),
 					},
-					/*GUIElement::Button {
-						rect: GUIRect::new(53, 190, 73, 16), alignment: GUIAlignment::Center, text: "<-".to_string(), enabled: *page > 0,
-						click_mut_gui: (|_, gui, _, _| {
-							let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
-							if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
-								gui.menus.push(GUIMenu::new_load_world(page - 1, load_world_data));
-							}
-						}),
-					},
-					GUIElement::Button {
-						rect: GUIRect::new(130, 190, 73, 16), alignment: GUIAlignment::Center, text: "->".to_string(), enabled: (page + 1) * 8 < load_world_data.worlds.len(),
-						click_mut_gui: (|_, gui, _, _| {
-							let GUIMenu { variant, .. } = gui.menus.pop().unwrap();
-							if let GUIMenuVariant::LoadWorld { load_world_data, page } = variant {
-								gui.menus.push(GUIMenu::new_load_world(page + 1, load_world_data));
-							}
-						}),
-					},*/
-				];
-
-				/*let world_count = load_world_data.worlds.len();
-				let start = page * 8;
-				let end = (start + 8).min(world_count);
-				let button_count = end - start;
-				
-				let mut buttons = Vec::new();
-				for x in 0..button_count {
-					let world_index = x + start;
-					let world = load_world_data.worlds[world_index].clone();
-					buttons.push((world.0, GUIRect::new(53, 30 + x as i16 * 20, 150, 16), true));
-				}
-				out.push(GUIElement::SingleFunctionButtonGroup {
-					alignment: GUIAlignment::Center, buttons,
-					click_mut_gui: (|_, gui, world, io, button_clicked_index| {
-						let top_menu = &gui.menus.last().unwrap().variant;
-						if let GUIMenuVariant::LoadWorld { load_world_data, page } = top_menu {
-							let world_index = page * 8 + button_clicked_index;
-							let world_path = &load_world_data.worlds[world_index].1;
-							if let Some(new_world) = World::load(world_path.clone(), io, false) {
-								*world = Some(new_world);
-								gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
-							}
-							else {
-								gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
-							}
-						}
-					}),
-				});*/
-				out
+				]
 			}
 		}
 	}
@@ -388,7 +340,6 @@ impl GUIMenu {
 				
 					let mut buttons = Vec::new();
 					for world_index in 0..world_count {
-						//let world_index = x + start;
 						let world = load_world_data.worlds[world_index].clone();
 						buttons.push((world.0, GUIRect::new(0, world_index as i16 * 20, 146, 16), true));
 					}
@@ -397,8 +348,7 @@ impl GUIMenu {
 						alignment: GUIAlignment::Center, buttons,
 						click_mut_gui: (|_, gui, world, io, button_clicked_index| {
 							let top_menu = &gui.menus.last().unwrap().variant;
-							if let GUIMenuVariant::LoadWorld { load_world_data, /*page*/ } = top_menu {
-								//let world_index = page * 8 + button_clicked_index;
+							if let GUIMenuVariant::LoadWorld { load_world_data } = top_menu {
 								let world_path = &load_world_data.worlds[button_clicked_index].1;
 								if let Some(new_world) = World::load(world_path.clone(), io, false) {
 									*world = Some(new_world);
@@ -432,12 +382,4 @@ impl GUIMenu {
 			],
 		}
 	}
-
-	/*/// Create a load world menu.
-	pub fn new_load_world(/*page: usize, */load_world_data: LoadWorldData) -> Self {
-		Self {
-			variant: GUIMenuVariant::LoadWorld { /*page, */load_world_data },
-			extra_elements: vec![],
-		}
-	}*/
 }
