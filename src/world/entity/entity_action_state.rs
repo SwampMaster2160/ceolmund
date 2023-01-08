@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum::{IntoEnumIterator};
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
-use crate::io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter};
+use crate::{io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}, world::direction::Direction4};
 
 #[derive(Eq, PartialEq, Clone)]
 #[derive(EnumDiscriminants)]
@@ -11,7 +11,7 @@ use crate::io::{namespace::Namespace, file_reader::FileReader, file_writer::File
 #[repr(u8)]
 pub enum EntityActionState {
 	Idle,
-	Walking(u8),
+	Walking(Direction4, u8),
 }
 
 impl EntityActionState {
@@ -22,16 +22,27 @@ impl EntityActionState {
 		
 		match self {
 			Self::Idle => {}
-			Self::Walking(amount) => file.push_u8(*amount),
+			Self::Walking(moving_direction, amount) => {
+				file.push_u8(*moving_direction as u8);
+				file.push_u8(*amount);
+			},
 		}
 	}
 
 	/// Load
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, _version: u32) -> Option<Self> {
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, facing: Direction4) -> Option<Self> {
 		let variant = *namespace.entity_action_states.get(file.read_u8()? as usize)?;
 		Some(match variant {
 			EntityActionStateVariant::Idle => Self::Idle,
-			EntityActionStateVariant::Walking => Self::Walking(file.read_u8()?),
+			EntityActionStateVariant::Walking => {
+				let moving_direction = if version < 2 {
+					facing
+				}
+				else {
+					*namespace.direction_4s.get(file.read_u8()? as usize)?
+				};
+				Self::Walking(moving_direction, file.read_u8()?)
+			},
 		})
 	}
 }

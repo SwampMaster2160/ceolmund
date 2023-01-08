@@ -13,7 +13,7 @@ use tokio::runtime::Runtime;
 
 use super::{game_key::GameKey, file_writer::FileWriter};
 
-pub const SERIALIZATION_VERSION: u32 = 1;
+pub const SERIALIZATION_VERSION: u32 = 2;
 
 /// For everything hardware related.
 pub struct IO {

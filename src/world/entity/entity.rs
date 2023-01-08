@@ -34,28 +34,6 @@ impl Entity {
 		}
 		let action_state = self.action_state.clone();
 		if action_state == EntityActionState::Idle {
-			// Walk
-			let mut try_move = true;
-			if input.get_game_key(GameKey::WalkNorth) {
-				self.facing = Direction4::North;
-			}
-			else if input.get_game_key(GameKey::WalkEast) {
-				self.facing = Direction4::East;
-			}
-			else if input.get_game_key(GameKey::WalkSouth) {
-				self.facing = Direction4::South;
-			}
-			else if input.get_game_key(GameKey::WalkWest) {
-				self.facing = Direction4::West;
-			}
-			else {
-				try_move = false;
-			}
-			if try_move {
-				if let Some(tile_stack) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
-					tile_stack.entity_try_move_to(self);
-				}
-			}
 			// Change item
 			let (inventory, selected_item) = match &mut self.entity_type {
 				EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
@@ -78,9 +56,31 @@ impl Entity {
 
 			// Interact with world
 			let mut chunks_offset = chunks.get_offset(pos_in_front);
-			if input.get_game_key_starting_now(GameKey::Interact) {
+			if input.get_game_key_starting_now(GameKey::Interact) || (input.get_game_key(GameKey::Turbo) && input.get_game_key(GameKey::Interact)) {
 				let item_stack = &mut inventory[*selected_item as usize];
 				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
+			}
+			// Walk
+			let mut try_move = true;
+			if input.get_game_key(GameKey::WalkNorth) {
+				self.facing = Direction4::North;
+			}
+			else if input.get_game_key(GameKey::WalkEast) {
+				self.facing = Direction4::East;
+			}
+			else if input.get_game_key(GameKey::WalkSouth) {
+				self.facing = Direction4::South;
+			}
+			else if input.get_game_key(GameKey::WalkWest) {
+				self.facing = Direction4::West;
+			}
+			else {
+				try_move = false;
+			}
+			if try_move {
+				if let Some(tile_stack) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
+					tile_stack.entity_try_move_to(self);
+				}
 			}
 		}
 	}

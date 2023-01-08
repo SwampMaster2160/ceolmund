@@ -18,6 +18,9 @@ pub enum GameKey {
 	InventoryLeft,
 	InventoryRight,
 	Interact,
+	ChangeDirectionInplace,
+	MoveWithoutChangingDirection,
+	Turbo,
 }
 
 impl GameKey {
@@ -40,6 +43,9 @@ impl GameKey {
 			VirtualKeyCode::Left => vec![Self::InventoryLeft],
 			VirtualKeyCode::Right => vec![Self::InventoryRight],
 			VirtualKeyCode::Return => vec![Self::Interact],
+			VirtualKeyCode::LShift => vec![Self::ChangeDirectionInplace],
+			VirtualKeyCode::LControl => vec![Self::MoveWithoutChangingDirection],
+			VirtualKeyCode::LAlt => vec![Self::Turbo],
 			_ => Vec::new(),
 		}
 	}
