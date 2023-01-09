@@ -28,13 +28,14 @@ impl ChunkPool {
 		let mut render_start_y = player.pos[1] - 8;
 		let mut render_end_y = player.pos[1] + 9;
 		// If the player is walking then extend the visable area by one in that direction
-		if matches!(player.action_state, EntityActionState::Walking(_)) {
-			match player.facing {
+		match player.action_state {
+			EntityActionState::Walking(direction, ..) => match direction {
 				Direction4::North => render_start_y -= 1,
 				Direction4::East => render_end_x += 1,
 				Direction4::South => render_end_y += 1,
 				Direction4::West => render_start_x -= 1,
 			}
+			_ => {},
 		}
 
 		let render_range = [render_start_x..render_end_x, render_start_y..render_end_y];

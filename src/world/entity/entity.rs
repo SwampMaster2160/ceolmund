@@ -17,7 +17,7 @@ impl Entity {
 	pub fn get_subtile_pos(&self) -> [i8; 2] {
 		match self.action_state {
 			EntityActionState::Idle => [0, 0],
-			EntityActionState::Walking(walked_amount) => match self.facing {
+			EntityActionState::Walking(walking_direction, walked_amount) => match walking_direction {
 				Direction4::North => [0, -(walked_amount as i8)],
 				Direction4::East => [(walked_amount as i8), 0],
 				Direction4::South => [0, (walked_amount as i8)],
@@ -61,25 +61,29 @@ impl Entity {
 				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
 			}
 			// Walk
-			let mut try_move = true;
+			let mut try_move = !input.get_game_key(GameKey::ChangeDirectionInplace);
+			let mut direction = self.facing;
 			if input.get_game_key(GameKey::WalkNorth) {
-				self.facing = Direction4::North;
+				direction = Direction4::North;
 			}
 			else if input.get_game_key(GameKey::WalkEast) {
-				self.facing = Direction4::East;
+				direction = Direction4::East;
 			}
 			else if input.get_game_key(GameKey::WalkSouth) {
-				self.facing = Direction4::South;
+				direction = Direction4::South;
 			}
 			else if input.get_game_key(GameKey::WalkWest) {
-				self.facing = Direction4::West;
+				direction = Direction4::West;
 			}
 			else {
 				try_move = false;
 			}
+			if !input.get_game_key(GameKey::MoveWithoutChangingDirection) {
+				self.facing = direction;
+			}
 			if try_move {
-				if let Some(tile_stack) = chunks.get_tile_stack_at_mut(self.get_pos_in_front()) {
-					tile_stack.entity_try_move_to(self);
+				if let Some(tile_stack) = chunks.get_tile_stack_at_mut(self.get_pos_in_direction(direction)) {
+					tile_stack.entity_try_move_to(self, direction);
 				}
 			}
 		}
@@ -89,11 +93,12 @@ impl Entity {
 	pub fn tick(&mut self, _chunks: &mut ChunkPool) {
 		match &mut self.action_state {
 			EntityActionState::Idle => {},
-			EntityActionState::Walking(amount) => {
+			EntityActionState::Walking(direction, amount) => {
 				*amount += 1;
 				if *amount > 15 {
+					let direction = *direction;
+					self.pos = self.get_pos_in_direction(direction);
 					self.action_state = EntityActionState::Idle;
-					self.pos = self.get_pos_in_front();
 				}
 			}
 		}
@@ -110,11 +115,22 @@ impl Entity {
 		}
 	}
 
+	/// Get the pos of the tile the entity is moving to.
+	pub fn get_pos_in_direction(&self, direction: Direction4) -> [i64; 2] {
+		let pos = self.pos;
+		match direction {
+			Direction4::North => [pos[0], pos[1] - 1],
+			Direction4::East => [pos[0] + 1, pos[1]],
+			Direction4::South => [pos[0], pos[1] + 1],
+			Direction4::West => [pos[0] - 1, pos[1]],
+		}
+	}
+
 	/// Get a vertex of tris for the entity.
 	pub fn render(&self, vertices_in_out: &mut Vec<Vertex>) {
 		let texture = self.entity_type.get_texture();
 		vertices_in_out.extend(texture.render_entity(self.pos, self.get_subtile_pos(), self.facing, match self.action_state {
-			EntityActionState::Walking(amount) => amount / 8 + 1,
+			EntityActionState::Walking(_walking_direction, amount) => amount / 8 + 1,
 			EntityActionState::Idle => 0,
 		}));
 	}
@@ -194,7 +210,7 @@ impl Entity {
 		// Get facing
 		let facing = *namespace.direction_4s.get(file.read_u8()? as usize)?;
 		// Get action state
-		let action_state = EntityActionState::deserialize(file, namespace, version)?;
+		let action_state = EntityActionState::deserialize(file, namespace, version, facing)?;
 		// Get entity type
 		let entity_type = EntityType::deserialize(file, namespace, version, difficulty)?;
 		// Get health

@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::{entity::Entity, entity_action_state::EntityActionState}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState}, direction::Direction4}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
 
 use super::tile::{Tile, TileVariant};
 
@@ -85,7 +85,7 @@ impl TileStack {
 	}
 
 	/// Called when an entity trys to move to this tile stack. If so, the entity start walking.
-	pub fn entity_try_move_to(&mut self, entity: &mut Entity) {
+	pub fn entity_try_move_to(&mut self, entity: &mut Entity, direction: Direction4) {
 		let mut walk = false;
 		if let Some(top_tile) = self.tiles.last_mut() {
 			walk = top_tile.entity_try_move_to(entity);
@@ -94,7 +94,7 @@ impl TileStack {
 			walk = true;
 		}
 		if walk {
-			entity.action_state = EntityActionState::Walking(0);
+			entity.action_state = EntityActionState::Walking(direction, 0);
 		}
 	}
 
