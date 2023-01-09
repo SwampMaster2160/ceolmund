@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{IntoEnumIterator};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::entity::entity::Entity, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::entity::Entity, item::{item::Item, item_drop::ItemDrop}}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
 
 use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 
@@ -183,6 +183,13 @@ impl Tile {
 				},
 				None => false,
 			}
+		}
+	}
+
+	/// Get a vector of items and amounts that are dropped when the tile is broken.
+	pub fn get_drops(&self) -> Vec<ItemDrop> {
+		match self {
+			_ => vec![ItemDrop::Single(Item::Tile(self.clone()))],
 		}
 	}
 }

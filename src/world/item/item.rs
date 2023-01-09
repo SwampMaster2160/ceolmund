@@ -35,18 +35,23 @@ impl Item {
 	pub fn use_stack_mut_self(self_stack: &mut (Self, u8), chunk_pool_used_on: &mut ChunkPoolOffset) -> bool {
 		let (item, _count) = self_stack;
 		match item {
+			// Tools and nothing
 			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel | Self::None => {
+				// Get the tile stack
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
 					None => return false,
 				};
+				// Check if we can break the tile with the tool we have
 				if !item.can_break(tile_stack) {
 					return false;
 				}
+				// Break tile
 				tile_stack.tiles.pop();
 				tile_stack.needs_redrawing = true;
 				true
 			}
+			// Place a tile
 			Self::Tile(tile) => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
