@@ -142,6 +142,7 @@ impl IO {
 				self.game_keys_gamepad[GameKey::ChangeDirectionInplace as usize] = gamepad.north_button();
 				self.game_keys_gamepad[GameKey::MoveWithoutChangingDirection as usize] = gamepad.west_button();
 				self.game_keys_gamepad[GameKey::Turbo as usize] = gamepad.south_button();
+				self.game_keys_gamepad[GameKey::MenuOpenClose as usize] = gamepad.select_button();
 			}
 		}
 	}
