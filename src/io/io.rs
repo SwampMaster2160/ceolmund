@@ -13,6 +13,7 @@ use tokio::runtime::Runtime;
 
 use super::{game_key::GameKey, file_writer::FileWriter};
 
+// The version that namespace files will contain and can be used to decide how an old file should be loaded.
 pub const SERIALIZATION_VERSION: u32 = 2;
 
 /// For everything hardware related.
@@ -30,7 +31,7 @@ pub struct IO {
 	pub async_runtime: Runtime,
 	pub namespace: FileWriter,
 	pub namespace_hash: u64,
-	pub mouse_scroll: i16,
+	pub mouse_scroll_delta: i16,
 }
 
 impl IO {
@@ -110,7 +111,7 @@ impl IO {
 			async_runtime: Runtime::new().unwrap(),
 			namespace,
 			namespace_hash,
-			mouse_scroll: 0,
+			mouse_scroll_delta: 0,
 		}
 	}
 
@@ -133,6 +134,14 @@ impl IO {
 				self.game_keys_gamepad[GameKey::WalkEast as usize] = gamepad.arrow_right();
 				self.game_keys_gamepad[GameKey::WalkSouth as usize] = gamepad.arrow_down();
 				self.game_keys_gamepad[GameKey::WalkWest as usize] = gamepad.arrow_left();
+				self.game_keys_gamepad[GameKey::Interact as usize] = gamepad.east_button() || gamepad.south_button();
+				self.game_keys_gamepad[GameKey::InventoryLeft as usize] = gamepad.left_shoulder();
+				self.game_keys_gamepad[GameKey::InventoryRight as usize] = gamepad.right_shoulder();
+				self.game_keys_gamepad[GameKey::InventoryUp as usize] = gamepad.left_trigger_bool();
+				self.game_keys_gamepad[GameKey::InventoryDown as usize] = gamepad.right_trigger_bool();
+				self.game_keys_gamepad[GameKey::ChangeDirectionInplace as usize] = gamepad.north_button();
+				self.game_keys_gamepad[GameKey::MoveWithoutChangingDirection as usize] = gamepad.west_button();
+				self.game_keys_gamepad[GameKey::Turbo as usize] = gamepad.south_button();
 			}
 		}
 	}
@@ -170,7 +179,7 @@ impl IO {
 		for x in 0..GameKey::COUNT {
 			self.keys_pressed_last[x] = self.get_game_key_via_id(x);
 		}
-		self.mouse_scroll = 0;
+		self.mouse_scroll_delta = 0;
 	}
 
 	/// Updates window_size and aspect_ratio. Should be called when the game's window size changes.

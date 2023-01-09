@@ -103,8 +103,8 @@ fn main() {
 				WindowEvent::MouseInput { device_id: _, state, button, .. } => io.mouse_press(*state, *button),
 				WindowEvent::MouseWheel { delta, .. } => {
 					match delta {
-						MouseScrollDelta::LineDelta(_, y) => io.mouse_scroll = *y as i16,
-						MouseScrollDelta::PixelDelta(amount) => io.mouse_scroll = amount.y as i16,
+						MouseScrollDelta::LineDelta(_, y) => io.mouse_scroll_delta = *y as i16,
+						MouseScrollDelta::PixelDelta(amount) => io.mouse_scroll_delta = amount.y as i16,
 					}
 				}
 				_  => {}

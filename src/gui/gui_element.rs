@@ -226,7 +226,7 @@ impl GUIElement {
 			GUIElement::ScrollArea { scroll, rect, inside_height, .. } => {
 				if is_mouse_over {
 					let max_scroll = inside_height.saturating_sub(rect.size[1]).saturating_add(4);
-					*scroll = scroll.saturating_add_signed(io.mouse_scroll.saturating_neg().saturating_mul(8)).min(max_scroll);
+					*scroll = scroll.saturating_add_signed(io.mouse_scroll_delta.saturating_neg().saturating_mul(8)).min(max_scroll);
 				}
 			}
 			_ => {}
