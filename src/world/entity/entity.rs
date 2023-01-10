@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::item::Item, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::{item::Item, inventory::Inventory}, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::{EntityType, EntityVariant}};
 
 /// A world object that is can move from tile to tile.
@@ -57,7 +57,7 @@ impl Entity {
 			// Interact with world
 			let mut chunks_offset = chunks.get_offset(pos_in_front);
 			if input.get_game_key_starting_now(GameKey::Interact) || (input.get_game_key(GameKey::Turbo) && input.get_game_key(GameKey::Interact)) {
-				let item_stack = &mut inventory[*selected_item as usize];
+				let item_stack = &mut inventory.items[*selected_item as usize];
 				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
 			}
 			// Walk
@@ -137,22 +137,22 @@ impl Entity {
 
 	/// Create a neew player at 0, 0
 	pub fn new_player(difficulty: Difficulty) -> Self {
-		let mut inventory = Box::new([(); 50].map(|_| (Item::None, 0)));
+		let mut inventory = Inventory::new();
 		if difficulty == Difficulty::Sandbox {
-			inventory[0] = (Item::SandboxDestroyWand, 1);
-			inventory[1] = (Item::Tile(Tile::Grass), 1);
-			inventory[2] = (Item::Tile(Tile::Gravel), 1);
-			inventory[3] = (Item::Tile(Tile::Sand), 1);
-			inventory[4] = (Item::Tile(Tile::BlackSand), 1);
-			inventory[5] = (Item::Tile(Tile::Rocks), 1);
-			inventory[6] = (Item::Tile(Tile::OakTree), 1);
-			inventory[7] = (Item::Tile(Tile::PineTree), 1);
-			inventory[8] = (Item::Tile(Tile::Flowers), 1);
-			inventory[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
-			inventory[10] = (Item::Tile(Tile::Water), 1);
-			inventory[11] = (Item::Tile(Tile::Path), 1);
-			inventory[12] = (Item::Axe, 1);
-			inventory[13] = (Item::Shovel, 1);
+			inventory.items[0] = (Item::SandboxDestroyWand, 1);
+			inventory.items[1] = (Item::Tile(Tile::Grass), 1);
+			inventory.items[2] = (Item::Tile(Tile::Gravel), 1);
+			inventory.items[3] = (Item::Tile(Tile::Sand), 1);
+			inventory.items[4] = (Item::Tile(Tile::BlackSand), 1);
+			inventory.items[5] = (Item::Tile(Tile::Rocks), 1);
+			inventory.items[6] = (Item::Tile(Tile::OakTree), 1);
+			inventory.items[7] = (Item::Tile(Tile::PineTree), 1);
+			inventory.items[8] = (Item::Tile(Tile::Flowers), 1);
+			inventory.items[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
+			inventory.items[10] = (Item::Tile(Tile::Water), 1);
+			inventory.items[11] = (Item::Tile(Tile::Path), 1);
+			inventory.items[12] = (Item::Axe, 1);
+			inventory.items[13] = (Item::Shovel, 1);
 		}
 		Entity {
 			pos: [0, 0],
@@ -190,8 +190,7 @@ impl Entity {
 	/// Save an entity
 	pub fn serialize(&self, file: &mut FileWriter) {
 		// Push pos
-		file.push_i64(self.pos[0]);
-		file.push_i64(self.pos[1]);
+		file.push_world_pos(self.pos);
 		// Push facing
 		file.push_u8(self.facing as u8);
 		// Push action state
@@ -204,9 +203,7 @@ impl Entity {
 
 	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<Self> {
 		// Get pos
-		let pos_x = file.read_i64()?;
-		let pos_y = file.read_i64()?;
-		let pos = [pos_x, pos_y];
+		let pos = file.read_world_pos()?;
 		// Get facing
 		let facing = *namespace.direction_4s.get(file.read_u8()? as usize)?;
 		// Get action state

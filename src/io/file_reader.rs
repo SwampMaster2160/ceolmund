@@ -108,6 +108,12 @@ impl FileReader {
 		Some(out)
 	}
 
+	pub fn read_world_pos(&mut self) -> Option<[i64; 2]> {
+		let x = self.read_i64()?;
+		let y = self.read_i64()?;
+		Some([x, y])
+	}
+
 	pub fn read_string(&mut self) -> Option<String> {
 		// Get slice starting at the read index
 		let slice = self.data.get(self.read_index..)?;

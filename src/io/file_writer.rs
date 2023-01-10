@@ -73,4 +73,9 @@ impl FileWriter {
 	pub fn push_i64(&mut self, to_push: i64) {
 		self.data.extend(to_push.to_le_bytes());
 	}
+
+	pub fn push_world_pos(&mut self, to_push: [i64; 2]) {
+		self.push_i64(to_push[0]);
+		self.push_i64(to_push[1]);
+	}
 }
