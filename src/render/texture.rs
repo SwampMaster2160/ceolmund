@@ -32,6 +32,7 @@ pub enum Texture {
 	Shovel,
 	Axe,
 	SandboxDestroyWand,
+	DroppedItems,
 	//GreenThing,
 	//BlueThing,
 }
@@ -58,6 +59,7 @@ impl Texture {
 			Self::Shovel => const_static_ptr!([u16; 4], grid_texture(0x17)),
 			Self::Axe => const_static_ptr!([u16; 4], grid_texture(0x18)),
 			Self::SandboxDestroyWand => const_static_ptr!([u16; 4], grid_texture(0x19)),
+			Self::DroppedItems => const_static_ptr!([u16; 4], grid_texture(0x1A)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -84,6 +86,7 @@ impl Texture {
 			Self::Shovel => TextureType::Basic,
 			Self::Axe => TextureType::Basic,
 			Self::SandboxDestroyWand => TextureType::Basic,
+			Self::DroppedItems => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}

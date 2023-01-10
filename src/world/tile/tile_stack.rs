@@ -102,7 +102,7 @@ impl TileStack {
 		for tile in &self.tiles {
 			tile.serialize(file);
 		}
-		file.push_u8(Tile::None as u8);
+		file.push_u8(TileVariant::None as u8);
 	}
 
 	pub fn load_v0(&mut self, tile_lengths: &[u8], tile_datas: &[u8], tile_lengths_index: &mut usize, tile_datas_index: &mut usize, namespace: &Namespace, version: u32) -> Option<()> {

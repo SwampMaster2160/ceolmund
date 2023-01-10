@@ -75,6 +75,17 @@ impl FileReader {
 		Some(out)
 	}
 
+	pub fn read_u16(&mut self) -> Option<u16> {
+		// Get the 2 bytes that make up the u16 value, they should be little endian.
+		let u16_bytes = self.data.get(self.read_index..self.read_index + 2)?.try_into().ok()?;
+		// Convert to u16 value
+		let out = u16::from_le_bytes(u16_bytes);
+		// Increment the read index
+		self.read_index += 2;
+
+		Some(out)
+	}
+
 	pub fn read_u32(&mut self) -> Option<u32> {
 		// Get the 4 bytes that make up the u32 value, they should be little endian.
 		let u32_bytes = self.data.get(self.read_index..self.read_index + 4)?.try_into().ok()?;

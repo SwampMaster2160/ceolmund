@@ -62,6 +62,10 @@ impl FileWriter {
 		self.data.push(to_push);
 	}
 
+	pub fn push_u16(&mut self, to_push: u16) {
+		self.data.extend(to_push.to_le_bytes());
+	}
+
 	pub fn push_u32(&mut self, to_push: u32) {
 		self.data.extend(to_push.to_le_bytes());
 	}

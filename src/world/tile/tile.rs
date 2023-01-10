@@ -23,6 +23,7 @@ pub enum Tile {
 	Gravel,
 	BlackSand,
 	Sand,
+	DroppedItemStack(Box<Item>, u16),
 }
 
 /// A tile in the world
@@ -42,6 +43,7 @@ impl Tile {
 			Self::Gravel => Texture::Gravel,
 			Self::BlackSand => Texture::BlackSand,
 			Self::Path => Texture::Path,
+			Self::DroppedItemStack(..) => Texture::DroppedItems,
 		}
 	}
 
@@ -67,6 +69,7 @@ impl Tile {
 			Self::BlackSand => TileMovementType::Clear,
 			Self::Gravel => TileMovementType::Clear,
 			Self::Path => TileMovementType::Clear,
+			Self::DroppedItemStack(..) => TileMovementType::Clear,
 		}
 	}
 
@@ -82,10 +85,17 @@ impl Tile {
 	/// Get data for the tile to save to disk.
 	pub fn serialize(&self, file: &mut FileWriter) {
 		file.push_u8(TileVariant::from(self) as u8);
+		match self {
+			Self::DroppedItemStack(item, amount) => {
+				item.serialize(file);
+				file.push_u16(*amount);
+			}
+			_ => {},
+		}
 	}
 
 	/// Create a tile form disk data.
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, _version: u32) -> Option<Self> {
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
 		//let tile_id = *data.get(0)? as usize;
 		let variant = *namespace.tiles.get(file.read_u8()? as usize)?;
 		Some(match variant {
@@ -101,6 +111,11 @@ impl Tile {
 			TileVariant::Gravel => Self::Gravel,
 			TileVariant::BlackSand => Self::BlackSand,
 			TileVariant::Path => Self::Path,
+			TileVariant::DroppedItemStack => {
+				let item = Item::deserialize(file, namespace, version)?;
+				let amount = file.read_u16()?;
+				Self::DroppedItemStack(Box::new(item), amount)
+			}
 		})
 	}
 
@@ -121,6 +136,7 @@ impl Tile {
 			TileVariant::Gravel => Self::Gravel,
 			TileVariant::BlackSand => Self::BlackSand,
 			TileVariant::Path => Self::Path,
+			_ => panic!("Tile should not exist in this version."),
 		}, 1))
 	}
 
@@ -171,7 +187,7 @@ impl Tile {
 			}
 			Self::Rocks => match tile_stack.tiles.last() {
 				Some(top_tile) => match top_tile {
-					Self::OakTree | Self::PineTree | Self::Flowers | Self::FlowersRedYellow | Self::Path | Self::Rocks => false,
+					Self::OakTree | Self::PineTree | Self::Flowers | Self::FlowersRedYellow | Self::Path | Self::Rocks | Self::DroppedItemStack(..) => false,
 					_ => true,
 				},
 				None => false,
@@ -183,6 +199,7 @@ impl Tile {
 				},
 				None => false,
 			}
+			Self::DroppedItemStack(..) => true,
 		}
 	}
 
@@ -209,6 +226,7 @@ impl TileVariant {
 			Self::Gravel => "gravel",
 			Self::BlackSand => "black_sand",
 			Self::Path => "path",
+			Self::DroppedItemStack => "dropped_item_stack",
 		}
 	}
 
