@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState}, direction::Direction4}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState}, direction::Direction4, item::item::Item}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
 
 use super::tile::{Tile, TileVariant};
 
@@ -96,6 +96,10 @@ impl TileStack {
 		if walk {
 			entity.action_state = EntityActionState::Walking(direction, 0);
 		}
+	}
+
+	pub fn drop_item_onto(&mut self, to_drop_onto: (Item, u16)) {
+		
 	}
 
 	pub fn serialize(&self, file: &mut FileWriter) {

@@ -145,7 +145,7 @@ impl World {
 	pub fn tick(&mut self, io: &IO, player_visable_width: u64, gui: &mut GUI) {
 		self.chunk_pool.tick(self.player.as_ref(), player_visable_width, &io.async_runtime, self.seed);
 		if let Some(player) = &mut self.player {
-			player.player_tick(&mut self.chunk_pool, io, gui);
+			player.player_tick(&mut self.chunk_pool, io, gui, self.difficulty);
 			player.tick(&mut self.chunk_pool);
 		}
 	}

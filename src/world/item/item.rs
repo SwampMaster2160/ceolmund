@@ -8,7 +8,7 @@ use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use super::item_drop::ItemDrop;
 
 /// An item that can exist in a player's inventory.
-#[derive(Clone, EnumDiscriminants)]
+#[derive(Clone, EnumDiscriminants, PartialEq, Eq)]
 #[strum_discriminants(name(ItemVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum Item {
@@ -31,6 +31,10 @@ impl Item {
 			Self::Hammer => Texture::Hammer,
 			Self::Tile(tile) => tile.get_texture(),
 		}
+	}
+
+	pub fn is_none(&self) -> bool {
+		ItemVariant::from(self) == ItemVariant::None
 	}
 
 	/// The item is used, returns weather the item should be consumed and the drops to be added to the player inventory.
@@ -86,6 +90,13 @@ impl Item {
 				None => false,
 			}
 			_ => false,
+		}
+	}
+
+	pub fn consume_item(&mut self, stack_size: &mut u8) {
+		*stack_size = stack_size.saturating_sub(1);
+		if *stack_size == 0 {
+			*self = Item::None;
 		}
 	}
 

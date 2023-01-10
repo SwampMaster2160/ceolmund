@@ -7,7 +7,7 @@ use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::entity::
 
 use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 
-#[derive(Clone, EnumDiscriminants)]
+#[derive(Clone, EnumDiscriminants, PartialEq, Eq)]
 #[strum_discriminants(name(TileVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum Tile {

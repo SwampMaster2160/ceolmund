@@ -27,7 +27,7 @@ impl Entity {
 	}
 
 	/// A tick for the player that reads the io input.
-	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &IO, gui: &mut GUI) {
+	pub fn player_tick(&mut self, chunks: &mut ChunkPool, input: &IO, gui: &mut GUI, difficulty: Difficulty) {
 		let pos_in_front = self.get_pos_in_front();
 		if input.get_game_key_starting_now(GameKey::MenuOpenClose) {
 			gui.menus.push(GUIMenu::new(GUIMenuVariant::Paused));
@@ -57,8 +57,27 @@ impl Entity {
 			// Interact with world
 			let mut chunks_offset = chunks.get_offset(pos_in_front);
 			if input.get_game_key_starting_now(GameKey::Interact) || (input.get_game_key(GameKey::Turbo) && input.get_game_key(GameKey::Interact)) {
+				// Get the item stack selected.
 				let item_stack = &mut inventory.items[*selected_item as usize];
-				Item::use_stack_mut_self(item_stack, &mut chunks_offset);
+				// Use the item and get back drops.
+				let (consume_item, drops) = Item::use_stack_mut_self(item_stack, &mut chunks_offset);
+				// Consume item and get drops if not in sandbox mode.
+				if difficulty != Difficulty::Sandbox {
+					if consume_item {
+						item_stack.0.consume_item(&mut item_stack.1);
+					}
+					for drop in drops {
+						// Randomize drop.
+						let drop_rolled = drop.roll();
+						// Add to player inventory.
+						let to_drop_on_floor = inventory.add_items(drop_rolled);
+						// Drop items that cannot be added to the players inventory on the floor at the tile the player is standing on.
+						match chunks_offset.get_tile_stack_at_mut(self.pos) {
+							Some(tile_stack) => tile_stack.drop_item_onto(to_drop_on_floor),
+							None => {},
+						}
+					}
+				}
 			}
 			// Walk
 			let mut try_move = !input.get_game_key(GameKey::ChangeDirectionInplace);
