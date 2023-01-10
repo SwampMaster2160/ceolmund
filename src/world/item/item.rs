@@ -5,6 +5,8 @@ use strum::IntoEnumIterator;
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 
+use super::item_drop::ItemDrop;
+
 /// An item that can exist in a player's inventory.
 #[derive(Clone, EnumDiscriminants)]
 #[strum_discriminants(name(ItemVariant), derive(EnumCount, EnumIter))]
@@ -31,8 +33,8 @@ impl Item {
 		}
 	}
 
-	/// The item is used, if false is returned then the item will try to execute using other functions.
-	pub fn use_stack_mut_self(self_stack: &mut (Self, u8), chunk_pool_used_on: &mut ChunkPoolOffset) -> bool {
+	/// The item is used, returns weather the item should be consumed and the drops to be added to the player inventory.
+	pub fn use_stack_mut_self(self_stack: &mut (Self, u8), chunk_pool_used_on: &mut ChunkPoolOffset) -> (bool, Vec<ItemDrop>) {
 		let (item, _count) = self_stack;
 		match item {
 			// Tools and nothing
@@ -40,29 +42,32 @@ impl Item {
 				// Get the tile stack
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
-					None => return false,
+					None => return (false, Vec::new()),
 				};
 				// Check if we can break the tile with the tool we have
 				if !item.can_break(tile_stack) {
-					return false;
+					return (false, Vec::new());
 				}
 				// Break tile
-				tile_stack.tiles.pop();
+				let tile = match tile_stack.tiles.pop() {
+					Some(tile) => tile,
+					None => return (false, Vec::new()),
+				};
 				tile_stack.needs_redrawing = true;
-				true
+				(false, tile.get_drops())
 			}
 			// Place a tile
 			Self::Tile(tile) => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
-					None => return false,
+					None => return (false, Vec::new()),
 				};
 				if !tile.can_place_on(tile_stack) {
-					return false;
+					return (false, Vec::new());
 				}
 				tile_stack.tiles.push(tile.clone());
 				tile_stack.needs_redrawing = true;
-				true
+				(true, Vec::new())
 			}
 			//_ => false,
 		}
