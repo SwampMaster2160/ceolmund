@@ -18,7 +18,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 
 	// Add an am,ount of an item to the inventory, get back what could not be added.
 	pub fn add_items(&mut self, to_add: (Item, u16)) -> (Item, u16) {
-		let item_to_add = &to_add.0;
+		let item_to_add = to_add.0;
 		let mut amount_left_to_add = to_add.1;
 		// Return if the item is none.
 		if item_to_add.is_none() {
@@ -27,7 +27,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 		// Add to existing stacks.
 		for (stack_item, stack_amount) in self.items.iter_mut() {
 			// Skip stacks of a diffrent item.
-			if item_to_add != stack_item {
+			if item_to_add != *stack_item {
 				continue;
 			}
 			// Add item to the stack and take from the amount left to add.
@@ -56,7 +56,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 			}
 		}
 		// Return leftover.
-		(item_to_add.clone(), amount_left_to_add)
+		(item_to_add, amount_left_to_add)
 	}
 
 	pub fn serialize(&self, file: &mut FileWriter) {

@@ -99,7 +99,34 @@ impl TileStack {
 	}
 
 	pub fn drop_item_onto(&mut self, to_drop_onto: (Item, u16)) {
-		
+		let item_to_add = to_drop_onto.0;
+		let mut amount_left_to_add = to_drop_onto.1;
+		// Return if the item is none.
+		if item_to_add.is_none() {
+			return;
+		}
+		// Add to exising dropped item stacks.
+		for tile in &mut self.tiles {
+			// Skip tiles that are not item stacks.
+			let (stack_item, stack_amount) = match tile {
+				Tile::DroppedItemStack(stack_item, stack_amount) => (stack_item, stack_amount),
+				_ => continue,
+			};
+			// Skip stacks that are not the same as the item to add
+			if **stack_item != item_to_add {
+				continue;
+			}
+			// Calculate how many items to add to the stack and add them to the stack and remove them from the to add amount.
+			let amount_to_add_to_stack = (u16::MAX - *stack_amount).min(amount_left_to_add);
+			*stack_amount += amount_to_add_to_stack;
+			amount_left_to_add -= amount_to_add_to_stack;
+			// Return if there is nothing left to add
+			if amount_left_to_add == 0 {
+				return;
+			}
+		}
+		// Add remaining items as a new stack.
+		self.tiles.push(Tile::DroppedItemStack(Box::new(item_to_add), amount_left_to_add));
 	}
 
 	pub fn serialize(&self, file: &mut FileWriter) {
