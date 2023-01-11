@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState}, direction::Direction4, item::item::Item}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, item::item::Item}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
 
 use super::tile::{Tile, TileVariant};
 
@@ -95,6 +95,26 @@ impl TileStack {
 		}
 		if walk {
 			entity.action_state = EntityActionState::Walking(direction, 0);
+		}
+	}
+
+	/// When an entity steps on the tile stack.
+	pub fn entity_move_to(&mut self, entity: &mut Entity) {
+		let inventory = match entity.entity_type {
+			EntityType::Player { ref mut inventory, .. } => inventory,
+			//_ => return,
+		};
+		for x in (0..self.tiles.len()).rev() {
+			let tile = &mut self.tiles[x];
+			let (stack_item, stack_amount) = match tile {
+				Tile::DroppedItemStack(stack_item, stack_amount) => (stack_item, stack_amount),
+				_ => continue,
+			};
+			let leftover = inventory.add_items((*stack_item.clone(), *stack_amount)).1;
+			*stack_amount = leftover;
+			if leftover == 0 {
+				self.tiles.remove(x);
+			}
 		}
 	}
 

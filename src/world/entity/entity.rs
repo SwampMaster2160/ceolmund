@@ -109,15 +109,21 @@ impl Entity {
 	}
 
 	/// A tick for all entities.
-	pub fn tick(&mut self, _chunks: &mut ChunkPool) {
+	pub fn tick(&mut self, chunks: &mut ChunkPool) {
 		match &mut self.action_state {
 			EntityActionState::Idle => {},
 			EntityActionState::Walking(direction, amount) => {
-				*amount += 1;
+				if *amount < 16 {
+					*amount += 1;
+				}
 				if *amount > 15 {
 					let direction = *direction;
-					self.pos = self.get_pos_in_direction(direction);
-					self.action_state = EntityActionState::Idle;
+					let pos = self.get_pos_in_direction(direction);
+					if let Some(tile) = chunks.get_tile_stack_at_mut(self.pos) {
+						self.pos = pos;
+						self.action_state = EntityActionState::Idle;
+						tile.entity_move_to(self);
+					}
 				}
 			}
 		}
