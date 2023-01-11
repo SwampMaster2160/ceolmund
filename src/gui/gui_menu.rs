@@ -101,7 +101,7 @@ impl GUIMenu {
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
 				};
-				for (item_index, item_stack) in inventory.items.iter().enumerate() {
+				/*for (item_index, item_stack) in inventory.items.iter().enumerate() {
 					let x = item_index as u16 % 10;
 					let y = item_index as u16 / 10;
 					let color = match (x % 2 == 0) ^ (y % 2 == 0)  {
@@ -116,7 +116,7 @@ impl GUIMenu {
 					if stack_size > 1 {
 						out.push(GUIElement::Text { pos: [(x * 16) as i16, (y * 16) as i16 - 4], alignment: GUIAlignment::Left, text: stack_size.to_string(), text_alignment: GUIAlignment::Left });
 					}
-				}
+				}*/
 				out.push(GUIElement::Rect { rect: GUIRect::new(*selected_item as i16 % 10 * 16, *selected_item as i16 / 10 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
 				if world.difficulty != Difficulty::Sandbox {
 					out.push(GUIElement::ProgressBar {

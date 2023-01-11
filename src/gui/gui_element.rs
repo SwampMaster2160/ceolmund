@@ -41,6 +41,10 @@ pub enum GUIElement {
 	Grayout { color: [u8; 4] },
 	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
 	ScrollArea { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_height: u16, inside_elements: Vec<GUIElement>, scroll: u16 },
+	Grid {
+		cell_rect: GUIRect, cell_counts: [usize; 2], inside_elements: Vec<GUIElement>,
+		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, button_clicked_index: usize) -> (),
+	},
 }
 
 pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO) -> bool {
