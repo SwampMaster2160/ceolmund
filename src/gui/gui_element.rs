@@ -1,6 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{gui_size_to_screen_size, render_gui_string_u16, render_screen_grayout, gui_pos_to_screen_pos, render_gui_string}, texture::Texture}, world::world::World};
+use crate::{io::{io::IO, game_key::GameKey}, render::{vertex::Vertex, render::{gui_size_to_screen_size, render_screen_grayout, gui_pos_to_screen_pos, render_gui_string}, texture::Texture}, world::world::World};
 
 use super::{gui_alignment::GUIAlignment, gui::GUI, gui_rect::GUIRect};
 
@@ -36,7 +36,7 @@ pub enum GUIElement {
 		alignment: GUIAlignment,
 		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, button_clicked_index: usize) -> (),
 	},
-	Text { text: String, pos: [u16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
+	Text { text: String, pos: [i16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, rect: GUIRect, alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
 	Grayout { color: [u8; 4] },
 	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
@@ -163,7 +163,7 @@ impl GUIElement {
 				}
 			}
 			Self::Text { text: string, pos, alignment, text_alignment } =>
-				render_gui_string_u16(string, *pos, *alignment, *text_alignment, io, vertices),
+				render_gui_string(string, *pos, *alignment, *text_alignment, io, vertices, visable_area),
 			Self::TextEntry { text, rect, alignment, is_selected, .. } => {
 				let mut inside_color = TEXT_ENTRY_GRAY_COLOR;
 				if self.is_mouse_over(io, scroll) {

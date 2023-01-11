@@ -109,8 +109,12 @@ impl GUIMenu {
 						false => [31, 31, 31, 63],
 					};
 					out.push(GUIElement::Rect { rect: GUIRect::new(x as i16 * 16, y as i16 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: color });
-					if item_stack.1 > 0 {
+					let stack_size = item_stack.1;
+					if stack_size > 0 {
 						out.push(GUIElement::Texture { pos: [x * 16, y * 16], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
+					}
+					if stack_size > 1 {
+						out.push(GUIElement::Text { pos: [(x * 16) as i16, (y * 16) as i16 - 4], alignment: GUIAlignment::Left, text: stack_size.to_string(), text_alignment: GUIAlignment::Left });
 					}
 				}
 				out.push(GUIElement::Rect { rect: GUIRect::new(*selected_item as i16 % 10 * 16, *selected_item as i16 / 10 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });

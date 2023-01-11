@@ -31,7 +31,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 				continue;
 			}
 			// Add item to the stack and take from the amount left to add.
-			let amount_to_add_to_stack = 100u16.saturating_sub(*stack_amount as u16).min(amount_left_to_add) as u8;
+			let amount_to_add_to_stack = 99u16.saturating_sub(*stack_amount as u16).min(amount_left_to_add) as u8;
 			*stack_amount += amount_to_add_to_stack;
 			amount_left_to_add -= amount_to_add_to_stack as u16;
 			// Return is there is nothing left to add.
@@ -47,7 +47,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 			}
 			// Add item to the stack and take from the amount left to add.
 			*stack_item = item_to_add.clone();
-			let to_add = amount_left_to_add.min(100) as u8;
+			let to_add = amount_left_to_add.min(99) as u8;
 			*stack_amount = to_add;
 			amount_left_to_add -= to_add as u16;
 			// Return is there is nothing left to add.
