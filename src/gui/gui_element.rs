@@ -42,7 +42,7 @@ pub enum GUIElement {
 	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
 	ScrollArea { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_height: u16, inside_elements: Vec<GUIElement>, scroll: u16 },
 	Grid {
-		cell_rect: GUIRect, cell_counts: [usize; 2], inside_elements: Vec<GUIElement>,
+		cell_rect: GUIRect, cell_counts: [u16; 2], inside_elements: Vec<GUIElement>,
 		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, button_clicked_index: usize) -> (),
 	},
 }
@@ -184,6 +184,27 @@ impl GUIElement {
 			Self::Grayout { color } => vertices.extend(render_screen_grayout(*color, io)),
 			Self::Texture { pos, alignment, texture } => {
 				vertices.extend(texture.gui_render(*pos, *alignment, io));
+			}
+			Self::Grid { cell_rect, cell_counts, inside_elements, .. } => {
+				let cell_size = cell_rect.size;
+				// For each cell in the grid
+				for y in 0..cell_counts[1] {
+					for x in 0..cell_counts[0] {
+						// Get the element
+						let cell_index = (y as usize) * (cell_counts[0] as usize) + (x as usize);
+						let cell_element = match inside_elements.get(cell_index) {
+							Some(element) => element,
+							None => return,
+						};
+
+						let cell_offset = [
+							scroll[0].saturating_add_unsigned(cell_rect.size[0]).saturating_mul(x as i16),
+							scroll[1].saturating_add_unsigned(cell_rect.size[1]).saturating_mul(y as i16),
+						];
+
+						cell_element.render(visable_area, vertices, io, cell_offset);
+					}
+				}
 			}
 		}
 	}
