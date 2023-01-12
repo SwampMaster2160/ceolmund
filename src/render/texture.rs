@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4, gui::gui_alignment::GUIAlignment, io::io::IO};
 
-use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos_unsigned, gui_pos_to_screen_pos}};
+use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos}};
 
 /// Size of the texture sheet in pixels.
 pub const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];

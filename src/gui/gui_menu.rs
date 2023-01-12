@@ -101,33 +101,51 @@ impl GUIMenu {
 				let (inventory, selected_item) = match &player.entity_type {
 					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
 				};
-				/*for (item_index, item_stack) in inventory.items.iter().enumerate() {
+				// Item area
+				let mut grid_elements = Vec::new();
+				for (item_index, item_stack) in inventory.items.iter().enumerate() {
+					let mut cell_elements = Vec::new();
 					let x = item_index as u16 % 10;
 					let y = item_index as u16 / 10;
+					// Add cell gray rect.
 					let color = match (x % 2 == 0) ^ (y % 2 == 0)  {
 						true => [63, 63, 63, 63],
 						false => [31, 31, 31, 63],
 					};
-					out.push(GUIElement::Rect { rect: GUIRect::new(x as i16 * 16, y as i16 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: color });
+					cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: color });
+					// Item texture
 					let stack_size = item_stack.1;
 					if stack_size > 0 {
-						out.push(GUIElement::Texture { pos: [x * 16, y * 16], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
+						cell_elements.push(GUIElement::Texture { pos: [0, 0], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
 					}
+					// The text to show how many items are in a stack.
 					if stack_size > 1 {
-						out.push(GUIElement::Text { pos: [(x * 16) as i16, (y * 16) as i16 - 4], alignment: GUIAlignment::Left, text: stack_size.to_string(), text_alignment: GUIAlignment::Left });
+						cell_elements.push(GUIElement::Text { pos: [0, -4], alignment: GUIAlignment::Left, text: stack_size.to_string(), text_alignment: GUIAlignment::Left });
 					}
-				}*/
-				let mut inside_elements = Vec::new();
-				for (item_index, item_stack) in inventory.items.iter().enumerate() {
-					//let x = item_index as u16 % 10;
-					//let y = item_index as u16 / 10;
-					let stack_size = item_stack.1;
-					if stack_size > 0 {
-						inside_elements.push(GUIElement::Texture { pos: [0, 0], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
+					// Show selected item.
+					if item_index == *selected_item as usize {
+						cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
 					}
+
+					grid_elements.push(GUIElement::ElementCollection { offset: [0, 0], inside_elements: cell_elements })
 				}
-				out.push(GUIElement::Grid { cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 5], inside_elements, click_mut_gui: |_, _, _, _, _|() });
-				//out.push(GUIElement::Rect { rect: GUIRect::new(*selected_item as i16 % 10 * 16, *selected_item as i16 / 10 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
+				out.push(GUIElement::Grid { alignment: GUIAlignment::Left , cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 5], inside_elements: grid_elements, click_mut_gui: |_, _, world, _, index|{
+					//println!("{index}");
+					let world = match world {
+						Some(world) => world,
+						_ => return,
+					};
+					let player = match &mut world.player {
+						Some(player) => player,
+						_ => return,
+					};
+					let selected_item = match &mut player.entity_type {
+						EntityType::Player { selected_item, .. } => selected_item,
+						//_ => return,
+					};
+					*selected_item = index as u8;
+				} });
+				// Health bar
 				if world.difficulty != Difficulty::Sandbox {
 					out.push(GUIElement::ProgressBar {
 						rect: GUIRect::new(256 - 202 - 2, 2, 202, 8), alignment: GUIAlignment::Right, inside_color: [255, 0, 0, 255], border_color: [0, 0, 0, 255],

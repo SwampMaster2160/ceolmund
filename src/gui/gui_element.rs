@@ -42,9 +42,12 @@ pub enum GUIElement {
 	Texture { pos: [i16; 2], alignment: GUIAlignment, texture: Texture },
 	ScrollArea { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_height: u16, inside_elements: Vec<GUIElement>, scroll: u16 },
 	Grid {
-		cell_rect: GUIRect, cell_counts: [u16; 2], inside_elements: Vec<GUIElement>,
-		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, button_clicked_index: usize) -> (),
+		cell_rect: GUIRect, cell_counts: [u16; 2], inside_elements: Vec<GUIElement>, alignment: GUIAlignment,
+		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, cell_clicked_index: usize) -> (),
 	},
+	ElementCollection {
+		offset: [i16; 2], inside_elements: Vec<GUIElement>,
+	}
 }
 
 pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO) -> bool {
@@ -74,7 +77,7 @@ impl GUIElement {
 	pub fn render(&self, visable_area: GUIRect, vertices: &mut Vec<Vertex>, io: &IO, scroll: [i16; 2]) {
 		match self {
 			Self::Rect{rect, alignment, inside_color, border_color} =>
-				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices),
+				rect.scrolled(scroll).render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices),
 			Self::ScrollArea { rect, alignment, inside_color, border_color, inside_elements, scroll: scroll_area_scroll, .. } => {
 				let rect = rect.scrolled(scroll);
 				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
@@ -166,8 +169,13 @@ impl GUIElement {
 					render_gui_string(text, text_pos, *alignment, GUIAlignment::Center, io, vertices, visable_area);
 				}
 			}
-			Self::Text { text: string, pos, alignment, text_alignment } =>
-				render_gui_string(string, *pos, *alignment, *text_alignment, io, vertices, visable_area),
+			Self::Text { text: string, pos, alignment, text_alignment } => {
+				let pos = [
+					pos[0].saturating_add(scroll[0]),
+					pos[1].saturating_add(scroll[1]),
+				];
+				render_gui_string(string, pos, *alignment, *text_alignment, io, vertices, visable_area);
+			}
 			Self::TextEntry { text, rect, alignment, is_selected, .. } => {
 				let mut inside_color = TEXT_ENTRY_GRAY_COLOR;
 				if self.is_mouse_over(io, scroll) {
@@ -209,6 +217,16 @@ impl GUIElement {
 
 						cell_element.render(visable_area, vertices, io, cell_offset);
 					}
+				}
+			}
+			Self::ElementCollection { offset, inside_elements, .. } => {
+				let offset = [
+					scroll[0].saturating_add(offset[0]),
+					scroll[1].saturating_add(offset[1]),
+				];
+
+				for element in inside_elements {
+					element.render(visable_area, vertices, io, offset);
 				}
 			}
 		}
@@ -296,6 +314,41 @@ impl GUIElement {
 								scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(scroll_area_scroll),
 							];
 							element.click_mut_gui(gui, world, io, scroll);
+						}
+					}
+				}
+				GUIElement::Grid { cell_rect, cell_counts, alignment, click_mut_gui, .. } => {
+					let cell_size = cell_rect.size;
+					let cell_pos = cell_rect.pos;
+					let grid_size = [
+						cell_size[0].saturating_mul(cell_counts[0]),
+						cell_size[1].saturating_mul(cell_counts[1]),
+					];
+					let grid_pos = [
+						cell_rect.pos[0].saturating_add(scroll[0]),
+						cell_rect.pos[1].saturating_add(scroll[1]),
+					];
+					let grid_rect = GUIRect { pos: grid_pos, size: grid_size };
+					if is_mouse_over_rect(grid_rect, alignment, io) {
+						//println!("A");
+						//io.get_mouse_pos_as_gui_pos();
+						for y in 0..cell_counts[1] {
+							for x in 0..cell_counts[0] {
+								// Get the element
+								let cell_index = (y as usize) * (cell_counts[0] as usize) + (x as usize);
+		
+								let cell_pos = [
+									cell_pos[0].saturating_add(scroll[0].saturating_add_unsigned(cell_size[0].saturating_mul(x))),
+									cell_pos[1].saturating_add(scroll[1].saturating_add_unsigned(cell_size[1].saturating_mul(y))),
+								];
+								let cell_rect = GUIRect { pos: cell_pos, size: cell_size };
+								if is_mouse_over_rect(cell_rect, alignment, io) {
+									//println!("{cell_index}");
+									click_mut_gui(self.clone(), gui, world, io, cell_index);
+								}
+		
+								//cell_element.render(visable_area, vertices, io, cell_offset);
+							}
 						}
 					}
 				}
