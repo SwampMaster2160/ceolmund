@@ -39,7 +39,7 @@ pub enum GUIElement {
 	Text { text: String, pos: [i16; 2], alignment: GUIAlignment, text_alignment: GUIAlignment },
 	TextEntry { text: String, rect: GUIRect, alignment: GUIAlignment, is_selected: bool, text_length_limit: usize },
 	Grayout { color: [u8; 4] },
-	Texture { pos: [u16; 2], alignment: GUIAlignment, texture: Texture },
+	Texture { pos: [i16; 2], alignment: GUIAlignment, texture: Texture },
 	ScrollArea { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_height: u16, inside_elements: Vec<GUIElement>, scroll: u16 },
 	Grid {
 		cell_rect: GUIRect, cell_counts: [u16; 2], inside_elements: Vec<GUIElement>,
@@ -183,10 +183,15 @@ impl GUIElement {
 			}
 			Self::Grayout { color } => vertices.extend(render_screen_grayout(*color, io)),
 			Self::Texture { pos, alignment, texture } => {
-				vertices.extend(texture.gui_render(*pos, *alignment, io));
+				let pos = [
+					pos[0].saturating_add(scroll[0]),
+					pos[1].saturating_add(scroll[1]),
+				];
+				vertices.extend(texture.gui_render(pos, *alignment, io));
 			}
 			Self::Grid { cell_rect, cell_counts, inside_elements, .. } => {
 				let cell_size = cell_rect.size;
+				let cell_pos = cell_rect.pos;
 				// For each cell in the grid
 				for y in 0..cell_counts[1] {
 					for x in 0..cell_counts[0] {
@@ -198,8 +203,8 @@ impl GUIElement {
 						};
 
 						let cell_offset = [
-							scroll[0].saturating_add_unsigned(cell_rect.size[0]).saturating_mul(x as i16),
-							scroll[1].saturating_add_unsigned(cell_rect.size[1]).saturating_mul(y as i16),
+							cell_pos[0].saturating_add(scroll[0].saturating_add_unsigned(cell_size[0].saturating_mul(x))),
+							cell_pos[1].saturating_add(scroll[1].saturating_add_unsigned(cell_size[1].saturating_mul(y))),
 						];
 
 						cell_element.render(visable_area, vertices, io, cell_offset);

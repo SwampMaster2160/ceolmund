@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::{const_static_ptr, render::vertex::Vertex, world::direction::Direction4, gui::gui_alignment::GUIAlignment, io::io::IO};
 
-use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos_unsigned}};
+use super::{texture_type::TextureType, render::{world_pos_to_render_pos, gui_pos_to_screen_pos_unsigned, gui_pos_to_screen_pos}};
 
 /// Size of the texture sheet in pixels.
 pub const TEXTURE_SHEET_SIZE: [u32; 2] = [640, 256];
@@ -140,10 +140,10 @@ impl Texture {
 	}
 
 	/// Render the texture to the gui
-	pub fn gui_render(self, pos: [u16; 2], alignment: GUIAlignment, input: &IO) -> [Vertex; 6] {
+	pub fn gui_render(self, pos: [i16; 2], alignment: GUIAlignment, input: &IO) -> [Vertex; 6] {
 	let texture_sheet_points = self.get_texture_sheet_points();
 
-	let [start_x, start_y] = gui_pos_to_screen_pos_unsigned(pos, alignment, input);
+	let [start_x, start_y] = gui_pos_to_screen_pos(pos, alignment, input);
 	let end_x = start_x + texture_sheet_points[2] as f32;
 	let end_y = start_y + texture_sheet_points[3] as f32;
 

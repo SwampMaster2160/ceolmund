@@ -117,7 +117,17 @@ impl GUIMenu {
 						out.push(GUIElement::Text { pos: [(x * 16) as i16, (y * 16) as i16 - 4], alignment: GUIAlignment::Left, text: stack_size.to_string(), text_alignment: GUIAlignment::Left });
 					}
 				}*/
-				out.push(GUIElement::Rect { rect: GUIRect::new(*selected_item as i16 % 10 * 16, *selected_item as i16 / 10 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
+				let mut inside_elements = Vec::new();
+				for (item_index, item_stack) in inventory.items.iter().enumerate() {
+					//let x = item_index as u16 % 10;
+					//let y = item_index as u16 / 10;
+					let stack_size = item_stack.1;
+					if stack_size > 0 {
+						inside_elements.push(GUIElement::Texture { pos: [0, 0], alignment: GUIAlignment::Left, texture: item_stack.0.get_texture() });
+					}
+				}
+				out.push(GUIElement::Grid { cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 5], inside_elements, click_mut_gui: |_, _, _, _, _|() });
+				//out.push(GUIElement::Rect { rect: GUIRect::new(*selected_item as i16 % 10 * 16, *selected_item as i16 / 10 * 16, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
 				if world.difficulty != Difficulty::Sandbox {
 					out.push(GUIElement::ProgressBar {
 						rect: GUIRect::new(256 - 202 - 2, 2, 202, 8), alignment: GUIAlignment::Right, inside_color: [255, 0, 0, 255], border_color: [0, 0, 0, 255],
