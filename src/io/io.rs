@@ -1,3 +1,4 @@
+use crate::gui::gui_alignment::GUIAlignment;
 use crate::world::difficulty::Difficulty;
 use crate::world::entity::entity_action_state::EntityActionStateVariant;
 use crate::world::{entity::entity_type::EntityVariant, direction::Direction4};
@@ -170,9 +171,21 @@ impl IO {
 		self.get_game_key_via_id(id) & !self.keys_pressed_last[id]
 	}
 
-	pub fn get_mouse_pos_as_gui_pos(&self) -> [f32; 2] {
+	pub fn get_mouse_pos_as_gui_pos_f32(&self) -> [f32; 2] {
 		[self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio,
 		self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32]
+	}
+
+	pub fn get_mouse_pos_as_gui_pos(&self, alignment: GUIAlignment) -> [i16; 2] {
+		let alignment_offset = match alignment {
+			GUIAlignment::Left => 0.,
+			GUIAlignment::Center => (self.aspect_ratio - 1.) / 2.,
+			GUIAlignment::Right => self.aspect_ratio - 1.,
+		};
+		[
+			(self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio - alignment_offset) as i16,
+			(self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32) as i16
+		]
 	}
 
 	/// All keys pressed will be set as pressed last.

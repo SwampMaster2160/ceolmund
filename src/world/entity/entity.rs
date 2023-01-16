@@ -183,7 +183,7 @@ impl Entity {
 			pos: [0, 0],
 			action_state: EntityActionState::Idle,
 			facing: Direction4::South,
-			entity_type: EntityType::Player { inventory, selected_item: 0, respawn_pos: [0, 0] },
+			entity_type: EntityType::Player { inventory, selected_item: 0, respawn_pos: [0, 0], is_swaping_item: false },
 			health: 100,
 		}
 	}

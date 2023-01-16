@@ -98,8 +98,8 @@ impl GUIMenu {
 				let mut out = Vec::new();
 				let world = world.as_ref().unwrap();
 				let player = world.player.as_ref().unwrap();
-				let (inventory, selected_item) = match &player.entity_type {
-					EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
+				let (inventory, selected_item, is_swaping_items) = match &player.entity_type {
+					EntityType::Player { inventory, selected_item, is_swaping_item, .. } => (inventory, selected_item, is_swaping_item),
 				};
 				// Item area
 				let mut grid_elements = Vec::new();
@@ -124,13 +124,16 @@ impl GUIMenu {
 					}
 					// Show selected item.
 					if item_index == *selected_item as usize {
-						cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: [63, 63, 63, 127] });
+						let color = match *is_swaping_items {
+							false => [63, 63, 63, 127],
+							true => [31, 31, 31, 127],
+						};
+						cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Left, inside_color: NO_COLOR, border_color: color });
 					}
 
 					grid_elements.push(GUIElement::ElementCollection { offset: [0, 0], inside_elements: cell_elements })
 				}
-				out.push(GUIElement::Grid { alignment: GUIAlignment::Left , cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 5], inside_elements: grid_elements, click_mut_gui: |_, _, world, _, index|{
-					//println!("{index}");
+				out.push(GUIElement::Grid { alignment: GUIAlignment::Left , cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 5], inside_elements: grid_elements, click_mut_gui: |_, _, world, _, item_clicked_on_index|{
 					let world = match world {
 						Some(world) => world,
 						_ => return,
@@ -139,11 +142,20 @@ impl GUIMenu {
 						Some(player) => player,
 						_ => return,
 					};
-					let selected_item = match &mut player.entity_type {
-						EntityType::Player { selected_item, .. } => selected_item,
+					let (selected_item, is_swaping_item, inventory) = match &mut player.entity_type {
+						EntityType::Player { selected_item, is_swaping_item, inventory, .. } => (selected_item, is_swaping_item, inventory),
 						//_ => return,
 					};
-					*selected_item = index as u8;
+					if *selected_item == item_clicked_on_index as u8 {
+						*is_swaping_item = !*is_swaping_item;
+					}
+					else {
+						if *is_swaping_item {
+							inventory.swap_items(*selected_item as usize, item_clicked_on_index);
+						}
+						*is_swaping_item = false;
+						*selected_item = item_clicked_on_index as u8;
+					}
 				} });
 				// Health bar
 				if world.difficulty != Difficulty::Sandbox {

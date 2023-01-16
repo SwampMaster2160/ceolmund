@@ -59,6 +59,14 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 		(item_to_add, amount_left_to_add)
 	}
 
+	pub fn swap_items(&mut self, a: usize, b: usize) -> Option<()> {
+		let item_stack_a = self.items.get(a)?.clone();
+		let item_stack_b = self.items.get(b)?.clone();
+		*self.items.get_mut(a)? = item_stack_b;
+		*self.items.get_mut(b)? = item_stack_a;
+		Some(())
+	}
+
 	pub fn serialize(&self, file: &mut FileWriter) {
 		for (item, stack_amount) in self.items.iter() {
 			item.serialize(file);

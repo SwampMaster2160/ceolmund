@@ -51,7 +51,7 @@ pub enum GUIElement {
 }
 
 pub fn is_mouse_over_rect(rect: GUIRect, alignment: GUIAlignment, io: &IO) -> bool {
-	let mouse_pos = io.get_mouse_pos_as_gui_pos();
+	let mouse_pos = io.get_mouse_pos_as_gui_pos_f32();
 	let button_screen_pos = gui_pos_to_screen_pos(rect.pos, alignment, io);
 	let button_screen_size = gui_size_to_screen_size(rect.size);
 	let button_screen_end = [button_screen_pos[0] + button_screen_size[0], button_screen_pos[1] + button_screen_size[1]];
@@ -288,72 +288,71 @@ impl GUIElement {
 		}
 	}
 
-	/// Tick a copy of the element with a mutable refrence to the gui.
+	/// Called on a copy of the element with a mutable refrence to the gui if the mouse is being clicked.
 	pub fn click_mut_gui(self, gui: &mut GUI, world: &mut Option<World>, io: &IO, scroll: [i16; 2]) {
-		if io.get_game_key_starting_now(GameKey::GUIInteract) {
-			match self {
-				GUIElement::Button { click_mut_gui, enabled, .. } => {
-					if enabled && self.is_mouse_over(io, scroll) {
-						click_mut_gui(self, gui, world, io);
-					}
+		match self {
+			GUIElement::Button { click_mut_gui, enabled, .. } => {
+				// If the button is being clicked then call the function for the button.
+				if enabled && self.is_mouse_over(io, scroll) {
+					click_mut_gui(self, gui, world, io);
 				}
-				GUIElement::SingleFunctionButtonGroup { ref buttons, alignment, click_mut_gui, .. } => {
-					for (button_index, button) in buttons.iter().enumerate() {
-						let is_enabled = button.2;
-						let rect = button.1;
-						if is_enabled && is_mouse_over_rect(rect.scrolled(scroll), alignment, io) {
-							click_mut_gui(self.clone(), gui, world, io, button_index);
-						}
-					}
-				}
-				GUIElement::ScrollArea { rect, alignment, inside_elements, scroll: scroll_area_scroll, .. } => {
-					if is_mouse_over_rect(rect, alignment, io) {
-						for element in inside_elements {
-							let scroll = [
-								scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
-								scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(scroll_area_scroll),
-							];
-							element.click_mut_gui(gui, world, io, scroll);
-						}
-					}
-				}
-				GUIElement::Grid { cell_rect, cell_counts, alignment, click_mut_gui, .. } => {
-					let cell_size = cell_rect.size;
-					let cell_pos = cell_rect.pos;
-					let grid_size = [
-						cell_size[0].saturating_mul(cell_counts[0]),
-						cell_size[1].saturating_mul(cell_counts[1]),
-					];
-					let grid_pos = [
-						cell_rect.pos[0].saturating_add(scroll[0]),
-						cell_rect.pos[1].saturating_add(scroll[1]),
-					];
-					let grid_rect = GUIRect { pos: grid_pos, size: grid_size };
-					if is_mouse_over_rect(grid_rect, alignment, io) {
-						//println!("A");
-						//io.get_mouse_pos_as_gui_pos();
-						for y in 0..cell_counts[1] {
-							for x in 0..cell_counts[0] {
-								// Get the element
-								let cell_index = (y as usize) * (cell_counts[0] as usize) + (x as usize);
-		
-								let cell_pos = [
-									cell_pos[0].saturating_add(scroll[0].saturating_add_unsigned(cell_size[0].saturating_mul(x))),
-									cell_pos[1].saturating_add(scroll[1].saturating_add_unsigned(cell_size[1].saturating_mul(y))),
-								];
-								let cell_rect = GUIRect { pos: cell_pos, size: cell_size };
-								if is_mouse_over_rect(cell_rect, alignment, io) {
-									//println!("{cell_index}");
-									click_mut_gui(self.clone(), gui, world, io, cell_index);
-								}
-		
-								//cell_element.render(visable_area, vertices, io, cell_offset);
-							}
-						}
-					}
-				}
-				_ => {}
 			}
+			GUIElement::SingleFunctionButtonGroup { ref buttons, alignment, click_mut_gui, .. } => {
+				// For each button in the group.
+				for (button_index, button) in buttons.iter().enumerate() {
+					let is_enabled = button.2;
+					let rect = button.1;
+					// If the button is being clicked and is enabled then call the button group function with the index of the button pressed.
+					if is_enabled && is_mouse_over_rect(rect.scrolled(scroll), alignment, io) {
+						click_mut_gui(self.clone(), gui, world, io, button_index);
+					}
+				}
+			}
+			GUIElement::ScrollArea { rect, alignment, inside_elements, scroll: scroll_area_scroll, .. } => {
+				// Return if we are not clicking inside the scroll area
+				if !is_mouse_over_rect(rect, alignment, io) {
+					return;
+				}
+				// Call the click function for each element in the scroll box.
+				for element in inside_elements {
+					let scroll = [
+						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(scroll_area_scroll),
+					];
+					element.click_mut_gui(gui, world, io, scroll);
+				}
+			}
+			GUIElement::Grid { cell_rect, cell_counts, alignment, click_mut_gui, .. } => {
+				let cell_size = cell_rect.size;
+				let cell_pos = cell_rect.pos;
+				// Get the size of the entire grid
+				let grid_size = [
+					cell_size[0].saturating_mul(cell_counts[0]),
+					cell_size[1].saturating_mul(cell_counts[1]),
+				];
+				// Scroll the grid pos
+				let grid_pos = [
+					cell_rect.pos[0].saturating_add(scroll[0]),
+					cell_rect.pos[1].saturating_add(scroll[1]),
+				];
+				// The entire grid as a rect object.
+				let grid_rect = GUIRect { pos: grid_pos, size: grid_size };
+				// If the mouse clicked outside the grid then return.
+				if !is_mouse_over_rect(grid_rect, alignment, io) {
+					return;
+				}
+				// Get the grid x, y pos of the cell that the mouse has clicked.
+				let mouse_pos = io.get_mouse_pos_as_gui_pos(alignment);
+				let cell_pos = [
+					mouse_pos[0].saturating_sub(cell_pos[0]) / cell_size[0] as i16,
+					mouse_pos[1].saturating_sub(cell_pos[1]) / cell_size[1] as i16,
+				];
+				// Convert to cell index in grid.
+				let cell_index = (cell_pos[1] as usize) * (cell_counts[0] as usize) + (cell_pos[0] as usize);
+				// Call function for the grid with the cell index clicked.
+				click_mut_gui(self.clone(), gui, world, io, cell_index);
+			}
+			_ => {}
 		}
 	}
 }

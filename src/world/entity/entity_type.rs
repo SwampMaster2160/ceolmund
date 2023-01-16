@@ -9,7 +9,7 @@ use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 #[strum_discriminants(name(EntityVariant), derive(EnumCount, EnumIter))]
 #[repr(u8)]
 pub enum EntityType {
-	Player { inventory: Inventory<50>, selected_item: u8, respawn_pos: [i64; 2] },
+	Player { inventory: Inventory<50>, selected_item: u8, respawn_pos: [i64; 2], is_swaping_item: bool },
 }
 
 impl EntityType {
@@ -25,7 +25,7 @@ impl EntityType {
 		file.push_u8(EntityVariant::from(self) as u8);
 		
 		match self {
-			Self::Player { inventory, selected_item, respawn_pos } => {
+			Self::Player { inventory, selected_item, respawn_pos, is_swaping_item: _ } => {
 				// Push inventory
 				inventory.serialize(file);
 				// Push selected item
@@ -44,6 +44,9 @@ impl EntityType {
 		Some(match variant {
 			EntityVariant::Player => {
 				let mut inventory = Inventory::deserialize(file, namespace, version)?;
+				if difficulty == Difficulty::Sandbox {
+					inventory = Inventory::new();
+				}
 				let selected_item = file.read_u8()?;
 				// Temp
 				if difficulty == Difficulty::Sandbox {
@@ -68,7 +71,7 @@ impl EntityType {
 					_ => file.read_world_pos()?,
 				};
 				
-				Self::Player { inventory, selected_item, respawn_pos }
+				Self::Player { inventory, selected_item, respawn_pos, is_swaping_item: false }
 			}
 		})
 	}
