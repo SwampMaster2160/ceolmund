@@ -4,11 +4,11 @@ use crate::{io::io::IO, world::world::World};
 
 /// A struct containing the name and path of all the worlds in the users world folder.
 #[derive(Clone)]
-pub struct LoadWorldData {
+pub struct WorldList {
 	pub worlds: Vec<(String, PathBuf)>,
 }
 
-impl LoadWorldData {
+impl WorldList {
 	/// Get a vector of all valid world name and filepath pairs.
 	pub fn new(io: &IO) -> Self {
 		let mut out = Vec::new();

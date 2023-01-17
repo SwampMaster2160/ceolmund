@@ -1,6 +1,6 @@
 use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty}};
 
-use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::LoadWorldData, gui_rect::GUIRect};
+use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::WorldList, gui_rect::GUIRect};
 
 const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 const RECT_BORDER_COLOR: [u8; 4] = [15, 15, 15, 255];
@@ -70,30 +70,7 @@ impl GUIMenu {
 				GUIElement::Rect { rect: GUIRect::new(51, 76, 154, 104), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Closing World...".to_string(), pos: [127, 120], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
 			],
-			GUIMenuVariant::Title => vec![
-				GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
-				GUIElement::Text { text: "Ceolmund".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-				GUIElement::Button {
-					rect: GUIRect::new(53, 210, 150, 16), alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
-					click_mut_gui: (|_, gui, _, _| {
-						gui.should_close_game = true;
-					}),
-				},
-				GUIElement::Button {
-					rect: GUIRect::new(53, 30, 150, 16), alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
-					click_mut_gui: (|_, gui, _, _| {
-						gui.menus.pop();
-						gui.menus.push(Self::new(GUIMenuVariant::CreateWorld));
-					}),
-				},
-				GUIElement::Button {
-					rect: GUIRect::new(53, 50, 150, 16), alignment: GUIAlignment::Center, text: "Load World".to_string(), enabled: true,
-					click_mut_gui: (|_, gui, _, io| {
-						gui.menus.pop();
-						gui.menus.push(Self::new(GUIMenuVariant::LoadWorld{ load_world_data: LoadWorldData::new(io) })/*Self::new_load_world(/*0, */LoadWorldData::new(io))*/);
-					}),
-				},
-			],
+			
 			GUIMenuVariant::IngameHUD => {
 				let mut out = Vec::new();
 				let world = world.as_ref().unwrap();
@@ -241,6 +218,7 @@ impl GUIMenu {
 					},
 				]
 			}
+			_ => Vec::new(),
 		}
 	}
 
@@ -379,7 +357,34 @@ impl GUIMenu {
 						],
 					},
 				],
-				GUIMenuVariant::LoadWorld { load_world_data } => {
+				GUIMenuVariant::Title => vec![
+					GUIElement::RectContainer { 
+						rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+							GUIElement::Text { text: "Ceolmund".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+							GUIElement::Button {
+								rect: GUIRect::new(0, 0, 150, 16), alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
+								click_mut_gui: (|_, gui, _, _| {
+									gui.menus.pop();
+									gui.menus.push(Self::new(GUIMenuVariant::CreateWorld));
+								}),
+							},
+							GUIElement::Button {
+								rect: GUIRect::new(0, 20, 150, 16), alignment: GUIAlignment::Center, text: "Load World".to_string(), enabled: true,
+								click_mut_gui: (|_, gui, _, io| {
+									gui.menus.pop();
+									gui.menus.push(Self::new(GUIMenuVariant::LoadWorld{ world_list: WorldList::new(io) }));
+								}),
+							},
+							GUIElement::Button {
+								rect: GUIRect::new(0, 180, 150, 16), alignment: GUIAlignment::Center, text: "Exit Game".to_string(), enabled: true,
+								click_mut_gui: (|_, gui, _, _| {
+									gui.should_close_game = true;
+								}),
+							},
+						],
+					},
+				],
+				GUIMenuVariant::LoadWorld { world_list: load_world_data } => {
 					let world_count = load_world_data.worlds.len();
 				
 					let mut buttons = Vec::new();
@@ -392,7 +397,7 @@ impl GUIMenu {
 						alignment: GUIAlignment::Center, buttons,
 						click_mut_gui: (|_, gui, world, io, button_clicked_index| {
 							let top_menu = &gui.menus.last().unwrap().variant;
-							if let GUIMenuVariant::LoadWorld { load_world_data } = top_menu {
+							if let GUIMenuVariant::LoadWorld { world_list: load_world_data } = top_menu {
 								let world_path = &load_world_data.worlds[button_clicked_index].1;
 								if let Some(new_world) = World::load(world_path.clone(), io, false) {
 									*world = Some(new_world);

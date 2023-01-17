@@ -41,6 +41,7 @@ pub enum GUIElement {
 	Grayout { color: [u8; 4] },
 	Texture { pos: [i16; 2], alignment: GUIAlignment, texture: Texture },
 	ScrollArea { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_height: u16, inside_elements: Vec<GUIElement>, scroll: u16 },
+	RectContainer { rect: GUIRect, alignment: GUIAlignment, inside_color: [u8; 4], border_color: [u8; 4], inside_elements: Vec<GUIElement> },
 	Grid {
 		cell_rect: GUIRect, cell_counts: [u16; 2], inside_elements: Vec<GUIElement>, alignment: GUIAlignment,
 		click_mut_gui: fn(GUIElement, gui: &mut GUI, world: &mut Option<World>, io: &IO, cell_clicked_index: usize) -> (),
@@ -86,6 +87,18 @@ impl GUIElement {
 					let scroll = [
 						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
 						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(*scroll_area_scroll),
+					];
+					element.render(visable_area, vertices, io, scroll);
+				}
+			}
+			Self::RectContainer { rect, alignment, inside_color, border_color, inside_elements, .. } => {
+				let rect = rect.scrolled(scroll);
+				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
+				//let visable_area = visable_area.scrolled(scroll).overlap(rect.without_outline().without_outline());
+				for element in inside_elements {
+					let scroll = [
+						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+						scroll[1].saturating_add(rect.pos[1]).saturating_add(2),
 					];
 					element.render(visable_area, vertices, io, scroll);
 				}
@@ -318,6 +331,16 @@ impl GUIElement {
 					let scroll = [
 						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
 						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(scroll_area_scroll),
+					];
+					element.click_mut_gui(gui, world, io, scroll);
+				}
+			}
+			GUIElement::RectContainer { rect, inside_elements, .. } => {
+				// Call the click function for each element in the box.
+				for element in inside_elements {
+					let scroll = [
+						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+						scroll[1].saturating_add(rect.pos[1]).saturating_add(2),
 					];
 					element.click_mut_gui(gui, world, io, scroll);
 				}

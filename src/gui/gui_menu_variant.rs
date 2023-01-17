@@ -1,4 +1,4 @@
-use super::load_world_data::LoadWorldData;
+use super::load_world_data::WorldList;
 
 #[derive(Clone)]
 pub enum GUIMenuVariant {
@@ -10,5 +10,5 @@ pub enum GUIMenuVariant {
 	IngameHUD,
 	CreateWorld,
 	Error,
-	LoadWorld { load_world_data: LoadWorldData/*, page: usize*/ },
+	LoadWorld { world_list: WorldList },
 }
