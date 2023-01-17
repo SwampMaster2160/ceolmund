@@ -138,18 +138,6 @@ impl GUIMenu {
 					}),
 				},
 			],
-			GUIMenuVariant::LoadWorld { .. } => {
-				vec![
-					GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
-					GUIElement::Text { text: "Load World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-					GUIElement::Button {
-						rect: GUIRect::new(53, 210, 150, 16), alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
-						click_mut_gui: (|_, gui, _, _| {
-							gui.menus = vec![Self::new(GUIMenuVariant::Title)];
-						}),
-					},
-				]
-			}
 			_ => Vec::new(),
 		}
 	}
@@ -419,12 +407,25 @@ impl GUIMenu {
 						}),
 					};
 					
-					vec![GUIElement::ScrollArea {
-						rect: GUIRect::new(53, 30, 150, 9 * 20 - 4), alignment: GUIAlignment::Center, border_color: RECT_BORDER_COLOR, inside_color: RECT_COLOR,
-						inside_height: (world_count as u16).saturating_mul(20).saturating_sub(4), scroll: 0, inside_elements: vec![
-							buttons,
-						],
-					}]
+					vec![
+						GUIElement::RectContainer { 
+							rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+								GUIElement::Text { text: "Load World".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+								GUIElement::ScrollArea {
+									rect: GUIRect::new(0, 0, 150, 176), alignment: GUIAlignment::Center, border_color: RECT_BORDER_COLOR, inside_color: RECT_COLOR,
+									inside_height: (world_count as u16).saturating_mul(20).saturating_sub(4), scroll: 0, inside_elements: vec![
+										buttons,
+									],
+								},
+								GUIElement::Button {
+									rect: GUIRect::new(0, 180, 150, 16), alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
+									click_mut_gui: (|_, gui, _, _| {
+										gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+									}),
+								},
+							],
+						},
+					]
 				}
 				_ => Vec::new(),
 			},

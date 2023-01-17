@@ -78,14 +78,14 @@ impl GUIElement {
 			Self::Rect{rect, alignment, inside_color, border_color} =>
 				rect.scrolled(scroll).render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices),
 			Self::ScrollArea { rect, alignment, inside_color, border_color, inside_elements, scroll: scroll_area_scroll, .. } => {
-				let rect = rect.scrolled(scroll);
-				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
-				let visable_area = visable_area.scrolled(scroll).overlap(rect.without_outline().without_outline());
+				let outline_rect = rect.scrolled(scroll);
+				outline_rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
+				let visable_area = visable_area.overlap(rect.scrolled(scroll).without_outline().without_outline());
+				let scroll = [
+					scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+					scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(*scroll_area_scroll),
+				];
 				for element in inside_elements {
-					let scroll = [
-						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
-						scroll[1].saturating_add(rect.pos[1]).saturating_add(2).saturating_sub_unsigned(*scroll_area_scroll),
-					];
 					element.render(visable_area, vertices, io, scroll);
 				}
 			}
@@ -331,7 +331,7 @@ impl GUIElement {
 			}
 			GUIElement::ScrollArea { rect, alignment, inside_elements, scroll: scroll_area_scroll, .. } => {
 				// Return if we are not clicking inside the scroll area
-				if !is_mouse_over_rect(rect, alignment, io) {
+				if !is_mouse_over_rect(rect.scrolled(scroll).without_outline().without_outline(), alignment, io) {
 					return;
 				}
 				// Call the click function for each element in the scroll box.
