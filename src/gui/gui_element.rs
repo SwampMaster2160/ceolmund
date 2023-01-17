@@ -64,12 +64,10 @@ impl GUIElement {
 	/// Get weather the mouse is over an element.
 	pub fn is_mouse_over(&self, io: &IO, scroll: [i16; 2]) -> bool {
 		match self {
-			Self::Button { rect, alignment, .. } => {
-				is_mouse_over_rect(rect.scrolled(scroll), *alignment, io)
-			},
-			Self::ToggleButton { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
-			Self::TextEntry { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
-			Self::ScrollArea { rect, alignment, .. } => is_mouse_over_rect(*rect, *alignment, io),
+			Self::Button { rect, alignment, .. } => is_mouse_over_rect(rect.scrolled(scroll), *alignment, io),
+			Self::ToggleButton { rect, alignment, .. } => is_mouse_over_rect(rect.scrolled(scroll), *alignment, io),
+			Self::TextEntry { rect, alignment, .. } => is_mouse_over_rect(rect.scrolled(scroll), *alignment, io),
+			Self::ScrollArea { rect, alignment, .. } => is_mouse_over_rect(rect.scrolled(scroll), *alignment, io),
 			_ => false,
 		}
 	}
@@ -94,7 +92,6 @@ impl GUIElement {
 			Self::RectContainer { rect, alignment, inside_color, border_color, inside_elements, .. } => {
 				let rect = rect.scrolled(scroll);
 				rect.render_shade_and_outline(visable_area, *alignment, *border_color, *inside_color, io, vertices);
-				//let visable_area = visable_area.scrolled(scroll).overlap(rect.without_outline().without_outline());
 				for element in inside_elements {
 					let scroll = [
 						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
@@ -144,7 +141,7 @@ impl GUIElement {
 			Self::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
 				for (button_index, button) in buttons.iter().enumerate() {
 					let is_selected = button_index == *selected_button;
-					let rect = button.1;
+					let rect = button.1.scrolled(scroll);
 					let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
 					let text = button.0.as_str();
 					let is_enabled = button.2;
@@ -190,6 +187,7 @@ impl GUIElement {
 				render_gui_string(string, pos, *alignment, *text_alignment, io, vertices, visable_area);
 			}
 			Self::TextEntry { text, rect, alignment, is_selected, .. } => {
+				let rect = rect.scrolled(scroll);
 				let mut inside_color = TEXT_ENTRY_GRAY_COLOR;
 				if self.is_mouse_over(io, scroll) {
 					inside_color = BUTTON_HOVER_COLOR;
@@ -246,7 +244,7 @@ impl GUIElement {
 	}
 
 	/// Tick the element with a mutable refrence to self.
-	pub fn tick_mut_self(&mut self, _world: &mut Option<World>, io: &IO, scroll: [i16; 2]) {
+	pub fn tick_mut_self(&mut self, world: &mut Option<World>, io: &IO, scroll: [i16; 2]) {
 		let is_mouse_over = self.is_mouse_over(io, scroll);
 		if io.get_game_key_starting_now(GameKey::GUIInteract) {
 			match self {
@@ -260,7 +258,7 @@ impl GUIElement {
 				},
 				GUIElement::MutuallyExclusiveButtonGroup { buttons, alignment, selected_button } => {
 					for (button_index, button) in buttons.iter().enumerate() {
-						let rect = button.1;
+						let rect = button.1.scrolled(scroll);
 						let is_enabled = button.2;
 						let is_mouse_over = is_mouse_over_rect(rect, *alignment, io);
 						if is_mouse_over && is_enabled {
@@ -288,6 +286,16 @@ impl GUIElement {
 				if is_mouse_over {
 					let max_scroll = inside_height.saturating_sub(rect.size[1]).saturating_add(4);
 					*scroll = scroll.saturating_add_signed(io.mouse_scroll_delta.saturating_neg().saturating_mul(8)).min(max_scroll);
+				}
+			}
+			GUIElement::RectContainer { rect, inside_elements, .. } => {
+				// Call the click function for each element in the box.
+				for element in inside_elements {
+					let scroll = [
+						scroll[0].saturating_add(rect.pos[0]).saturating_add(2),
+						scroll[1].saturating_add(rect.pos[1]).saturating_add(2),
+					];
+					element.tick_mut_self(world, io, scroll);
 				}
 			}
 			_ => {}

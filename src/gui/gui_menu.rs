@@ -18,22 +18,6 @@ impl GUIMenu {
 	/// Get the elements that do not need to be stored from frame to frame.
 	pub fn get_const_elements(&self, world: &Option<World>) -> Vec<GUIElement> {
 		match &self.variant {
-			GUIMenuVariant::Test => vec![
-				GUIElement::Rect { rect: GUIRect::new(10, 10, 10, 10), alignment: GUIAlignment::Left, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
-				GUIElement::Button {
-					rect: GUIRect::new(30, 20, 30, 15), alignment: GUIAlignment::Left, text: "Hi".to_string(), enabled: true,
-					click_mut_gui: (|_, _, _, _| println!("Hi")),
-				},
-				GUIElement::Text { text: "Hello".to_string(), pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
-				GUIElement::SingleFunctionButtonGroup {
-					alignment: GUIAlignment::Left, buttons: vec![
-						("Button 0".to_string(), GUIRect::new(30, 130, 100, 16), true),
-						("Button 1".to_string(), GUIRect::new(30, 160, 100, 16), false),
-						("Button 2".to_string(), GUIRect::new(30, 190, 100, 16), true),
-					],
-					click_mut_gui: (|_, _, _, _, button_clicked_index| println!("Hi {button_clicked_index}.")),
-				},
-			],
 			GUIMenuVariant::Paused => vec![
 				GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
 				GUIElement::Text { text: "Game Paused".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
@@ -143,58 +127,6 @@ impl GUIMenu {
 				}
 				out
 			}
-			GUIMenuVariant::CreateWorld => vec![
-				GUIElement::Rect { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
-				GUIElement::Text { text: "Create World".to_string(), pos: [127, 14], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-				GUIElement::Text { text: "Name:".to_string(), pos: [53, 30], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
-				GUIElement::Text { text: "Seed:".to_string(), pos: [53, 70], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
-				GUIElement::Text { text: "Difficulty:".to_string(), pos: [53, 110], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
-				GUIElement::Button {
-					rect: GUIRect::new(53, 190, 150, 16), alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
-					click_mut_gui: (|_, gui, world, io| {
-						if let GUIElement::TextEntry{text: name_text, ..} = &gui.menus.last().unwrap().extra_elements[0] {
-							if let GUIElement::TextEntry{text: seed_text, ..} = &gui.menus.last().unwrap().extra_elements[1] {
-								let seed = seed_text.parse::<u32>();
-								let seed = match seed {
-									Ok(seed) => seed,
-									Err(_) if *seed_text == "".to_string() => 420,
-									Err(_) => {
-										gui.menus.push(GUIMenu::new_error("Invalid seed.".to_string()));
-										return
-									},
-								};
-								let difficulty_buttons = &gui.menus.last().unwrap().extra_elements[2];
-								let difficulty = if let GUIElement::MutuallyExclusiveButtonGroup { selected_button, .. } = difficulty_buttons {
-									match selected_button {
-										0 => Difficulty::Sandbox,
-										1 => Difficulty::Easy,
-										2 => Difficulty::Medium,
-										3 => Difficulty::Hard,
-										_ => panic!(),
-									}
-								}
-								else {
-									panic!();
-								};
-								match World::new(seed, name_text.clone(), io, difficulty) {
-									Some(valid_world) => *world = Some(valid_world),
-									None => {
-										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
-										return
-									},
-								};
-								gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
-							}
-						}
-					}),
-				},
-				GUIElement::Button {
-					rect: GUIRect::new(53, 210, 150, 16), alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
-					click_mut_gui: (|_, gui, _, _| {
-						gui.menus = vec![Self::new(GUIMenuVariant::Title)];
-					}),
-				},
-			],
 			GUIMenuVariant::Error => vec![
 				GUIElement::Grayout { color: GRAYOUT_COLOR },
 				GUIElement::Rect { rect: GUIRect::new(51, 88, 154, 80), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
@@ -319,13 +251,76 @@ impl GUIMenu {
 			variant: variant.clone(),
 			extra_elements: match variant {
 				GUIMenuVariant::CreateWorld => vec![
-					GUIElement::TextEntry { text: "".to_string(), rect: GUIRect::new(53, 50, 150, 16), alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 20 },
-					GUIElement::TextEntry { text: "".to_string(), rect: GUIRect::new(53, 90, 150, 16), alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
-					GUIElement::MutuallyExclusiveButtonGroup { alignment: GUIAlignment::Center, selected_button: 1, buttons: vec![
-						("Sandbox".to_string(), GUIRect::new(53, 130, 37, 16), true),
-						("Easy".to_string(), GUIRect::new(91, 130, 37, 16), true),
-						("Medium".to_string(), GUIRect::new(129, 130, 37, 16), true),
-						("Hard".to_string(), GUIRect::new(167, 130, 36, 16), true),
+					GUIElement::RectContainer { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+						GUIElement::Text { text: "Create World".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+						GUIElement::Text { text: "Name:".to_string(), pos: [0, 0], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+						GUIElement::TextEntry { text: "".to_string(), rect: GUIRect::new(0, 20, 150, 16), alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 20 },
+						GUIElement::Text { text: "Seed:".to_string(), pos: [0, 40], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+						GUIElement::TextEntry { text: "".to_string(), rect: GUIRect::new(0, 60, 150, 16), alignment: GUIAlignment::Center, is_selected: false, text_length_limit: 10 },
+						GUIElement::Text { text: "Difficulty:".to_string(), pos: [0, 80], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Left },
+						GUIElement::MutuallyExclusiveButtonGroup { alignment: GUIAlignment::Center, selected_button: 1, buttons: vec![
+							("Sandbox".to_string(), GUIRect::new(0, 100, 37, 16), true),
+							("Easy".to_string(), GUIRect::new(38, 100, 37, 16), true),
+							("Medium".to_string(), GUIRect::new(76, 100, 37, 16), true),
+							("Hard".to_string(), GUIRect::new(114, 100, 36, 16), true),
+						] },
+						GUIElement::Button {
+							rect: GUIRect::new(0, 160, 150, 16), alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
+							click_mut_gui: (|_, gui, world, io| {
+								// Get content of GUI menu box.
+								let menu_box = &gui.menus.last().unwrap().extra_elements[0];
+								let menu_box_content = match menu_box {
+									GUIElement::RectContainer { inside_elements, .. } => inside_elements,
+									_ => return,
+								};
+								// Get world name.
+								let name_text = match menu_box_content[2].clone() {
+									GUIElement::TextEntry{text, ..} => text,
+									_ => return,
+								};
+								// Get world seed.
+								let seed_text = match menu_box_content[4].clone() {
+									GUIElement::TextEntry{text, ..} => text,
+									_ => return,
+								};
+								let seed = match seed_text.parse::<u32>() {
+									Ok(seed) => seed,
+									Err(_) if *seed_text == "".to_string() => 420,
+									Err(_) => {
+										gui.menus.push(GUIMenu::new_error("Invalid seed.".to_string()));
+										return
+									},
+								};
+								// Get difficulty.
+								let difficulty_buttons = menu_box_content[6].clone();
+								let difficulty = match difficulty_buttons {
+									GUIElement::MutuallyExclusiveButtonGroup { selected_button, .. } => match selected_button {
+										0 => Difficulty::Sandbox,
+										1 => Difficulty::Easy,
+										2 => Difficulty::Medium,
+										3 => Difficulty::Hard,
+										_ => return,
+									}
+									_ => return,
+								};
+								// Create world.
+								match World::new(seed, name_text.clone(), io, difficulty) {
+									Some(valid_world) => *world = Some(valid_world),
+									None => {
+										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
+										return
+									},
+								};
+								// Set menus to ingame HUD.
+								gui.menus = vec![Self::new(GUIMenuVariant::IngameHUD)];
+							}),
+						},
+						GUIElement::Button {
+							rect: GUIRect::new(0, 180, 150, 16), alignment: GUIAlignment::Center, text: "Cancel".to_string(), enabled: true,
+							click_mut_gui: (|_, gui, _, _| {
+								gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+							}),
+						},
 					] },
 				],
 				GUIMenuVariant::Test => vec![
@@ -355,6 +350,20 @@ impl GUIMenu {
 								click_mut_gui: (|_, _, _, _| println!("K")),
 							},
 						],
+					},
+					GUIElement::Rect { rect: GUIRect::new(10, 10, 10, 10), alignment: GUIAlignment::Left, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR },
+					GUIElement::Button {
+						rect: GUIRect::new(30, 20, 30, 15), alignment: GUIAlignment::Left, text: "Hi".to_string(), enabled: true,
+						click_mut_gui: (|_, _, _, _| println!("Hi")),
+					},
+					GUIElement::Text { text: "Hello".to_string(), pos: [50, 40], alignment: GUIAlignment::Left, text_alignment: GUIAlignment::Left },
+					GUIElement::SingleFunctionButtonGroup {
+						alignment: GUIAlignment::Left, buttons: vec![
+							("Button 0".to_string(), GUIRect::new(30, 130, 100, 16), true),
+							("Button 1".to_string(), GUIRect::new(30, 160, 100, 16), false),
+							("Button 2".to_string(), GUIRect::new(30, 190, 100, 16), true),
+						],
+						click_mut_gui: (|_, _, _, _, button_clicked_index| println!("Hi {button_clicked_index}.")),
 					},
 				],
 				GUIMenuVariant::Title => vec![
