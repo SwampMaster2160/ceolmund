@@ -471,8 +471,28 @@ impl GUIMenu {
 				if io.get_game_key_starting_now(GameKey::OpenTestMenu) {
 					gui.menus.push(Self::new(GUIMenuVariant::Test))
 				}
-				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) {
+				let difficulty = match world {
+					Some(world) => world.difficulty,
+					None => panic!(),
+				};
+				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) && difficulty == Difficulty::Sandbox {
 					gui.menus.push(Self::new(GUIMenuVariant::SpawnItems))
+				}
+				let (inventory, selected_item) = &mut match world {
+					Some(world) => match &mut world.player {
+						Some(player) => match &mut player.entity_type {
+							EntityType::Player { inventory, selected_item, .. } => (inventory, selected_item),
+						}
+						None => return,
+					}
+					None => return,
+				};
+				if io.get_game_key_starting_now(GameKey::DeleteItem) && difficulty == Difficulty::Sandbox {
+					let item_slot = match inventory.items.get_mut(**selected_item as usize) {
+						Some(slot) => slot,
+						None => return,
+					};
+					*item_slot = (Item::None, 0);
 				}
 			}
 			GUIMenuVariant::ExitingGame => {
