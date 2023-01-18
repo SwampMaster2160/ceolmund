@@ -29,7 +29,7 @@ impl GUI {
 	pub fn tick(&mut self, world: &mut Option<World>, io: &mut IO) {
 		// Tick GUI elements of the top layer.
 		if let Some(top_menu) = self.menus.last_mut() {
-			for element in &mut top_menu.extra_elements {
+			for element in &mut top_menu.elements {
 				element.tick_mut_self(world, io, [0, 0]);
 			}
 		}

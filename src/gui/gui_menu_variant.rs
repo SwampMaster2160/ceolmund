@@ -11,4 +11,5 @@ pub enum GUIMenuVariant {
 	CreateWorld,
 	Error,
 	LoadWorld { world_list: WorldList },
+	SpawnItems,
 }

@@ -11,7 +11,7 @@ const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 #[derive(Clone)]
 pub struct GUIMenu {
 	variant: GUIMenuVariant,
-	pub extra_elements: Vec<GUIElement>,
+	pub elements: Vec<GUIElement>,
 }
 
 impl GUIMenu {
@@ -19,7 +19,7 @@ impl GUIMenu {
 	pub fn new(variant: GUIMenuVariant) -> Self {
 		Self {
 			variant: variant.clone(),
-			extra_elements: match variant {
+			elements: match variant {
 				GUIMenuVariant::CreateWorld => vec![
 					GUIElement::RectContainer { rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
 						GUIElement::Text { text: "Create World".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
@@ -38,7 +38,7 @@ impl GUIMenu {
 							rect: GUIRect::new(0, 160, 150, 16), alignment: GUIAlignment::Center, text: "Create World".to_string(), enabled: true,
 							click_mut_gui: (|_, gui, world, io| {
 								// Get content of GUI menu box.
-								let menu_box = &gui.menus.last().unwrap().extra_elements[0];
+								let menu_box = &gui.menus.last().unwrap().elements[0];
 								let menu_box_content = match menu_box {
 									GUIElement::RectContainer { inside_elements, .. } => inside_elements,
 									_ => return,
@@ -262,6 +262,17 @@ impl GUIMenu {
 					},
 				],
 				GUIMenuVariant::IngameHUD => Vec::new(),
+				GUIMenuVariant::SpawnItems => vec![
+					GUIElement::RectContainer {
+						rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+							GUIElement::Text { text: "Spawn Items".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+							GUIElement::Button {
+								rect: GUIRect::new(0, 180, 150, 16), alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
+								click_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
+							},
+						],
+					},
+				]
 			},
 		}
 	}
@@ -348,7 +359,7 @@ impl GUIMenu {
 	/// Get all elements.
 	pub fn get_elements(&self, world: &Option<World>) -> Vec<GUIElement> {
 		let mut out = self.get_frame_elements(world);
-		out.extend(self.extra_elements.clone());
+		out.extend(self.elements.clone());
 		out
 	}
 
@@ -362,26 +373,16 @@ impl GUIMenu {
 	/// Weather the game should pause when this menu is in the GUI stack.
 	pub fn does_menu_pause_game(&self) -> bool {
 		match self.variant {
-			GUIMenuVariant::Test => true,
-			GUIMenuVariant::Paused => true,
-			GUIMenuVariant::ExitingGame => true,
-			GUIMenuVariant::ExitingToTitle => true,
-			GUIMenuVariant::Title => true,
+			GUIMenuVariant::Test | GUIMenuVariant::Paused | GUIMenuVariant::ExitingGame | GUIMenuVariant::ExitingToTitle |
+			GUIMenuVariant::Title | GUIMenuVariant::CreateWorld | GUIMenuVariant::Error | GUIMenuVariant::LoadWorld { .. } | GUIMenuVariant::SpawnItems => true,
 			GUIMenuVariant::IngameHUD => false,
-			GUIMenuVariant::CreateWorld => true,
-			GUIMenuVariant::Error => true,
-			GUIMenuVariant::LoadWorld { .. } => true,
 		}
 	}
 
 	/// What to do when Esc is pressed.
 	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, io: &mut IO) {
 		match self.variant {
-			GUIMenuVariant::Paused => {
-				gui.menus.pop();
-				io.update_keys_pressed_last();
-			},
-			GUIMenuVariant::Test => {
+			GUIMenuVariant::Paused | GUIMenuVariant::Test | GUIMenuVariant::SpawnItems => {
 				gui.menus.pop();
 				io.update_keys_pressed_last();
 			},
@@ -411,6 +412,9 @@ impl GUIMenu {
 				if io.get_game_key_starting_now(GameKey::OpenTestMenu) {
 					gui.menus.push(Self::new(GUIMenuVariant::Test))
 				}
+				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) {
+					gui.menus.push(Self::new(GUIMenuVariant::SpawnItems))
+				}
 			}
 			GUIMenuVariant::ExitingGame => {
 				if let Some(world) = world {
@@ -439,7 +443,7 @@ impl GUIMenu {
 	/// Create a error GUI menu from a string.
 	pub fn new_error(error: String) -> Self {
 		let mut out = Self::new(GUIMenuVariant::Error);
-		out.extra_elements.push(GUIElement::Text { text: error, pos: [127, 116], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center });
+		out.elements.push(GUIElement::Text { text: error, pos: [127, 116], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center });
 		out
 	}
 }

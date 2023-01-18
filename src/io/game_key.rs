@@ -21,6 +21,7 @@ pub enum GameKey {
 	ChangeDirectionInplace,
 	MoveWithoutChangingDirection,
 	Turbo,
+	OpenSpawnItemsMenu,
 }
 
 impl GameKey {
@@ -46,6 +47,7 @@ impl GameKey {
 			VirtualKeyCode::LShift => vec![Self::ChangeDirectionInplace],
 			VirtualKeyCode::LControl => vec![Self::MoveWithoutChangingDirection],
 			VirtualKeyCode::LAlt => vec![Self::Turbo],
+			VirtualKeyCode::Equals => vec![Self::OpenSpawnItemsMenu],
 			_ => Vec::new(),
 		}
 	}
