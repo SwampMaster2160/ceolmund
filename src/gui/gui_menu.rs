@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty}};
+use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty, item::item::Item, tile::tile::Tile}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::WorldList, gui_rect::GUIRect};
 
@@ -6,6 +6,23 @@ const RECT_COLOR: [u8; 4] = [31, 31, 31, 255];
 const RECT_BORDER_COLOR: [u8; 4] = [15, 15, 15, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
 const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
+
+const SANDBOX_SPAWNABLE_ITEMS: [Item; 14] = [
+	Item::SandboxDestroyWand,
+	Item::Axe,
+	Item::Shovel,
+	Item::Tile(Tile::Grass),
+	Item::Tile(Tile::Gravel),
+	Item::Tile(Tile::Sand),
+	Item::Tile(Tile::BlackSand),
+	Item::Tile(Tile::Water),
+	Item::Tile(Tile::Path),
+	Item::Tile(Tile::Flowers),
+	Item::Tile(Tile::FlowersRedYellow),
+	Item::Tile(Tile::OakTree),
+	Item::Tile(Tile::PineTree),
+	Item::Tile(Tile::Rocks),
+];
 
 /// A GUI menu, these are stacked.
 #[derive(Clone)]
@@ -262,17 +279,59 @@ impl GUIMenu {
 					},
 				],
 				GUIMenuVariant::IngameHUD => Vec::new(),
-				GUIMenuVariant::SpawnItems => vec![
-					GUIElement::RectContainer {
-						rect: GUIRect::new(51, 28, 154, 200), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
-							GUIElement::Text { text: "Spawn Items".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
-							GUIElement::Button {
-								rect: GUIRect::new(0, 180, 150, 16), alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
-								click_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
-							},
-						],
-					},
-				]
+				GUIMenuVariant::SpawnItems => {
+					// Grid elements.
+					let mut grid_elements = Vec::new();
+					for (item_index, item) in SANDBOX_SPAWNABLE_ITEMS.iter().enumerate() {
+						let mut cell_elements = Vec::new();
+						let x = item_index as u16 % 10;
+						let y = item_index as u16 / 10;
+						// Add cell gray rect.
+						let color = match (x % 2 == 0) ^ (y % 2 == 0)  {
+							true => [63, 63, 63, 63],
+							false => [31, 31, 31, 63],
+						};
+						cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Center, inside_color: NO_COLOR, border_color: color });
+						// Item texture
+						cell_elements.push(GUIElement::Texture { pos: [0, 0], alignment: GUIAlignment::Center, texture: item.get_texture() });
+
+						grid_elements.push(GUIElement::ElementCollection { offset: [0, 0], inside_elements: cell_elements })
+					}
+					// All elements.
+					vec![
+						GUIElement::RectContainer {
+							rect: GUIRect::new(46, 36, 164, 184), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+								GUIElement::Text { text: "Spawn Items".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+								GUIElement::Grid { alignment: GUIAlignment::Center , cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 10], inside_elements: grid_elements, click_mut_gui: |_, _, world, _, item_clicked_on_index|{
+									// Get player inventory object.
+									let world = match world {
+										Some(world) => world,
+										_ => return,
+									};
+									let player = match &mut world.player {
+										Some(player) => player,
+										_ => return,
+									};
+									let inventory = match &mut player.entity_type {
+										EntityType::Player { inventory, .. } => inventory,
+										//_ => return,
+									};
+									// Get the item clicked on
+									let item = match SANDBOX_SPAWNABLE_ITEMS.get(item_clicked_on_index) {
+										Some(item) => item,
+										None => return,
+									};
+									// Add the item to the inventory, ignore overflowing items.
+									inventory.add_items((item.clone(), 1));
+								} },
+								GUIElement::Button {
+									rect: GUIRect::new(0, 164, 160, 16), alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
+									click_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
+								},
+							],
+						},
+					]
+				}
 			},
 		}
 	}

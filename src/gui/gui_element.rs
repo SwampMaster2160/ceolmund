@@ -375,8 +375,8 @@ impl GUIElement {
 				// Get the grid x, y pos of the cell that the mouse has clicked.
 				let mouse_pos = io.get_mouse_pos_as_gui_pos(alignment);
 				let cell_pos = [
-					mouse_pos[0].saturating_sub(cell_pos[0]) / cell_size[0] as i16,
-					mouse_pos[1].saturating_sub(cell_pos[1]) / cell_size[1] as i16,
+					mouse_pos[0].saturating_sub(scroll[0]).saturating_sub(cell_pos[0]) / cell_size[0] as i16,
+					mouse_pos[1].saturating_sub(scroll[1]).saturating_sub(cell_pos[1]) / cell_size[1] as i16,
 				];
 				// Convert to cell index in grid.
 				let cell_index = (cell_pos[1] as usize) * (cell_counts[0] as usize) + (cell_pos[0] as usize);

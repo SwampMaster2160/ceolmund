@@ -181,7 +181,7 @@ impl IO {
 			GUIAlignment::Left => 0.,
 			GUIAlignment::Center => (self.aspect_ratio - 1.) / 2.,
 			GUIAlignment::Right => self.aspect_ratio - 1.,
-		};
+		} * 256.;
 		[
 			(self.mouse_pos[0] as f32 * 256. / self.window_size[0] as f32 * self.aspect_ratio - alignment_offset) as i16,
 			(self.mouse_pos[1] as f32 * 256. / self.window_size[1] as f32) as i16
