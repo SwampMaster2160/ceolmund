@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, tile::tile::Tile, item::{item::Item, inventory::Inventory}, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, item::{item::Item, inventory::Inventory}, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
 use super::{entity_action_state::EntityActionState, entity_type::{EntityType, EntityVariant}};
 
 /// A world object that is can move from tile to tile.
@@ -161,24 +161,8 @@ impl Entity {
 	}
 
 	/// Create a neew player at 0, 0
-	pub fn new_player(difficulty: Difficulty) -> Self {
-		let mut inventory = Inventory::new();
-		if difficulty == Difficulty::Sandbox {
-			inventory.items[0] = (Item::SandboxDestroyWand, 1);
-			inventory.items[1] = (Item::Tile(Tile::Grass), 1);
-			inventory.items[2] = (Item::Tile(Tile::Gravel), 1);
-			inventory.items[3] = (Item::Tile(Tile::Sand), 1);
-			inventory.items[4] = (Item::Tile(Tile::BlackSand), 1);
-			inventory.items[5] = (Item::Tile(Tile::Rocks), 1);
-			inventory.items[6] = (Item::Tile(Tile::OakTree), 1);
-			inventory.items[7] = (Item::Tile(Tile::PineTree), 1);
-			inventory.items[8] = (Item::Tile(Tile::Flowers), 1);
-			inventory.items[9] = (Item::Tile(Tile::FlowersRedYellow), 1);
-			inventory.items[10] = (Item::Tile(Tile::Water), 1);
-			inventory.items[11] = (Item::Tile(Tile::Path), 1);
-			inventory.items[12] = (Item::Axe, 1);
-			inventory.items[13] = (Item::Shovel, 1);
-		}
+	pub fn new_player(_difficulty: Difficulty) -> Self {
+		let inventory = Inventory::new();
 		Entity {
 			pos: [0, 0],
 			action_state: EntityActionState::Idle,
