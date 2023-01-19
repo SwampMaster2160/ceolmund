@@ -1,5 +1,5 @@
-// Don't open a console window when the program starts
-#![windows_subsystem = "windows"]
+// Don't open a console window when the program starts if not in debug mode.
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod world;
 pub mod render;
@@ -40,6 +40,7 @@ pub fn validate_filename(mut name: String) -> String {
 const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
 
 fn main() {
+	println!("Hi");
 	// Main objects
 	let mut world = None;
 	let mut gui = GUI::new();

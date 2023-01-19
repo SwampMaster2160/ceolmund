@@ -442,6 +442,7 @@ impl GUIMenu {
 	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, io: &mut IO) {
 		match self.variant {
 			GUIMenuVariant::Paused | GUIMenuVariant::Test | GUIMenuVariant::SpawnItems => {
+				// Close the menu.
 				gui.menus.pop();
 				io.update_keys_pressed_last();
 			},
@@ -451,7 +452,9 @@ impl GUIMenu {
 
 	/// Menu tick.
 	pub fn tick(self, gui: &mut GUI, world: &mut Option<World>, io: &mut IO, request_game_close: bool) {
+		// If the game should close.
 		if request_game_close {
+			// Save and close the world if we are in a game.
 			if world.is_some() {
 				if let Some(world) = world {
 					world.is_freeing = true;
@@ -459,25 +462,27 @@ impl GUIMenu {
 				gui.menus = Vec::new();
 				gui.menus.push(Self::new(GUIMenuVariant::ExitingGame));
 			}
-			else if matches!(self.variant, GUIMenuVariant::ExitingGame) || matches!(self.variant, GUIMenuVariant::ExitingToTitle) {
-
-			}
-			else {
+			// Else if we are not in a saving menu then close the game
+			else if !(matches!(self.variant, GUIMenuVariant::ExitingGame) || matches!(self.variant, GUIMenuVariant::ExitingToTitle)) {
 				gui.should_close_game = true;
 			}
 		}
 		match self.variant {
 			GUIMenuVariant::IngameHUD => {
-				if io.get_game_key_starting_now(GameKey::OpenTestMenu) {
+				// Open the test menu if we press 'T' and are in debug mode.
+				if io.get_game_key_starting_now(GameKey::OpenTestMenu) && cfg!(debug_assertions) {
 					gui.menus.push(Self::new(GUIMenuVariant::Test))
 				}
+				// Get the game difficulty.
 				let difficulty = match world {
 					Some(world) => world.difficulty,
 					None => panic!(),
 				};
+				// If we are in sandbox mode and press '+' then open the spawn item menu.
 				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) && difficulty == Difficulty::Sandbox {
 					gui.menus.push(Self::new(GUIMenuVariant::SpawnItems))
 				}
+				//If we are in sandbox mode and press '-' then delete the selected item.
 				let (inventory, selected_item) = &mut match world {
 					Some(world) => match &mut world.player {
 						Some(player) => match &mut player.entity_type {
@@ -496,24 +501,26 @@ impl GUIMenu {
 				}
 			}
 			GUIMenuVariant::ExitingGame => {
-				if let Some(world) = world {
-					if world.is_freed {
-						gui.should_close_game = true;
-					}
+				// Exit the game if we are done saving the world.
+				let world = match world {
+					Some(world) => world,
+					None => return,
+				};
+				if world.is_freed {
+					gui.should_close_game = true;
 				}
 			}
 			GUIMenuVariant::ExitingToTitle => {
-				let mut set_world_to_none = false;
-				if let Some(world) = world {
-					if world.is_freed {
-						gui.menus.pop();
-						gui.menus.push(Self::new(GUIMenuVariant::Title));
-						set_world_to_none = true;
-					}
+				// If the world is done saving then go to the title screen.
+				let world_unwrapped = match world {
+					Some(world) => world,
+					None => return,
+				};
+				if !world_unwrapped.is_freed {
+					return;
 				}
-				if set_world_to_none {
-					*world = None;
-				}
+				gui.menus = vec![Self::new(GUIMenuVariant::Title)];
+				*world = None;
 			}
 			_ => {}
 		}
