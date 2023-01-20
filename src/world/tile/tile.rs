@@ -175,7 +175,7 @@ impl Tile {
 	/// Can the tile be broken with the fist?
 	pub fn is_pluckable(&self) -> bool {
 		match self {
-			Self::Flowers | Self::FlowersRedYellow => true,
+			Self::Flowers | Self::FlowersRedYellow | Self::Item(..) => true,
 			_ => false,
 		}
 	}

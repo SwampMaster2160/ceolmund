@@ -33,6 +33,10 @@ pub enum Texture {
 	Axe,
 	SandboxDestroyWand,
 	DroppedItems,
+	Rock,
+	FlintRock,
+	OakStick,
+	PineStick,
 	//GreenThing,
 	//BlueThing,
 }
@@ -60,6 +64,10 @@ impl Texture {
 			Self::Axe => const_static_ptr!([u16; 4], grid_texture(0x18)),
 			Self::SandboxDestroyWand => const_static_ptr!([u16; 4], grid_texture(0x19)),
 			Self::DroppedItems => const_static_ptr!([u16; 4], grid_texture(0x1A)),
+			Self::Rock => const_static_ptr!([u16; 4], grid_texture(0x1B)),
+			Self::FlintRock => const_static_ptr!([u16; 4], grid_texture(0x1C)),
+			Self::OakStick => const_static_ptr!([u16; 4], grid_texture(0x1D)),
+			Self::PineStick => const_static_ptr!([u16; 4], grid_texture(0x1E)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -87,6 +95,10 @@ impl Texture {
 			Self::Axe => TextureType::Basic,
 			Self::SandboxDestroyWand => TextureType::Basic,
 			Self::DroppedItems => TextureType::Basic,
+			Self::Rock => TextureType::Basic,
+			Self::FlintRock => TextureType::Basic,
+			Self::PineStick => TextureType::Basic,
+			Self::OakStick => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}

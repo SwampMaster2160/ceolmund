@@ -18,6 +18,10 @@ pub enum Item {
 	Axe,
 	SandboxDestroyWand,
 	Tile(Tile),
+	Rock,
+	FlintRock,
+	PineStick,
+	OakStick,
 }
 
 impl Item {
@@ -30,6 +34,10 @@ impl Item {
 			Self::SandboxDestroyWand => Texture::SandboxDestroyWand,
 			Self::Hammer => Texture::Hammer,
 			Self::Tile(tile) => tile.get_texture(),
+			Self::Rock => Texture::Rock,
+			Self::FlintRock => Texture::FlintRock,
+			Self::PineStick => Texture::PineStick,
+			Self::OakStick => Texture::OakStick,
 		}
 	}
 
@@ -71,6 +79,18 @@ impl Item {
 				}
 				tile_stack.tiles.push(tile.clone());
 				tile_stack.needs_redrawing = true;
+				(true, Vec::new())
+			}
+			Self::Rock | Self::FlintRock | Self::PineStick | Self::OakStick => {
+				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
+					Some(tile_stack) => tile_stack,
+					None => return (false, Vec::new()),
+				};
+				let to_place = Tile::Item(Box::new(item.clone()));
+				if to_place.can_place_on(tile_stack) {
+					tile_stack.tiles.push(to_place);
+					tile_stack.needs_redrawing = true;
+				}
 				(true, Vec::new())
 			}
 			//_ => false,
@@ -122,6 +142,10 @@ impl Item {
 			ItemVariant::SandboxDestroyWand => Self::SandboxDestroyWand,
 			ItemVariant::Shovel => Self::Shovel,
 			ItemVariant::Tile => Self::Tile(Tile::deserialize(file, namespace, version)?),
+			ItemVariant::Rock => Self::Rock,
+			ItemVariant::FlintRock => Self::FlintRock,
+			ItemVariant::PineStick => Self::PineStick,
+			ItemVariant::OakStick => Self::OakStick,
 		})
 	}
 }
@@ -135,6 +159,10 @@ impl ItemVariant {
 			Self::None => "none",
 			Self::SandboxDestroyWand => "sandbox_destroy_wand",
 			Self::Shovel => "shovel",
+			Self::Rock => "rock",
+			Self::FlintRock => "flint_rock",
+			Self::PineStick => "pine_stick",
+			Self::OakStick => "oak_stick",
 		}
 	}
 
