@@ -24,6 +24,7 @@ pub enum Tile {
 	BlackSand,
 	Sand,
 	DroppedItemStack(Box<Item>, u16),
+	Item(Box<Item>),
 }
 
 /// A tile in the world
@@ -44,6 +45,7 @@ impl Tile {
 			Self::BlackSand => Texture::BlackSand,
 			Self::Path => Texture::Path,
 			Self::DroppedItemStack(..) => Texture::DroppedItems,
+			Self::Item(item) => item.get_texture(),
 		}
 	}
 
@@ -70,6 +72,7 @@ impl Tile {
 			Self::Gravel => TileMovementType::Clear,
 			Self::Path => TileMovementType::Clear,
 			Self::DroppedItemStack(..) => TileMovementType::Clear,
+			Self::Item(..) => TileMovementType::Clear,
 		}
 	}
 
@@ -90,6 +93,7 @@ impl Tile {
 				item.serialize(file);
 				file.push_u16(*amount);
 			}
+			Self::Item(item) => item.serialize(file),
 			_ => {},
 		}
 	}
@@ -115,6 +119,10 @@ impl Tile {
 				let item = Item::deserialize(file, namespace, version)?;
 				let amount = file.read_u16()?;
 				Self::DroppedItemStack(Box::new(item), amount)
+			}
+			TileVariant::Item => {
+				let item = Item::deserialize(file, namespace, version)?;
+				Self::Item(Box::new(item))
 			}
 		})
 	}
@@ -172,6 +180,14 @@ impl Tile {
 		}
 	}
 
+	/// Is a tile like grass or gravel that is flat.
+	pub fn is_plain(&self) -> bool {
+		match self {
+			Self::Grass | Self::Gravel | Self::BlackSand | Self::Sand => true,
+			_ => false,
+		}
+	}
+
 	/// Can the tile be placed on a tile stack?
 	pub fn can_place_on(&self, tile_stack: &TileStack) -> bool {
 		match self {
@@ -200,6 +216,13 @@ impl Tile {
 				None => false,
 			}
 			Self::DroppedItemStack(..) => true,
+			Self::Item(..) => {
+				let top_tile = match tile_stack.tiles.last() {
+					Some(top_tile) => top_tile,
+					None => return false,
+				};
+				top_tile.is_plain()
+			}
 		}
 	}
 
@@ -227,6 +250,7 @@ impl TileVariant {
 			Self::BlackSand => "black_sand",
 			Self::Path => "path",
 			Self::DroppedItemStack => "dropped_item_stack",
+			Self::Item => "item",
 		}
 	}
 

@@ -22,7 +22,7 @@ pub enum Item {
 
 impl Item {
 	/// Get the texture use for the item.
-	pub fn get_texture(&self) -> Texture {
+	pub const fn get_texture(&self) -> Texture {
 		match self {
 			Self::None => Texture::NoTexture,
 			Self::Shovel => Texture::Shovel,
