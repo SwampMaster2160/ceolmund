@@ -484,7 +484,7 @@ impl GUIMenu {
 					None => panic!(),
 				};
 				// If we are in sandbox mode and press '+' then open the spawn item menu.
-				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) && difficulty == Difficulty::Sandbox {
+				if io.get_game_key_starting_now(GameKey::OpenSpawnItemsMenu) && (difficulty == Difficulty::Sandbox || (io.get_game_key(GameKey::Turbo) && cfg!(debug_assertions))) {
 					gui.menus.push(Self::new(GUIMenuVariant::SpawnItems))
 				}
 				//If we are in sandbox mode and press '-' then delete the selected item.
@@ -497,7 +497,7 @@ impl GUIMenu {
 					}
 					None => return,
 				};
-				if io.get_game_key_starting_now(GameKey::DeleteItem) && difficulty == Difficulty::Sandbox {
+				if io.get_game_key_starting_now(GameKey::DeleteItem) && (difficulty == Difficulty::Sandbox || (io.get_game_key(GameKey::Turbo) && cfg!(debug_assertions))) {
 					let item_slot = match inventory.items.get_mut(**selected_item as usize) {
 						Some(slot) => slot,
 						None => return,

@@ -83,17 +83,42 @@ impl Item {
 				tile_stack.needs_redrawing = true;
 				(true, Vec::new())
 			}
-			Self::Rock | Self::FlintRock | Self::PineStick | Self::OakStick | Self::SharpendFlint => {
+			// Place item
+			Self::Rock | Self::PineStick | Self::OakStick | Self::SharpendFlint => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
 					None => return (false, Vec::new()),
 				};
 				let to_place = Tile::Item(Box::new(item.clone()));
-				if to_place.can_place_on(tile_stack) {
-					tile_stack.tiles.push(to_place);
-					tile_stack.needs_redrawing = true;
+				if !to_place.can_place_on(tile_stack) {
+					return (false, Vec::new())
 				}
+				tile_stack.tiles.push(to_place);
+				tile_stack.needs_redrawing = true;
 				(true, Vec::new())
+			}
+			// Sharpen flint rock or place it.
+			Self::FlintRock => {
+				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
+					Some(tile_stack) => tile_stack,
+					None => return (false, Vec::new()),
+				};
+				let top_tile = match tile_stack.tiles.last() {
+					Some(tile) => tile,
+					None => return (false, Vec::new()),
+				};
+				match *top_tile == Tile::Rocks {
+					true => (true, vec![ItemDrop::Single(Item::SharpendFlint)]),
+					false => {
+						let to_place = Tile::Item(Box::new(item.clone()));
+						if !to_place.can_place_on(tile_stack) {
+							return (false, Vec::new())
+						}
+						tile_stack.tiles.push(to_place);
+						tile_stack.needs_redrawing = true;
+						(true, Vec::new())
+					}
+				}
 			}
 			//_ => false,
 		}
