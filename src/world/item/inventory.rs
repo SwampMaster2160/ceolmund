@@ -80,13 +80,29 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 		}
 		// Remove items
 		for (item_to_remove, amount_to_remove) in to_remove {
-			let amount_left_to_remove = amount_to_remove;
-			for (stack_item, stack_amount) in self.items.iter() {
+			let mut amount_left_to_remove = amount_to_remove;
+			for (stack_item, stack_amount) in self.items.iter_mut() {
+				// Only remove items that match.
 				if item_to_remove != *stack_item {
 					continue;
 				}
+				// Calculate how many items to remove from the stack.
+				let amount_to_remove_u8 = amount_left_to_remove.try_into().unwrap_or(u8::MAX);
+				let to_remove = (*stack_amount).max(amount_to_remove_u8);
+				// Remove item.
+				amount_left_to_remove -= to_remove as u16;
+				*stack_amount -= to_remove;
+				// If there are no items left on the stack then set the item to none.
+				if *stack_amount == 0 {
+					*stack_item = Item::None;
+				}
+				// Break the loop if there are no items left to remove.
+				if amount_left_to_remove == 0 {
+					break;
+				}
 			}
 		}
+		// Success
 		true
 	}
 
