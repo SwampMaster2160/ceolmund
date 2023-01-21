@@ -107,19 +107,22 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 	}
 
 	pub fn serialize(&self, file: &mut FileWriter) {
-		for (item, stack_amount) in self.items.iter() {
-			item.serialize(file);
+		// Serialize each item stack and its stack amount.
+		for (stack_item, stack_amount) in self.items.iter() {
+			stack_item.serialize(file);
 			file.push_u8(*stack_amount);
 		}
 	}
 
 	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
+		// Create blank.
 		let mut inventory = Self::new();
-		for x in 0..SLOT_COUNT {
-			let item = Item::deserialize(file, namespace, version)?;
-			let amount = file.read_u8()?;
-			inventory.items[x] = (item, amount);
+		// Read the item type and id for each slot.
+		for (stack_item, stack_amount) in inventory.items.iter_mut() {
+			*stack_item = Item::deserialize(file, namespace, version)?;
+			*stack_amount = file.read_u8()?;
 		}
+		
 		Some(inventory)
 	}
 }

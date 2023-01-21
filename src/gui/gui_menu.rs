@@ -7,10 +7,12 @@ const RECT_BORDER_COLOR: [u8; 4] = [15, 15, 15, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
 const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 
-const SANDBOX_SPAWNABLE_ITEMS: [Item; 19] = [
+const SANDBOX_SPAWNABLE_ITEMS: [Item; 21] = [
 	Item::SandboxDestroyWand,
 	Item::Axe,
 	Item::Shovel,
+	Item::FlintAxe,
+	Item::FlintShovel,
 	Item::Tile(Tile::Grass),
 	Item::Tile(Tile::Gravel),
 	Item::Tile(Tile::Sand),

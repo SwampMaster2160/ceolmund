@@ -40,7 +40,6 @@ pub fn validate_filename(mut name: String) -> String {
 const NANOSECONDS_PER_TICK: u128 = 1_000_000_000 / 100;
 
 fn main() {
-	println!("Hi");
 	// Main objects
 	let mut world = None;
 	let mut gui = GUI::new();

@@ -23,6 +23,9 @@ pub enum Item {
 	PineStick,
 	OakStick,
 	SharpendFlint,
+	FlintHammer,
+	FlintShovel,
+	FlintAxe,
 }
 
 impl Item {
@@ -40,6 +43,9 @@ impl Item {
 			Self::PineStick => Texture::PineStick,
 			Self::OakStick => Texture::OakStick,
 			Self::SharpendFlint => Texture::SharpendFlint,
+			Self::FlintAxe => Texture::FlintAxe,
+			Self::FlintHammer => Texture::FlintHammer,
+			Self::FlintShovel => Texture::FlintShovel,
 		}
 	}
 
@@ -52,7 +58,7 @@ impl Item {
 		let (item, _count) = self_stack;
 		match item {
 			// Tools and nothing
-			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel | Self::None => {
+			Self::SandboxDestroyWand | Self::Axe | Self::Hammer | Self::Shovel | Self::FlintAxe | Self::FlintHammer | Self::FlintShovel | Self::None => {
 				// Get the tile stack
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
@@ -127,8 +133,8 @@ impl Item {
 	pub fn can_break(&self, tile_stack: &TileStack) -> bool {
 		match self {
 			Self::SandboxDestroyWand => true,
-			Self::Shovel => tile_stack.tiles.len() == 1,
-			Self::Axe => match tile_stack.tiles.last() {
+			Self::Shovel | Self::FlintShovel => tile_stack.tiles.len() == 1,
+			Self::Axe | Self::FlintAxe => match tile_stack.tiles.last() {
 				Some(top_tile) => top_tile.is_choppable(),
 				None => false,
 			}
@@ -174,6 +180,9 @@ impl Item {
 			ItemVariant::PineStick => Self::PineStick,
 			ItemVariant::OakStick => Self::OakStick,
 			ItemVariant::SharpendFlint => Self::SharpendFlint,
+			ItemVariant::FlintAxe => Self::FlintAxe,
+			ItemVariant::FlintShovel => Self::FlintShovel,
+			ItemVariant::FlintHammer => Self::FlintHammer,
 		})
 	}
 }
@@ -191,7 +200,10 @@ impl ItemVariant {
 			Self::FlintRock => "flint_rock",
 			Self::PineStick => "pine_stick",
 			Self::OakStick => "oak_stick",
-			Self::SharpendFlint => "sharpend_flint"
+			Self::SharpendFlint => "sharpend_flint",
+			Self::FlintAxe => "flint_axe",
+			Self::FlintShovel => "flint_shovel",
+			Self::FlintHammer => "flint_hammer",
 		}
 	}
 
