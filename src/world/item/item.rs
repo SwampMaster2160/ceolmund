@@ -22,6 +22,7 @@ pub enum Item {
 	FlintRock,
 	PineStick,
 	OakStick,
+	SharpendFlint,
 }
 
 impl Item {
@@ -38,6 +39,7 @@ impl Item {
 			Self::FlintRock => Texture::FlintRock,
 			Self::PineStick => Texture::PineStick,
 			Self::OakStick => Texture::OakStick,
+			Self::SharpendFlint => Texture::SharpendFlint,
 		}
 	}
 
@@ -81,7 +83,7 @@ impl Item {
 				tile_stack.needs_redrawing = true;
 				(true, Vec::new())
 			}
-			Self::Rock | Self::FlintRock | Self::PineStick | Self::OakStick => {
+			Self::Rock | Self::FlintRock | Self::PineStick | Self::OakStick | Self::SharpendFlint => {
 				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
 					Some(tile_stack) => tile_stack,
 					None => return (false, Vec::new()),
@@ -146,6 +148,7 @@ impl Item {
 			ItemVariant::FlintRock => Self::FlintRock,
 			ItemVariant::PineStick => Self::PineStick,
 			ItemVariant::OakStick => Self::OakStick,
+			ItemVariant::SharpendFlint => Self::SharpendFlint,
 		})
 	}
 }
@@ -163,6 +166,7 @@ impl ItemVariant {
 			Self::FlintRock => "flint_rock",
 			Self::PineStick => "pine_stick",
 			Self::OakStick => "oak_stick",
+			Self::SharpendFlint => "sharpend_flint"
 		}
 	}
 

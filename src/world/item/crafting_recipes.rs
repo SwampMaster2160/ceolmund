@@ -18,7 +18,7 @@ pub enum CraftingRecipes {
 impl CraftingRecipes {
 	pub const fn get_recipes(self) -> &'static [(&'static [(Item, u16)], &'static [(Item, u16)])] {
 		match self {
-			Self::QUICK => [recipe!([(Item::SandboxDestroyWand, 2)], [(Item::SandboxDestroyWand, 1)])].as_slice(),
+			Self::QUICK => [/*recipe!([(Item::SandboxDestroyWand, 2)], [(Item::SandboxDestroyWand, 1)])*/].as_slice(),
 		}
 	}
 }

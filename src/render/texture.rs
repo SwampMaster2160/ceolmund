@@ -37,6 +37,7 @@ pub enum Texture {
 	FlintRock,
 	OakStick,
 	PineStick,
+	SharpendFlint,
 	//GreenThing,
 	//BlueThing,
 }
@@ -68,6 +69,7 @@ impl Texture {
 			Self::FlintRock => const_static_ptr!([u16; 4], grid_texture(0x1C)),
 			Self::OakStick => const_static_ptr!([u16; 4], grid_texture(0x1D)),
 			Self::PineStick => const_static_ptr!([u16; 4], grid_texture(0x1E)),
+			Self::SharpendFlint => const_static_ptr!([u16; 4], grid_texture(0x1F)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -99,6 +101,7 @@ impl Texture {
 			Self::FlintRock => TextureType::Basic,
 			Self::PineStick => TextureType::Basic,
 			Self::OakStick => TextureType::Basic,
+			Self::SharpendFlint => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}

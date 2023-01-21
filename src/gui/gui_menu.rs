@@ -7,7 +7,7 @@ const RECT_BORDER_COLOR: [u8; 4] = [15, 15, 15, 255];
 const GRAYOUT_COLOR: [u8; 4] = [63, 63, 63, 127];
 const NO_COLOR: [u8; 4] = [0, 0, 0, 0];
 
-const SANDBOX_SPAWNABLE_ITEMS: [Item; 18] = [
+const SANDBOX_SPAWNABLE_ITEMS: [Item; 19] = [
 	Item::SandboxDestroyWand,
 	Item::Axe,
 	Item::Shovel,
@@ -26,6 +26,7 @@ const SANDBOX_SPAWNABLE_ITEMS: [Item; 18] = [
 	Item::FlintRock,
 	Item::PineStick,
 	Item::OakStick,
+	Item::SharpendFlint,
 ];
 
 /// A GUI menu, these are stacked.
