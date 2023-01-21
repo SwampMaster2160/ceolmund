@@ -67,6 +67,29 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 		Some(())
 	}
 
+	/// Count how many of an item are in the stack saturating at the u16 limit.
+	pub fn count_items(&self, item: &Item) -> u16 {
+		self.items.iter().filter(|stack| stack.0 == *item).fold(0, |count, stack| count.saturating_add(stack.1 as u16))
+	}
+
+	/// Try remove the items and return false if it failed. There should not be two item stacks of the same item.
+	pub fn try_remove_items(&mut self, to_remove: Vec<(Item, u16)>) -> bool {
+		// Check if we have the items to remove.
+		if to_remove.iter().any(|stack| self.count_items(&stack.0) < stack.1) {
+			return false;
+		}
+		// Remove items
+		for (item_to_remove, amount_to_remove) in to_remove {
+			let amount_left_to_remove = amount_to_remove;
+			for (stack_item, stack_amount) in self.items.iter() {
+				if item_to_remove != *stack_item {
+					continue;
+				}
+			}
+		}
+		true
+	}
+
 	pub fn serialize(&self, file: &mut FileWriter) {
 		for (item, stack_amount) in self.items.iter() {
 			item.serialize(file);
