@@ -1,4 +1,4 @@
-use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty, item::item::Item, tile::tile::Tile}};
+use crate::{render::{vertex::Vertex}, io::{io::IO, game_key::GameKey}, world::{world::World, entity::entity_type::{EntityType, EntityVariant}, difficulty::Difficulty, item::{item::Item, crafting_recipes::CraftingRecipes}, tile::tile::Tile}};
 
 use super::{gui_alignment::GUIAlignment, gui_element::GUIElement, gui::GUI, gui_menu_variant::GUIMenuVariant, load_world_data::WorldList, gui_rect::GUIRect};
 
@@ -339,6 +339,77 @@ impl GUIMenu {
 						},
 					]
 				}
+				GUIMenuVariant::Crafting(crafting_recipes_set) => {
+					// Grid elements.
+					let mut grid_elements = Vec::new();
+					for (item_index, crafting_recipe) in crafting_recipes_set.get_recipes().iter().enumerate() {
+						let mut cell_elements = Vec::new();
+						let x = item_index as u16 % 10;
+						let y = item_index as u16 / 10;
+						// Add cell gray rect.
+						let color = match (x % 2 == 0) ^ (y % 2 == 0)  {
+							true => [63, 63, 63, 63],
+							false => [31, 31, 31, 63],
+						};
+						cell_elements.push(GUIElement::Rect { rect: GUIRect::new(0, 0, 16, 16), alignment: GUIAlignment::Center, inside_color: NO_COLOR, border_color: color });
+						// Item texture
+						let out_item = match crafting_recipe.1.get(0) {
+							Some((item, _)) => item,
+							None => &Item::None,
+						};
+						cell_elements.push(GUIElement::Texture { pos: [0, 0], alignment: GUIAlignment::Center, texture: out_item.get_texture() });
+
+						grid_elements.push(GUIElement::ElementCollection { offset: [0, 0], inside_elements: cell_elements })
+					}
+					// All elements.
+					vec![
+						GUIElement::RectContainer {
+							rect: GUIRect::new(46, 36, 164, 184), alignment: GUIAlignment::Center, inside_color: RECT_COLOR, border_color: RECT_BORDER_COLOR, inside_elements: vec![
+								GUIElement::Text { text: "Crafting".to_string(), pos: [77, -20], alignment: GUIAlignment::Center, text_alignment: GUIAlignment::Center },
+								GUIElement::Grid { alignment: GUIAlignment::Center , cell_rect: GUIRect::new(0, 0, 16, 16), cell_counts: [10, 10], inside_elements: grid_elements, click_mut_gui: |_, gui, world, _, item_clicked_on_index|{
+									// Get player inventory object.
+									let world = match world {
+										Some(world) => world,
+										_ => return,
+									};
+									let player = match &mut world.player {
+										Some(player) => player,
+										_ => return,
+									};
+									let inventory = match &mut player.entity_type {
+										EntityType::Player { inventory, .. } => inventory,
+										//_ => return,
+									};
+									// Get crafting recipe set.
+									let menu = match gui.menus.last() {
+										Some(menu) => menu,
+										None => return,
+									};
+									let crafting_recipes_set = match menu.variant {
+										GUIMenuVariant::Crafting (crafting_recipes_set) => crafting_recipes_set,
+										_ => return,
+									};
+									let (items_in, items_out) = *match crafting_recipes_set.get_recipes().get(item_clicked_on_index) {
+										Some(crafting_recipe) => crafting_recipe,
+										None => return,
+									};
+									// Remove items, return if we cannot remove the items
+									if !inventory.try_remove_items(items_in.to_vec()) {
+										return;
+									}
+									// Add crafted item
+									for item in items_out {
+										inventory.add_items(item.clone());
+									}
+								} },
+								GUIElement::Button {
+									rect: GUIRect::new(0, 164, 160, 16), alignment: GUIAlignment::Center, text: "Resume".to_string(), enabled: true,
+									click_mut_gui: (|_, gui, _, _| {gui.menus.pop();}),
+								},
+							],
+						},
+					]
+				}
 			},
 		}
 	}
@@ -439,7 +510,7 @@ impl GUIMenu {
 	/// Weather the game should pause when this menu is in the GUI stack.
 	pub fn does_menu_pause_game(&self) -> bool {
 		match self.variant {
-			GUIMenuVariant::Test | GUIMenuVariant::Paused | GUIMenuVariant::ExitingGame | GUIMenuVariant::ExitingToTitle |
+			GUIMenuVariant::Test | GUIMenuVariant::Paused | GUIMenuVariant::ExitingGame | GUIMenuVariant::ExitingToTitle | GUIMenuVariant::Crafting(..) |
 			GUIMenuVariant::Title | GUIMenuVariant::CreateWorld | GUIMenuVariant::Error | GUIMenuVariant::LoadWorld { .. } | GUIMenuVariant::SpawnItems => true,
 			GUIMenuVariant::IngameHUD => false,
 		}
@@ -448,7 +519,7 @@ impl GUIMenu {
 	/// What to do when Esc is pressed.
 	pub fn menu_close_button_action(self, gui: &mut GUI, _world: &mut Option<World>, io: &mut IO) {
 		match self.variant {
-			GUIMenuVariant::Paused | GUIMenuVariant::Test | GUIMenuVariant::SpawnItems => {
+			GUIMenuVariant::Paused | GUIMenuVariant::Test | GUIMenuVariant::SpawnItems | GUIMenuVariant::Crafting(..) => {
 				// Close the menu.
 				gui.menus.pop();
 				io.update_keys_pressed_last();
@@ -505,6 +576,10 @@ impl GUIMenu {
 						None => return,
 					};
 					*item_slot = (Item::None, 0);
+				}
+				// If we press 'C' then open the crafting menu.
+				if io.get_game_key_starting_now(GameKey::OpenCraftingMenu) {
+					gui.menus.push(Self::new(GUIMenuVariant::Crafting(CraftingRecipes::Quick)))
 				}
 			}
 			GUIMenuVariant::ExitingGame => {

@@ -23,6 +23,7 @@ pub enum GameKey {
 	Turbo,
 	OpenSpawnItemsMenu,
 	DeleteItem,
+	OpenCraftingMenu,
 }
 
 impl GameKey {
@@ -50,6 +51,7 @@ impl GameKey {
 			VirtualKeyCode::LAlt => vec![Self::Turbo],
 			VirtualKeyCode::Equals => vec![Self::OpenSpawnItemsMenu],
 			VirtualKeyCode::Minus => vec![Self::DeleteItem],
+			VirtualKeyCode::C => vec![Self::OpenCraftingMenu],
 			_ => Vec::new(),
 		}
 	}

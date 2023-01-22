@@ -12,13 +12,13 @@ macro_rules! recipe {
 
 #[derive(Copy, Clone)]
 pub enum CraftingRecipes {
-	QUICK,
+	Quick,
 }
 
 impl CraftingRecipes {
 	pub const fn get_recipes(self) -> &'static [(&'static [(Item, u16)], &'static [(Item, u16)])] {
 		match self {
-			Self::QUICK => [
+			Self::Quick => [
 				recipe!([(Item::SharpendFlint, 1), (Item::OakStick, 1)], [(Item::FlintAxe, 1)]),
 				recipe!([(Item::SharpendFlint, 5), (Item::OakStick, 1)], [(Item::FlintShovel, 1)]),
 				recipe!([(Item::SharpendFlint, 1), (Item::PineStick, 1)], [(Item::FlintAxe, 1)]),
