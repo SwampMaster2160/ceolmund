@@ -64,9 +64,13 @@ impl TileStack {
 				match top_tile {
 					Tile::Grass => {
 						self.tiles.push( match decoration_type {
-							_ if decoration_type < -0.25 => Tile::PineTree,
+							_ if decoration_type < -0.3 => Tile::Item(Box::new(Item::Rock)),
+							_ if decoration_type < -0.25 => Tile::Item(Box::new(Item::OakStick)),
+							_ if decoration_type < -0.2 => Tile::PineTree,
 							_ if decoration_type < 0. => Tile::OakTree,
-							_ if decoration_type < 0.25 => Tile::Flowers,
+							_ if decoration_type < 0.2 => Tile::Flowers,
+							_ if decoration_type < 0.25 => Tile::Item(Box::new(Item::PineStick)),
+							_ if decoration_type < 0.3 => Tile::Item(Box::new(Item::FlintRock)),
 							_ => Tile::FlowersRedYellow,
 						});
 					}

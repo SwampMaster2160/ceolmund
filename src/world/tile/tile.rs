@@ -229,6 +229,7 @@ impl Tile {
 	/// Get a vector of items and amounts that are dropped when the tile is broken.
 	pub fn get_drops(&self) -> Vec<ItemDrop> {
 		match self {
+			Self::Item(item) => vec![ItemDrop::Single(*item.clone())],
 			_ => vec![ItemDrop::Single(Item::Tile(self.clone()))],
 		}
 	}
