@@ -88,7 +88,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 				}
 				// Calculate how many items to remove from the stack.
 				let amount_to_remove_u8 = amount_left_to_remove.try_into().unwrap_or(u8::MAX);
-				let to_remove = (*stack_amount).max(amount_to_remove_u8);
+				let to_remove = (*stack_amount).min(amount_to_remove_u8);
 				// Remove item.
 				amount_left_to_remove -= to_remove as u16;
 				*stack_amount -= to_remove;
