@@ -1,6 +1,6 @@
 use crate::io::{file_writer::FileWriter, file_reader::FileReader, namespace::Namespace};
 
-use super::item::Item;
+use super::{item::Item, item_category::ItemCategory};
 
 /// An inventory generic with a slot count constant argument. Contains that amount of item slots.
 #[derive(Clone)]
@@ -68,12 +68,12 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 	}
 
 	/// Count how many of an item are in the stack saturating at the u16 limit.
-	pub fn count_items(&self, item: &Item) -> u16 {
-		self.items.iter().filter(|stack| stack.0 == *item).fold(0, |count, stack| count.saturating_add(stack.1 as u16))
+	pub fn count_items(&self, item_category: &ItemCategory) -> u16 {
+		self.items.iter().filter(|stack| item_category.has_item(&stack.0)).fold(0, |count, stack| count.saturating_add(stack.1 as u16))
 	}
 
 	/// Try remove the items and return false if it failed. There should not be two item stacks of the same item.
-	pub fn try_remove_items(&mut self, to_remove: Vec<(Item, u16)>) -> bool {
+	pub fn try_remove_items(&mut self, to_remove: Vec<(ItemCategory, u16)>) -> bool {
 		// Check if we have the items to remove.
 		if to_remove.iter().any(|stack| self.count_items(&stack.0) < stack.1) {
 			return false;
@@ -83,7 +83,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 			let mut amount_left_to_remove = amount_to_remove;
 			for (stack_item, stack_amount) in self.items.iter_mut() {
 				// Only remove items that match.
-				if item_to_remove != *stack_item {
+				if !item_to_remove.has_item(stack_item) {
 					continue;
 				}
 				// Calculate how many items to remove from the stack.
