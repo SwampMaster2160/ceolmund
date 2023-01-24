@@ -230,6 +230,14 @@ impl Tile {
 	pub fn get_drops(&self) -> Vec<ItemDrop> {
 		match self {
 			Self::Item(item) => vec![ItemDrop::Single(*item.clone())],
+			Self::OakTree => vec![
+				ItemDrop::RangedRandomAmount { item: Item::Acorn, amount_range: 1..=4 },
+				ItemDrop::RangedRandomAmount { item: Item::OakStick, amount_range: 0..=5 },
+			],
+			Self::PineTree => vec![
+				ItemDrop::RangedRandomAmount { item: Item::PineCone, amount_range: 1..=4 },
+				ItemDrop::RangedRandomAmount { item: Item::PineStick, amount_range: 0..=5 },
+			],
 			_ => vec![ItemDrop::Single(Item::Tile(self.clone()))],
 		}
 	}
