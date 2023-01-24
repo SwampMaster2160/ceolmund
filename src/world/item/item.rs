@@ -26,6 +26,8 @@ pub enum Item {
 	FlintHammer,
 	FlintShovel,
 	FlintAxe,
+	Acorn,
+	PineCone,
 }
 
 impl Item {
@@ -46,6 +48,8 @@ impl Item {
 			Self::FlintAxe => Texture::FlintAxe,
 			Self::FlintHammer => Texture::FlintHammer,
 			Self::FlintShovel => Texture::FlintShovel,
+			Self::Acorn => Texture::Acorn,
+			Self::PineCone => Texture::PineCone,
 		}
 	}
 
@@ -126,6 +130,32 @@ impl Item {
 					}
 				}
 			}
+			Self::Acorn => {
+				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
+					Some(tile_stack) => tile_stack,
+					None => return (false, Vec::new()),
+				};
+				let tile = Tile::OakTree;
+				if !tile.can_place_on(tile_stack) {
+					return (false, Vec::new());
+				}
+				tile_stack.tiles.push(tile);
+				tile_stack.needs_redrawing = true;
+				return (true, Vec::new());
+			}
+			Self::PineCone => {
+				let tile_stack = match chunk_pool_used_on.get_origin_tile_stack_mut() {
+					Some(tile_stack) => tile_stack,
+					None => return (false, Vec::new()),
+				};
+				let tile = Tile::PineTree;
+				if !tile.can_place_on(tile_stack) {
+					return (false, Vec::new());
+				}
+				tile_stack.tiles.push(tile);
+				tile_stack.needs_redrawing = true;
+				return (true, Vec::new());
+			}
 			//_ => false,
 		}
 	}
@@ -183,6 +213,8 @@ impl Item {
 			ItemVariant::FlintAxe => Self::FlintAxe,
 			ItemVariant::FlintShovel => Self::FlintShovel,
 			ItemVariant::FlintHammer => Self::FlintHammer,
+			ItemVariant::Acorn => Self::Acorn,
+			ItemVariant::PineCone => Self::PineCone,
 		})
 	}
 }
@@ -204,6 +236,8 @@ impl ItemVariant {
 			Self::FlintAxe => "flint_axe",
 			Self::FlintShovel => "flint_shovel",
 			Self::FlintHammer => "flint_hammer",
+			Self::Acorn => "acorn",
+			Self::PineCone => "pine_cone"
 		}
 	}
 

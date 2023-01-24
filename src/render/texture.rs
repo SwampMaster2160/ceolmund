@@ -41,6 +41,8 @@ pub enum Texture {
 	FlintHammer,
 	FlintShovel,
 	FlintAxe,
+	Acorn,
+	PineCone,
 	//GreenThing,
 	//BlueThing,
 }
@@ -76,6 +78,8 @@ impl Texture {
 			Self::FlintHammer => const_static_ptr!([u16; 4], grid_texture(0x20)),
 			Self::FlintShovel => const_static_ptr!([u16; 4], grid_texture(0x21)),
 			Self::FlintAxe => const_static_ptr!([u16; 4], grid_texture(0x22)),
+			Self::Acorn => const_static_ptr!([u16; 4], grid_texture(0x23)),
+			Self::PineCone => const_static_ptr!([u16; 4], grid_texture(0x24)),
 			//Self::GreenThing => const_static_ptr!([u16; 4], grid_texture(0xF0)),
 			//Self::BlueThing => const_static_ptr!([u16; 4], grid_texture(0xFF)),
 		}
@@ -111,6 +115,8 @@ impl Texture {
 			Self::FlintAxe => TextureType::Basic,
 			Self::FlintHammer => TextureType::Basic,
 			Self::FlintShovel => TextureType::Basic,
+			Self::Acorn => TextureType::Basic,
+			Self::PineCone => TextureType::Basic,
 			//Self::GreenThing => TextureType::Basic,
 			//Self::BlueThing => TextureType::Basic,
 		}
