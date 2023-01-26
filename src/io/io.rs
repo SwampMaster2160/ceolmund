@@ -128,23 +128,32 @@ impl IO {
 
 	#[cfg(windows)]
 	pub fn poll_gamepad(&mut self) {
-		let handle = rusty_xinput::XInputHandle::load_default().unwrap();
-		for x in 0..4 {
-			if let Ok(gamepad) = handle.get_state(x) {
-				self.game_keys_gamepad[GameKey::WalkNorth as usize] = gamepad.arrow_up();
-				self.game_keys_gamepad[GameKey::WalkEast as usize] = gamepad.arrow_right();
-				self.game_keys_gamepad[GameKey::WalkSouth as usize] = gamepad.arrow_down();
-				self.game_keys_gamepad[GameKey::WalkWest as usize] = gamepad.arrow_left();
-				self.game_keys_gamepad[GameKey::Interact as usize] = gamepad.east_button() || gamepad.south_button();
-				self.game_keys_gamepad[GameKey::InventoryLeft as usize] = gamepad.left_shoulder();
-				self.game_keys_gamepad[GameKey::InventoryRight as usize] = gamepad.right_shoulder();
-				self.game_keys_gamepad[GameKey::InventoryUp as usize] = gamepad.left_trigger_bool();
-				self.game_keys_gamepad[GameKey::InventoryDown as usize] = gamepad.right_trigger_bool();
-				self.game_keys_gamepad[GameKey::ChangeDirectionInplace as usize] = gamepad.north_button();
-				self.game_keys_gamepad[GameKey::MoveWithoutChangingDirection as usize] = gamepad.west_button();
-				self.game_keys_gamepad[GameKey::Turbo as usize] = gamepad.south_button();
-				self.game_keys_gamepad[GameKey::MenuOpenClose as usize] = gamepad.select_button();
-			}
+		// Return if there is an error getting the gamepad manager.
+		let handle = match rusty_xinput::XInputHandle::load_default() {
+			Ok(handle) => handle,
+			Err(_) => return,
+		};
+		// For each of the 4 gamepads.
+		for gamepad_id in 0..4 {
+			// Do not use a gamepad that does not exist
+			let gamepad = match handle.get_state(gamepad_id) {
+				Ok(gamepad) => gamepad,
+				Err(_) => continue,
+			};
+			// Get inputs
+			self.game_keys_gamepad[GameKey::WalkNorth as usize] = gamepad.arrow_up();
+			self.game_keys_gamepad[GameKey::WalkEast as usize] = gamepad.arrow_right();
+			self.game_keys_gamepad[GameKey::WalkSouth as usize] = gamepad.arrow_down();
+			self.game_keys_gamepad[GameKey::WalkWest as usize] = gamepad.arrow_left();
+			self.game_keys_gamepad[GameKey::Interact as usize] = gamepad.east_button() || gamepad.south_button();
+			self.game_keys_gamepad[GameKey::InventoryLeft as usize] = gamepad.left_shoulder();
+			self.game_keys_gamepad[GameKey::InventoryRight as usize] = gamepad.right_shoulder();
+			self.game_keys_gamepad[GameKey::InventoryUp as usize] = gamepad.left_trigger_bool();
+			self.game_keys_gamepad[GameKey::InventoryDown as usize] = gamepad.right_trigger_bool();
+			self.game_keys_gamepad[GameKey::ChangeDirectionInplace as usize] = gamepad.north_button();
+			self.game_keys_gamepad[GameKey::MoveWithoutChangingDirection as usize] = gamepad.west_button();
+			self.game_keys_gamepad[GameKey::Turbo as usize] = gamepad.south_button();
+			self.game_keys_gamepad[GameKey::MenuOpenClose as usize] = gamepad.select_button();
 		}
 	}
 

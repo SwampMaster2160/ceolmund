@@ -32,8 +32,6 @@ impl GUI {
 			for element in &mut top_menu.elements {
 				element.tick_mut_self(world, io, [0, 0]);
 			}
-		}
-		if let Some(top_menu) = self.menus.last_mut().cloned() {
 			for element in top_menu.get_elements(world) {
 				element.tick_mut_gui(self, world, io);
 			}

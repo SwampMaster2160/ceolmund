@@ -10,7 +10,9 @@ use std::{io::Cursor, time::Instant};
 
 use gui::gui::GUI;
 use io::{io::IO, game_key::GameKey};
-use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder, event::{Event, WindowEvent, VirtualKeyCode, ElementState, MouseScrollDelta}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler}, Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
+use glium::{glutin::{event_loop::{EventLoop, ControlFlow}, window::{WindowBuilder, Fullscreen}, dpi::LogicalSize, ContextBuilder,
+	event::{Event, WindowEvent, VirtualKeyCode, ElementState, MouseScrollDelta}}, Display, Program, uniforms::{SamplerBehavior, MinifySamplerFilter, MagnifySamplerFilter, Sampler},
+	Blend, DrawParameters, Surface, VertexBuffer, index::{NoIndices, PrimitiveType}, texture::RawImage2d};
 use image::ImageFormat;
 
 #[macro_export]
@@ -84,28 +86,27 @@ fn main() {
 		*control_flow = ControlFlow::Poll;
 		match event {
 			Event::WindowEvent { event: window_event, .. } => match window_event {
+				// Close window request and resize
 				WindowEvent::CloseRequested => io.game_keys_keyboard[GameKey::CloseGame as usize] = true,
 				WindowEvent::Resized(size) => io.set_window_size(size),
-				WindowEvent::KeyboardInput { device_id: _, input: key_input, .. } => {
-					if key_input.virtual_keycode == Some(VirtualKeyCode::F11) && key_input.state == ElementState::Released {
-						display.gl_window().window().set_fullscreen(match display.gl_window().window().fullscreen() {
+				// Key press
+				WindowEvent::KeyboardInput { input: key_input, .. } => {
+					match key_input.virtual_keycode == Some(VirtualKeyCode::F11) && key_input.state == ElementState::Released {
+						true => display.gl_window().window().set_fullscreen(match display.gl_window().window().fullscreen() {
 							Some(_) => None,
 							None => Some(Fullscreen::Borderless(None)),
-						})
-					}
-					else {
-						io.key_press(key_input);
+						}),
+						false => io.key_press(key_input),
 					}
 				}
 				WindowEvent::ReceivedCharacter(chr) => io.key_chars.push(*chr),
+				// Mouse input
 				WindowEvent::CursorMoved { device_id: _, position, .. } =>
 					io.mouse_pos = [position.x as u32, position.y as u32],
 				WindowEvent::MouseInput { device_id: _, state, button, .. } => io.mouse_press(*state, *button),
-				WindowEvent::MouseWheel { delta, .. } => {
-					match delta {
-						MouseScrollDelta::LineDelta(_, y) => io.mouse_scroll_delta = *y as i16,
-						MouseScrollDelta::PixelDelta(amount) => io.mouse_scroll_delta = amount.y as i16,
-					}
+				WindowEvent::MouseWheel { delta, .. } => match delta {
+					MouseScrollDelta::LineDelta(_, y) => io.mouse_scroll_delta = *y as i16,
+					MouseScrollDelta::PixelDelta(amount) => io.mouse_scroll_delta = amount.y as i16,
 				}
 				_  => {}
 			}
