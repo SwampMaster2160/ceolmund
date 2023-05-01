@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{world::{tile::{tile::Tile, tile_stack::TileStack}, chunk::chunk_pool_offset::ChunkPoolOffset}, render::texture::Texture, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}, error::Error};
 use strum::IntoEnumIterator;
 
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -195,10 +195,10 @@ impl Item {
 	}
 
 	/// Create a item from disk data.
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
-		let variant = *namespace.items.get(file.read_u8()? as usize)?;
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Result<Self, Error> {
+		let variant = *namespace.items.get(file.read_u8()? as usize).ok_or(Error::IDOutOfNamespaceBounds)?;
 
-		Some(match variant {
+		Ok(match variant {
 			ItemVariant::Axe => Self::Axe,
 			ItemVariant::Hammer => Self::Hammer,
 			ItemVariant::None => Self::None,

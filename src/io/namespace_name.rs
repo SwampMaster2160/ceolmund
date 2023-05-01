@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 #[derive(Debug)]
 pub enum NamespaceName {
 	Tile,
@@ -9,15 +11,15 @@ pub enum NamespaceName {
 }
 
 impl NamespaceName {
-	pub fn from_name(name: &String) -> Option<Self> {
+	pub fn from_name(name: &String) -> Result<Self, Error> {
 		match name.as_str() {
-			"tile" => Some(Self::Tile),
-			"item" => Some(Self::Item),
-			"entity" => Some(Self::Entity),
-			"direction_4" => Some(Self::Direction4),
-			"entity_action_state" => Some(Self::EntityActionStates),
-			"difficulty" => Some(Self::Difficulty),
-			_ => None,
+			"tile" => Ok(Self::Tile),
+			"item" => Ok(Self::Item),
+			"entity" => Ok(Self::Entity),
+			"direction_4" => Ok(Self::Direction4),
+			"entity_action_state" => Ok(Self::EntityActionStates),
+			"difficulty" => Ok(Self::Difficulty),
+			_ => Err(Error::IDOutOfNamespaceBounds),
 		}
 	}
 }

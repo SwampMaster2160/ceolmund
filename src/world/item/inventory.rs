@@ -1,4 +1,4 @@
-use crate::io::{file_writer::FileWriter, file_reader::FileReader, namespace::Namespace};
+use crate::{io::{file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, error::Error};
 
 use super::{item::Item, item_category::ItemCategory};
 
@@ -114,7 +114,7 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 		}
 	}
 
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Result<Self, Error> {
 		// Create blank.
 		let mut inventory = Self::new();
 		// Read the item type and id for each slot.
@@ -123,6 +123,6 @@ impl<const SLOT_COUNT: usize> Inventory<SLOT_COUNT> {
 			*stack_amount = file.read_u8()?;
 		}
 		
-		Some(inventory)
+		Ok(inventory)
 	}
 }

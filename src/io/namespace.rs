@@ -1,5 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::error::Error;
 use crate::world::difficulty::Difficulty;
 use crate::{world::entity::entity_action_state::EntityActionStateVariant, io::io::SERIALIZATION_VERSION};
 use crate::world::entity::entity_type::EntityVariant;
@@ -23,7 +24,7 @@ pub struct Namespace {
 
 impl Namespace {
 	/// Load a namespace from a hash and a namespace folder path.
-	pub fn load(hash: u64, namespaces_filepath: PathBuf) -> Option<Self> {
+	pub fn load(hash: u64, namespaces_filepath: PathBuf) -> Result<Self, Error> {
 		// Get the path of the namespace
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:0>16x}.nsp", hash));
@@ -34,7 +35,7 @@ impl Namespace {
 			false => file.read_u32()?,
 		};
 		if version > SERIALIZATION_VERSION {
-			return None;
+			return Err(Error::FutureSerializationVersion);
 		}
 		// Data to extract
 		let tile_name_map = TileVariant::get_name_map();
@@ -54,35 +55,35 @@ impl Namespace {
 			let mut body_index = file.read_index;
 			loop {
 				// Get the name of the namespace and break the loop if we are at the end of the namespaces.
-				let string_ptr: [u8; 4] = file.data.get(body_index..body_index + 4)?.try_into().ok()?;
+				let string_ptr: [u8; 4] = file.data.get(body_index..body_index + 4).ok_or(Error::OutOfBoundsFileRead)?.try_into().expect("[u8] of length 4 should be castable to [u8; 4].");
 				let string_ptr = u32::from_le_bytes(string_ptr);
 				if string_ptr == 0xFFFFFFFF {
 					break;
 				}
-				let namespace_name = file.get_string_v0(string_ptr)?;
+				let namespace_name = file.get_string_v0(string_ptr).ok_or(Error::InvalidString)?;
 				let namespace_name = NamespaceName::from_name(&namespace_name)?;
 				// Point to the next string pointer
 				body_index += 4;
 				// For each name
 				loop {
 					// Get the name and break if we are at the end of the namespace.
-					let name: [u8; 4] = file.data.get(body_index..body_index + 4)?.try_into().ok()?;
+					let name: [u8; 4] = file.data.get(body_index..body_index + 4).ok_or(Error::OutOfBoundsFileRead)?.try_into().expect("[u8] of length 4 should be castable to [u8; 4].");
 					let string_ptr = u32::from_le_bytes(name);
 					if string_ptr == 0xFFFFFFFF {
 						body_index += 4;
 						break;
 					}
-					let name = file.get_string_v0(string_ptr)?;
+					let name = file.get_string_v0(string_ptr).ok_or(Error::InvalidString)?;
 					// Point to the next string pointer
 					body_index += 4;
 					// Convert
 					match namespace_name {
-						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
-						NamespaceName::Item => items.push(*item_name_map.get(&name)?),
-						NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
-						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
-						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
-						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
+						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Item => items.push(*item_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Entity => entities.push(*entity_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
 					}
 				}
 			}
@@ -104,18 +105,18 @@ impl Namespace {
 					}
 					// Convert
 					match namespace_name {
-						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name)?),
-						NamespaceName::Item => items.push(*item_name_map.get(&name)?),
-						NamespaceName::Entity => entities.push(*entity_name_map.get(&name)?),
-						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name)?),
-						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name)?),
-						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name)?),
+						NamespaceName::Tile => tiles.push(*tile_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Item => items.push(*item_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Entity => entities.push(*entity_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Direction4 => direction_4s.push(*direction_4_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::EntityActionStates => entity_action_states.push(*entity_action_state_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
+						NamespaceName::Difficulty => difficulties.push(*difficulty_name_map.get(&name).ok_or(Error::InvalidNamespaceName)?),
 					}
 				}
 			}
 		}
 
-		Some(Self {
+		Ok(Self {
 			version,
 			tiles,
 			entities,

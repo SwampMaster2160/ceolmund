@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
 use strum::{IntoEnumIterator};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::entity::Entity, item::{item::Item, item_drop::ItemDrop}}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::entity::Entity, item::{item::Item, item_drop::ItemDrop}}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}, error::Error};
 
 use super::{tile_movement_type::TileMovementType, tile_stack::TileStack};
 
@@ -99,11 +99,10 @@ impl Tile {
 	}
 
 	/// Create a tile form disk data.
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<Self> {
-		//let tile_id = *data.get(0)? as usize;
-		let variant = *namespace.tiles.get(file.read_u8()? as usize)?;
-		Some(match variant {
-			TileVariant::None => panic!("None tile should not exist."),//Self::None,
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32) -> Result<Self, Error> {
+		let variant = *namespace.tiles.get(file.read_u8()? as usize).ok_or(Error::IDOutOfNamespaceBounds)?;
+		Ok(match variant {
+			TileVariant::None => panic!("None tile should not exist."),
 			TileVariant::Grass => Self::Grass,
 			TileVariant::Water => Self::Water,
 			TileVariant::Sand => Self::Sand,

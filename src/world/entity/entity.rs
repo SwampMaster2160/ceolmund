@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, item::{item::Item, inventory::Inventory}, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}};
+use crate::{render::vertex::Vertex, io::{game_key::GameKey, io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, world::{direction::Direction4, chunk::chunk_pool::ChunkPool, item::{item::Item, inventory::Inventory}, difficulty::Difficulty}, gui::{gui::GUI, gui_menu::GUIMenu, gui_menu_variant::GUIMenuVariant}, error::Error};
 use super::{entity_action_state::EntityActionState, entity_type::{EntityType, EntityVariant}};
 
 /// A world object that is can move from tile to tile.
@@ -186,14 +186,14 @@ impl Entity {
 	}
 
 	// Load player from file
-	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Option<Self> {
+	pub fn load_player(player_filepath: &PathBuf, namespaces_filepath: &PathBuf, difficulty: Difficulty) -> Result<Self, Error> {
 		// Open file
 		let (mut file, _is_version_0) = FileReader::read_from_file(player_filepath)?;
 		// Get namespace
 		let namespace_hash = file.read_u64()?;
 		let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 		// Load entity
-		Some(Self::deserialize(&mut file, &namespace, namespace.version, difficulty)?)
+		Ok(Self::deserialize(&mut file, &namespace, namespace.version, difficulty)?)
 	}
 
 	/// Save an entity
@@ -210,11 +210,11 @@ impl Entity {
 		file.push_u32(self.health);
 	}
 
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Option<Self> {
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, difficulty: Difficulty) -> Result<Self, Error> {
 		// Get pos
 		let pos = file.read_world_pos()?;
 		// Get facing
-		let facing = *namespace.direction_4s.get(file.read_u8()? as usize)?;
+		let facing = *namespace.direction_4s.get(file.read_u8()? as usize).ok_or(Error::IDOutOfNamespaceBounds)?;
 		// Get action state
 		let action_state = EntityActionState::deserialize(file, namespace, version, facing)?;
 		// Get entity type
@@ -225,7 +225,7 @@ impl Entity {
 			_ => file.read_u32()?,
 		};
 
-		Some(Self {
+		Ok(Self {
 			pos,
 			facing,
 			action_state,

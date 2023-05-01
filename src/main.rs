@@ -5,6 +5,7 @@ pub mod world;
 pub mod render;
 pub mod io;
 pub mod gui;
+pub mod error;
 
 use std::{io::Cursor, time::Instant};
 

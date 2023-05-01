@@ -1,6 +1,6 @@
 use std::{fs::create_dir, path::PathBuf};
 
-use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, gui::gui::GUI, validate_filename};
+use crate::{render::{vertex::Vertex, render::world_pos_to_render_pos}, io::{io::IO, file_writer::FileWriter, file_reader::FileReader, namespace::Namespace}, gui::gui::GUI, validate_filename, error::Error};
 
 use super::{chunk::chunk_pool::ChunkPool, entity::entity::Entity, difficulty::Difficulty};
 
@@ -22,12 +22,12 @@ pub struct World {
 
 impl World {
 	/// Create a world from a name and seed.
-	pub fn new(seed: u32, name: String, io: &IO, difficulty: Difficulty) -> Option<Self> {
+	pub fn new(seed: u32, name: String, io: &IO, difficulty: Difficulty) -> Result<Self, Error> {
 		// Convert the world name to a world folder filepath, converting character that are not filename safe to underscores. Then create the folder.
 		let dirname: String = validate_filename(name.clone());
 		let mut filepath = io.worlds_path.clone();
 		filepath.push(dirname);
-		create_dir(&filepath).ok()?;
+		create_dir(&filepath).map_err(|_| Error::CannotCreateFolder)?;
 		// Create overview path
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
@@ -51,7 +51,7 @@ impl World {
 	}
 
 	/// Load a world given the path to it's world folder.
-	pub fn load(filepath: PathBuf, io: &IO, basic: bool) -> Option<Self> {
+	pub fn load(filepath: PathBuf, io: &IO, basic: bool) -> Result<Self, Error> {
 		// Get the path of the overview file for the world
 		let mut overview_filepath = filepath.clone();
 		overview_filepath.push("overview.wld".to_string());
@@ -63,7 +63,7 @@ impl World {
 		namespaces_filepath.push("namespaces".to_string());
 		create_dir(&namespaces_filepath).ok();
 		if !chunks_filepath.exists() || !namespaces_filepath.exists() {
-			return None;
+			return Err(Error::CannotCreateFolder);
 		}
 		// Get player filepath
 		let mut player_filepath = filepath.clone();
@@ -72,7 +72,7 @@ impl World {
 		let mut namespace_filepath = namespaces_filepath.clone();
 		namespace_filepath.push(format!("{:0>16x}.nsp", io.namespace_hash));
 		if !namespace_filepath.exists() {
-			io.namespace.write(&namespace_filepath)?;
+			io.namespace.write(&namespace_filepath).ok_or(Error::CannotSaveNamespace)?;
 		}
 		// Read overview
 		let (mut overview_file, is_version_0) = FileReader::read_from_file(&overview_filepath)?;
@@ -81,14 +81,14 @@ impl World {
 		}
 		else {
 			let namespace_hash = overview_file.read_u64()?;
-			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
+			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone()).ok_or(Error::CannotReadNamespace)?;
 			(namespace.version, Some(namespace))
 		};
 		// Get world name
 		let name = match is_version_0 {
 			true => {
 				let index = overview_file.read_u32()?;
-				overview_file.get_string_v0(index)?
+				overview_file.get_string_v0(index).ok_or(Error::FileStringReadError)?
 			},
 			false => overview_file.read_string()?,
 		};
@@ -97,7 +97,10 @@ impl World {
 		// Get difficulty
 		let difficulty = match is_version_0 {
 			true => Difficulty::Sandbox,
-			false => namespace?.difficulties[overview_file.read_u8()? as usize],
+			false => {
+				let difficulty_id = overview_file.read_u8()? as usize;
+				*namespace.expect("Constructed from Some() if is_version_0 is false.").difficulties.get(difficulty_id).ok_or(Error::IDOutOfNamespaceBounds)?
+			},
 		};
 		// Get player
 		let player = if !basic {
@@ -126,7 +129,7 @@ impl World {
 			difficulty,
 		};
 		world.save_overview(io.namespace_hash);
-		Some(world)
+		Ok(world)
 	}
 
 	/// Render the world getting a vector of tris and the center pos of the camera.

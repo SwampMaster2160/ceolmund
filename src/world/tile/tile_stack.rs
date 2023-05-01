@@ -1,6 +1,6 @@
 use noise::{Perlin, NoiseFn, Fbm};
 
-use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, item::item::Item}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::{vertex::Vertex, texture::Texture}, world::{entity::{entity::Entity, entity_action_state::EntityActionState, entity_type::EntityType}, direction::Direction4, item::item::Item}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}, error::Error};
 
 use super::tile::{Tile, TileVariant};
 
@@ -175,16 +175,16 @@ impl TileStack {
 		Some(())
 	}
 
-	pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Option<()> {
+	pub fn deserialize(&mut self, file: &mut FileReader, namespace: &Namespace, version: u32) -> Result<(), Error> {
 		loop {
-			let tile_id = *file.data.get(file.read_index)?;
-			let variant = *namespace.tiles.get(tile_id as usize)?;
+			let tile_id = *file.data.get(file.read_index).ok_or(Error::OutOfBoundsFileRead)?;
+			let variant = *namespace.tiles.get(tile_id as usize).ok_or(Error::IDOutOfNamespaceBounds)?;
 			if variant == TileVariant::None {
 				file.read_index += 1;
 				break;
 			}
 			self.tiles.push(Tile::deserialize(file, namespace, version)?);
 		}
-		Some(())
+		Ok(())
 	}
 }

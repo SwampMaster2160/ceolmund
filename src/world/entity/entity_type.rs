@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{render::texture::Texture, world::{item::inventory::Inventory, difficulty::Difficulty}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}};
+use crate::{render::texture::Texture, world::{item::inventory::Inventory, difficulty::Difficulty}, io::{namespace::Namespace, file_reader::FileReader, file_writer::FileWriter}, error::Error};
 
 use strum::IntoEnumIterator;
 use strum_macros::{EnumDiscriminants, EnumCount, EnumIter};
@@ -37,11 +37,11 @@ impl EntityType {
 	}
 
 	/// Load an entity
-	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, _difficulty: Difficulty) -> Option<Self> {
+	pub fn deserialize(file: &mut FileReader, namespace: &Namespace, version: u32, _difficulty: Difficulty) -> Result<Self, Error> {
 		// Get variant
-		let variant = *namespace.entities.get(file.read_u8()? as usize)?;
+		let variant = *namespace.entities.get(file.read_u8()? as usize).ok_or(Error::IDOutOfNamespaceBounds)?;
 
-		Some(match variant {
+		Ok(match variant {
 			EntityVariant::Player => {
 				let inventory = Inventory::deserialize(file, namespace, version)?;
 				let selected_item = file.read_u8()?;
