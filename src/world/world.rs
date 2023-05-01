@@ -81,7 +81,7 @@ impl World {
 		}
 		else {
 			let namespace_hash = overview_file.read_u64()?;
-			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone()).ok_or(Error::CannotReadNamespace)?;
+			let namespace = Namespace::load(namespace_hash, namespaces_filepath.clone())?;
 			(namespace.version, Some(namespace))
 		};
 		// Get world name
@@ -106,8 +106,8 @@ impl World {
 		let player = if !basic {
 			let player = Entity::load_player(&player_filepath, &namespaces_filepath, difficulty);
 			Some(match player {
-				Some(player) => player,
-				None => Entity::new_player(difficulty),
+				Ok(player) => player,
+				Err(_) => Entity::new_player(difficulty),
 			})
 		}
 		else {

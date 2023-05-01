@@ -18,6 +18,8 @@ pub enum Error {
 	InvalidUTF8InString,
 	FutureSerializationVersion,
 	InvalidNamespaceName,
+	V0Error,
+	CannotReadToFile,
 	
 	InvalidString,
 }
@@ -41,6 +43,8 @@ impl Display for Error {
 			Self::InvalidString => write!(f, "Invalid string."),
 			Self::IDOutOfMetaNamespaceBounds => write!(f, "Invalid namespace ID."),
 			Self::InvalidNamespaceName => write!(f, "Invalid namespace name."),
+			Self::V0Error => write!(f, "Version 0 Error."),
+			Self::CannotReadToFile => write!(f, "Cannot read to file."),
 		}
 	}
 }

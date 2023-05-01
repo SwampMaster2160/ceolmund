@@ -1,12 +1,14 @@
 use tokio::task::JoinHandle;
 
+use crate::error::Error;
+
 use super::chunk::Chunk;
 
 /// A chunk slot, can be a chunk, a generating chunk or a freeing chunk.
 pub enum ChunkSlot {
 	Chunk(Chunk),
-	Getting(JoinHandle<Option<Chunk>>),
-	Freeing(JoinHandle<Option<()>>)
+	Getting(JoinHandle<Result<Chunk, Error>>),
+	Freeing(JoinHandle<Result<(), Error>>)
 }
 
 impl ChunkSlot {

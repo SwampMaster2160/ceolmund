@@ -99,9 +99,9 @@ impl GUIMenu {
 								};
 								// Create world.
 								match World::new(seed, name_text.clone(), io, difficulty) {
-									Some(valid_world) => *world = Some(valid_world),
-									None => {
-										gui.menus.push(GUIMenu::new_error("Unable to create world.".to_string()));
+									Ok(valid_world) => *world = Some(valid_world),
+									Err(error) => {
+										gui.menus.push(GUIMenu::new_error(format!("Unable to create world: {error}")));
 										return
 									},
 								};
@@ -202,12 +202,12 @@ impl GUIMenu {
 							let top_menu = &gui.menus.last().unwrap().variant;
 							if let GUIMenuVariant::LoadWorld { world_list: load_world_data } = top_menu {
 								let world_path = &load_world_data.worlds[button_clicked_index].1;
-								if let Some(new_world) = World::load(world_path.clone(), io, false) {
-									*world = Some(new_world);
-									gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
-								}
-								else {
-									gui.menus.push(GUIMenu::new_error("Unable to load world".to_string()));
+								match World::load(world_path.clone(), io, false) {
+									Ok(new_world) => {
+										*world = Some(new_world);
+										gui.menus = vec![GUIMenu::new(GUIMenuVariant::IngameHUD)];
+									}
+									Err(error) => gui.menus.push(GUIMenu::new_error(format!("Unable to load world: {error}"))),
 								}
 							}
 						}),

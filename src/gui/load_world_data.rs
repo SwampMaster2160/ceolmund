@@ -18,7 +18,7 @@ impl WorldList {
 				// Get the path
 				let filepath = item.path();
 				// Add it to the list if it is a valid world.
-				if let Some(basic_world) = World::load(filepath.clone(), io, true) {
+				if let Ok(basic_world) = World::load(filepath.clone(), io, true) {
 					out.push((basic_world.name, filepath));
 				}
 			}
